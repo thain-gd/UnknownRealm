@@ -10,8 +10,6 @@
 
 void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	/*Super::PostLogin(NewPlayer);*/
-	
 	bool b_ValidGameController = IsValid(GameController);
 	if (!b_ValidGameController)
 	{
@@ -33,10 +31,15 @@ void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(NewPlayer);
+	if (!PlayerController)
+		return;
+	
 	if (HasAuthority())
 	{
 		ClientRespawnPlayer(PlayerController);
 	}
+
+	GameController->ServerAddPlayer(PlayerController);
 }
 
 bool AMPGameMode::GetGameController()

@@ -14,6 +14,8 @@ AMPGameController::AMPGameController()
 
 void AMPGameController::ServerAddPlayer_Implementation(APlayerController* NewPlayer)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AddPlayer"));
+
 	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(NewPlayer);
 	AMPPlayerState* PlayerState = Cast<AMPPlayerState>(PlayerController->PlayerState);
 	const int32 PlayerId = PlayerState->PlayerId;

@@ -26,11 +26,6 @@ void UMPGameInstance::ShowServers()
 	if (!TransitionToState(EGameplayState::ServerList))
 		return;
 
-	if (!ServerList)
-	{
-		ServerList = CreateWidget<UUserWidget>(this, ServerListClass);
-	}
-
 	ShowWidget(ServerList, ServerListClass);
 }
 
@@ -50,11 +45,6 @@ void UMPGameInstance::ShowLoadingScreen()
 	if (!TransitionToState(EGameplayState::LoadingScreen))
 		return;
 
-	if (!LoadingScreen)
-	{
-		LoadingScreen = CreateWidget<UUserWidget>(this, LoadingScreenClass);
-	}
-
 	ShowWidget(LoadingScreen, LoadingScreenClass);
 }
 
@@ -69,12 +59,11 @@ void UMPGameInstance::ShowMainMenu()
 
 	if (TransitionToState(EGameplayState::MainMenu))
 	{
-		if (!MainMenu)
-			MainMenu = CreateWidget<UUserWidget>(this, MainMenuClass);
-
 		ShowWidget(MainMenu, MainMenuClass);
 
-		GetPrimaryPlayerController()->bShowMouseCursor = true;
+		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		if (IsValid(PlayerController))
+			PlayerController->bShowMouseCursor = true;
 	}
 }
 
@@ -125,9 +114,13 @@ void UMPGameInstance::ShowWidget(UUserWidget*& Widget, TSubclassOf<UUserWidget> 
 		Widget = CreateWidget<UUserWidget>(this, WidgetClass);
 	}
 
-	const FInputModeUIOnly InputMode;
-	GetPrimaryPlayerController()->SetInputMode(InputMode);
-	Widget->AddToViewport();
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (IsValid(PlayerController))
+	{
+		const FInputModeUIOnly InputMode;
+		PlayerController->SetInputMode(InputMode);
+		Widget->AddToViewport();
+	}
 }
 
 void UMPGameInstance::HideWidget(UUserWidget* Widget)

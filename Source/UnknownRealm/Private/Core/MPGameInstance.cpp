@@ -8,35 +8,46 @@
 
 UMPGameInstance::UMPGameInstance()
 {
-	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT("/UI/UI_MainMenu"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT("/Game/UI/UI_MainMenu"));
 	if (MainMenuBPClass.Class)
 		MainMenuClass = MainMenuBPClass.Class;
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> ServerListBPClass(TEXT("/UI/UI_ServerList"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> ServerListBPClass(TEXT("/Game/UI/UI_ServerList"));
 	if (ServerListBPClass.Class)
 		ServerListClass = ServerListBPClass.Class;
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> LoadingScreenBPClass(TEXT("/UI/UI_LoadingScreen"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> LoadingScreenBPClass(TEXT("/Game/UI/UI_LoadingScreen"));
 	if (LoadingScreenBPClass.Class)
 		LoadingScreenClass = LoadingScreenBPClass.Class;
-
-	static ConstructorHelpers::FClassFinder<UUserWidget> ErrorScreenBPClass(TEXT("/UI/UI_ErrorScreen"));
-	if (ErrorScreenBPClass.Class)
-		ErrorScreenClass = ErrorScreenBPClass.Class;
-}
-
-void UMPGameInstance::HostGame()
-{
-	ShowLoadingScreen();
 }
 
 void UMPGameInstance::ShowServers()
 {
+	if (!TransitionToState(EGameplayState::ServerList))
+		return;
+
+	if (!ServerList)
+	{
+		ServerList = CreateWidget<UUserWidget>(this, ServerListClass);
+	}
+
+	ShowWidget(ServerList, ServerListClass);
+}
+
+void UMPGameInstance::StartPlaying()
+{
+	TransitionToState(EGameplayState::GameInProgress);
+}
+
+void UMPGameInstance::OnGameStarted()
+{
+	if (IsCurrentState(EGameplayState::Startup))
+		ShowMainMenu();
 }
 
 void UMPGameInstance::ShowLoadingScreen()
 {
-	if (!TransitionToState(GameplayState::LoadingScreen))
+	if (!TransitionToState(EGameplayState::LoadingScreen))
 		return;
 
 	if (!LoadingScreen)
@@ -44,39 +55,57 @@ void UMPGameInstance::ShowLoadingScreen()
 		LoadingScreen = CreateWidget<UUserWidget>(this, LoadingScreenClass);
 	}
 
-	const FInputModeUIOnly InputMode;
-	GetPrimaryPlayerController()->SetInputMode(InputMode);
-	LoadingScreen->AddToViewport();
+	ShowWidget(LoadingScreen, LoadingScreenClass);
 }
 
-bool UMPGameInstance::TransitionToState(GameplayState NewState)
+void UMPGameInstance::ShowMainMenu()
+{
+	if (IsCurrentState(EGameplayState::GameInProgress))
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("StartMenu"));
+		FLatentActionInfo LatentInfo;
+		UKismetSystemLibrary::Delay(GetWorld(), 0.2f, LatentInfo);
+	}
+
+	if (TransitionToState(EGameplayState::MainMenu))
+	{
+		if (!MainMenu)
+			MainMenu = CreateWidget<UUserWidget>(this, MainMenuClass);
+
+		ShowWidget(MainMenu, MainMenuClass);
+
+		GetPrimaryPlayerController()->bShowMouseCursor = true;
+	}
+}
+
+bool UMPGameInstance::TransitionToState(EGameplayState NewState)
 {
 	if (IsCurrentState(NewState))
 		return false;
 
 	switch (CurrentState)
 	{
-	case GameplayState::Startup:
+	case EGameplayState::Startup:
 		break;
 
-	case GameplayState::MainMenu:
+	case EGameplayState::MainMenu:
 		HideWidget(MainMenu);
 		break;
 
-	case GameplayState::ServerList:
+	case EGameplayState::ServerList:
 		HideWidget(ServerList);
 		break;
 
-	case GameplayState::LoadingScreen:
+	case EGameplayState::LoadingScreen:
 		HideWidget(LoadingScreen);
 		break;
 
-	case GameplayState::ErrorDialog:
+	case EGameplayState::ErrorDialog:
 		HideWidget(ErrorScreen);
 		break;
 
-	case GameplayState::GameInProgress:
-	case GameplayState::Indeterminate:
+	case EGameplayState::GameInProgress:
+	case EGameplayState::Indeterminate:
 		break;
 	}
 
@@ -84,12 +113,25 @@ bool UMPGameInstance::TransitionToState(GameplayState NewState)
 	return true;
 }
 
-bool UMPGameInstance::IsCurrentState(GameplayState NewState) const
+bool UMPGameInstance::IsCurrentState(EGameplayState NewState) const
 {
 	return CurrentState == NewState;
 }
 
+void UMPGameInstance::ShowWidget(UUserWidget*& Widget, TSubclassOf<UUserWidget> WidgetClass)
+{
+	if (!Widget)
+	{
+		Widget = CreateWidget<UUserWidget>(this, WidgetClass);
+	}
+
+	const FInputModeUIOnly InputMode;
+	GetPrimaryPlayerController()->SetInputMode(InputMode);
+	Widget->AddToViewport();
+}
+
 void UMPGameInstance::HideWidget(UUserWidget* Widget)
 {
-	Widget->RemoveFromParent();
+	if (Widget)
+		Widget->RemoveFromParent();
 }

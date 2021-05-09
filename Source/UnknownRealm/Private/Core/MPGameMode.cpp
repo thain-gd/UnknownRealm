@@ -16,17 +16,17 @@ void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 		b_ValidGameController = GetGameController();
 	}
 	
-	if (b_ValidGameController && HasAuthority())
+	if (!b_ValidGameController || !HasAuthority())
+		return;
+
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundActors);
+	for (AActor* Actor : FoundActors)
 	{
-		TArray<AActor*> FoundActors;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundActors);
-		for (AActor* Actor : FoundActors)
+		APlayerStart* PlayerStart = Cast<APlayerStart>(Actor);
+		if (PlayerStart != nullptr)
 		{
-			APlayerStart* PlayerStart = Cast<APlayerStart>(Actor);
-			if (PlayerStart != nullptr)
-			{
-				StartLocations.AddUnique(PlayerStart);
-			}
+			StartLocations.AddUnique(PlayerStart);
 		}
 	}
 

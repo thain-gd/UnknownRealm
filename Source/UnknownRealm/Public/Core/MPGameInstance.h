@@ -6,8 +6,8 @@
 #include "Engine/GameInstance.h"
 #include "MPGameInstance.generated.h"
 
-UENUM()
-enum class GameplayState
+UENUM(BlueprintType)
+enum EGameplayState
 {
 	Startup,
 	MainMenu,
@@ -29,24 +29,43 @@ class UNKNOWNREALM_API UMPGameInstance : public UGameInstance
 public:
 	UMPGameInstance();
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintImplementableEvent)
 	void HostGame();
+
+	UFUNCTION(BlueprintCallable)
+	void StartPlaying();
+
+	UFUNCTION(BlueprintCallable)
+	void OnGameStarted();
+
+	UFUNCTION(BlueprintCallable)
+	void ShowLoadingScreen();
+
+	UFUNCTION(BlueprintCallable)
+	void ShowMainMenu();
 
 	UFUNCTION(BlueprintCallable)
 	void ShowServers();
 
-private:
-	void ShowLoadingScreen();
-	bool TransitionToState(GameplayState NewState);
-	bool IsCurrentState(GameplayState NewState) const;
+	UFUNCTION(BlueprintCallable)
+	bool TransitionToState(EGameplayState NewState);
 
-	static void HideWidget(UUserWidget* Widget);
+private:
+	bool IsCurrentState(EGameplayState NewState) const;
+	void ShowWidget(UUserWidget*& Widget, TSubclassOf<UUserWidget> WidgetClass);
+
+	void HideWidget(UUserWidget* Widget);
 
 	
 
 public:
+	UPROPERTY(BlueprintReadOnly)
 	bool bEnableLAN;
-	GameplayState CurrentState;
+
+	UPROPERTY(BlueprintReadWrite)
+	UUserWidget* ErrorScreen;
+
+	EGameplayState CurrentState;
 
 private:
 	UPROPERTY()
@@ -60,8 +79,4 @@ private:
 	UPROPERTY()
 	UUserWidget* LoadingScreen;
 	TSubclassOf<UUserWidget> LoadingScreenClass;
-
-	UPROPERTY()
-	UUserWidget* ErrorScreen;
-	TSubclassOf<UUserWidget> ErrorScreenClass;
 };

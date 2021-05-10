@@ -27,8 +27,6 @@ class UNKNOWNREALM_API UMPGameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
-	UMPGameInstance();
-	
 	UFUNCTION(BlueprintImplementableEvent)
 	void HostGame();
 
@@ -65,18 +63,24 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	UUserWidget* ErrorScreen;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> MainMenuClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> ServerListClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> LoadingScreenClass;
+
 	EGameplayState CurrentState;
 
 private:
 	UPROPERTY()
 	UUserWidget* MainMenu;
-	TSubclassOf<UUserWidget> MainMenuClass;
 
 	UPROPERTY()
 	UUserWidget* ServerList;
-	TSubclassOf<UUserWidget> ServerListClass;
 
 	UPROPERTY()
 	UUserWidget* LoadingScreen;
-	TSubclassOf<UUserWidget> LoadingScreenClass;
 };

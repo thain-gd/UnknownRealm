@@ -6,21 +6,6 @@
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 
-UMPGameInstance::UMPGameInstance()
-{
-	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBPClass(TEXT("/Game/UI/UI_MainMenu"));
-	if (MainMenuBPClass.Class)
-		MainMenuClass = MainMenuBPClass.Class;
-
-	static ConstructorHelpers::FClassFinder<UUserWidget> ServerListBPClass(TEXT("/Game/UI/UI_ServerList"));
-	if (ServerListBPClass.Class)
-		ServerListClass = ServerListBPClass.Class;
-
-	static ConstructorHelpers::FClassFinder<UUserWidget> LoadingScreenBPClass(TEXT("/Game/UI/UI_LoadingScreen"));
-	if (LoadingScreenBPClass.Class)
-		LoadingScreenClass = LoadingScreenBPClass.Class;
-}
-
 void UMPGameInstance::ShowServers()
 {
 	if (!TransitionToState(EGameplayState::ServerList))

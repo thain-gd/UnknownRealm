@@ -96,15 +96,16 @@ void UMPGameInstance::ShowWidget(UUserWidget*& Widget, TSubclassOf<UUserWidget> 
 {
 	if (!Widget)
 	{
-		Widget = CreateWidget<UUserWidget>(this, WidgetClass);
+		Widget = CreateWidget(this, WidgetClass);
 	}
+
+	Widget->AddToViewport();
 
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if (IsValid(PlayerController))
 	{
 		const FInputModeUIOnly InputMode;
 		PlayerController->SetInputMode(InputMode);
-		Widget->AddToViewport();
 	}
 }
 

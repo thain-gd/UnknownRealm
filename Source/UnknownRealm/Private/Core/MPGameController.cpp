@@ -18,7 +18,7 @@ void AMPGameController::ServerAddPlayer_Implementation(APlayerController* NewPla
 
 	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(NewPlayer);
 	AMPPlayerState* PlayerState = Cast<AMPPlayerState>(PlayerController->PlayerState);
-	const int32 PlayerId = PlayerState->PlayerId;
+	const int32 PlayerId = PlayerState->GetPlayerId();
 	if (PlayerId >= 0)
 	{
 		if (PlayerStates.IsValidIndex(PlayerId))

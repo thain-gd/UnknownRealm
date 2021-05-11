@@ -37,6 +37,7 @@ void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 	if (HasAuthority())
 	{
 		ClientRespawnPlayer(PlayerController);
+		PlayerController->ClientPostLogin();
 	}
 
 	GameController->ServerAddPlayer(PlayerController);

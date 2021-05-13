@@ -5,20 +5,27 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Net/UnrealNetwork.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+	
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 580.0f, 0.0f); // ...at this rotation rate
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	
+	SpringArmComp->bUsePawnControlRotation = true;
+
+	// Create a follow camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("TP_CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
+	CameraComp->bUsePawnControlRotation = false;
 }
 
 // Called when the game starts or when spawned
@@ -28,13 +35,6 @@ void APlayerCharacter::BeginPlay()
 	
 }
 
-// Called every frame
-void APlayerCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 // Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -42,28 +42,29 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	InputComponent->BindAxis("MoveForward/Backward", this, &APlayerCharacter::MoveVertical);
 	InputComponent->BindAxis("MoveRight/Left", this, &APlayerCharacter::MoveHorizontal);
-	InputComponent->BindAxis("LookLeft/Right", this, &APlayerCharacter::LookLeftRight);
-	InputComponent->BindAxis("LookUp/Down", this, &APlayerCharacter::LookUpDown);
+	InputComponent->BindAxis("LookLeft/Right", this, &APawn::AddControllerYawInput);
+	InputComponent->BindAxis("LookUp/Down", this, &APawn::AddControllerPitchInput);
 }
 
 void APlayerCharacter::MoveVertical(float AxisValue)
 {
-	FVector ForwardVector = GetCapsuleComponent()->GetForwardVector();
-	AddMovementInput(ForwardVector, AxisValue);
+	// find out which way is forward
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+	// get forward vector
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	AddMovementInput(Direction, AxisValue);
 }
 
 void APlayerCharacter::MoveHorizontal(float AxisValue)
 {
-	const FVector RightVector = GetCapsuleComponent()->GetRightVector();
-	AddMovementInput(RightVector, AxisValue);
-}
+	// find out which way is right
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-void APlayerCharacter::LookLeftRight(float AxisValue)
-{
-	AddControllerYawInput(AxisValue);
-}
-
-void APlayerCharacter::LookUpDown(float AxisValue)
-{
-	AddControllerPitchInput(AxisValue);
+	// get right vector 
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	// add movement in that direction
+	AddMovementInput(Direction, AxisValue);
 }

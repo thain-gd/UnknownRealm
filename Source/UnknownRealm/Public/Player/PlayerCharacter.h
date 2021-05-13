@@ -18,9 +18,6 @@ public:
 	// Sets default values for this character's properties
 	APlayerCharacter();
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -31,8 +28,6 @@ protected:
 private:
 	void MoveVertical(float AxisValue);
 	void MoveHorizontal(float AxisValue);
-	void LookLeftRight(float AxisValue);
-	void LookUpDown(float AxisValue);
 	
 	
 private:

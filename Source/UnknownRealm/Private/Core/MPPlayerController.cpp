@@ -45,7 +45,8 @@ void AMPPlayerController::SetupUIs()
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputMode.SetHideCursorDuringCapture(true);
 	SetInputMode(InputMode);
-	bShowMouseCursor = true;
+	
+	bShowMouseCursor = false;
 }
 
 void AMPPlayerController::ToggleGameMenu()

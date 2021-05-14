@@ -31,10 +31,10 @@ private:
 	
 	
 private:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArmComp;
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComp;
 	
 

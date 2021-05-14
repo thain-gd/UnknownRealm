@@ -21,7 +21,28 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerAddPlayer(APlayerController* NewPlayer);
 
+protected:
+	virtual void BeginPlay() override;
+	
+	UFUNCTION(BlueprintPure)
+	float GetRemainingTime() const
+	{
+		return GetWorldTimerManager().GetTimerRemaining(PreparingTimeHandle);
+	}
+	
 private:
+	void StartWave();
+	
+	
+private:
+	UPROPERTY()
 	TArray<AMPPlayerController*> PlayerControllers;
+
+	UPROPERTY()
 	TArray<AMPPlayerState*> PlayerStates;
+
+	UPROPERTY(EditAnywhere, Category = GameController)
+	float MaxPreparingTime;
+	
+	FTimerHandle PreparingTimeHandle;
 };

@@ -10,6 +10,17 @@ AMPGameController::AMPGameController()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
+	MaxPreparingTime = 600; // in seconds
+}
+
+void AMPGameController::BeginPlay()
+{
+	GetWorldTimerManager().SetTimer(PreparingTimeHandle, this, &AMPGameController::StartWave, 0.1f, false, MaxPreparingTime);
+}
+
+void AMPGameController::StartWave()
+{
+	
 }
 
 void AMPGameController::ServerAddPlayer_Implementation(APlayerController* NewPlayer)

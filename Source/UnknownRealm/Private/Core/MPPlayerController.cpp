@@ -69,6 +69,8 @@ void AMPPlayerController::ToggleGameMenu()
 void AMPPlayerController::ShowGameMenu()
 {
 	GameMenu->AddToViewport();
+
+	bShowMouseCursor = true;
 	
 	const FInputModeUIOnly InputMode;
 	SetInputMode(InputMode);

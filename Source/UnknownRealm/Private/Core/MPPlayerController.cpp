@@ -4,6 +4,7 @@
 #include "Core/MPPlayerController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Player/PlayerCharacter.h"
 
 void AMPPlayerController::ClientPostLogin_Implementation()
 {
@@ -71,13 +72,25 @@ void AMPPlayerController::ShowGameMenu()
 	GameMenu->AddToViewport();
 
 	bShowMouseCursor = true;
-	
-	const FInputModeUIOnly InputMode;
+
+	const FInputModeGameAndUI InputMode;
 	SetInputMode(InputMode);
+
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetPawn());
+	if (PlayerChar)
+		PlayerChar->DisableInput(this);
 }
 
 void AMPPlayerController::HideGameMenu()
 {
+	GameMenu->RemoveFromViewport();
+	
+	bShowMouseCursor = false;
+
 	const FInputModeGameOnly InputMode;
 	SetInputMode(InputMode);
+	
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetPawn());
+	if (PlayerChar)
+		PlayerChar->EnableInput(this);
 }

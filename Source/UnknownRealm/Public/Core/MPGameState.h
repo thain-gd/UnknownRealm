@@ -14,4 +14,21 @@ class UNKNOWNREALM_API AMPGameState : public AGameState
 {
 	GENERATED_BODY()
 	
+public:
+	int32 GetRemainingPreparingTime() const { return RemainingPreparingTime; }
+
+	void InitPreparingTime(int32 MaxPreparingTime)
+	{
+		RemainingPreparingTime = MaxPreparingTime;
+	}
+	
+	void DecreaseRemainingPreparingTime()
+	{
+		--RemainingPreparingTime;
+	}
+
+	
+protected:
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = GameState)
+	int32 RemainingPreparingTime;
 };

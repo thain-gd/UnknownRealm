@@ -1,6 +1,5 @@
 #include "Core/MPGameMode.h"
 
-#include "Core/MPGameController.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
@@ -8,17 +7,37 @@
 #include "Core/MPGameState.h"
 #include "Core/MPPlayerState.h"
 
+AMPGameMode::AMPGameMode()
+	: MaxPreparingTime(600)
+{
+}
+
 void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	bool b_ValidGameController = IsValid(GameController);
-	if (!b_ValidGameController)
-	{
-		b_ValidGameController = GetGameController();
-	}
-	
-	if (!b_ValidGameController || !HasAuthority())
+	if (!HasAuthority())
 		return;
 
+	InitSpawnLocations();
+	
+	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(NewPlayer);
+	if (!PlayerController)
+		return;
+	
+	ClientRespawnPlayer(PlayerController);
+	PlayerController->ClientPostLogin();
+}
+
+void AMPGameMode::BeginPlay()
+{
+	AMPGameState* MPGameState = GetGameState<AMPGameState>();
+	if (ensureAlways(MPGameState))
+		MPGameState->InitPreparingTime(MaxPreparingTime);
+	
+	GetWorldTimerManager().SetTimer(PreparingTimeHandle, this, &AMPGameMode::UpdateRemainingTime, 1.f, true, 1.f);	
+}
+
+void AMPGameMode::InitSpawnLocations()
+{
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundActors);
 	for (AActor* Actor : FoundActors)
@@ -26,33 +45,32 @@ void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 		APlayerStart* PlayerStart = Cast<APlayerStart>(Actor);
 		if (PlayerStart != nullptr)
 		{
-			StartLocations.AddUnique(PlayerStart);
+			SpawnLocations.AddUnique(PlayerStart);
 		}
 	}
 
-	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(NewPlayer);
-	if (!PlayerController)
-		return;
-	
-	if (HasAuthority())
-	{
-		ClientRespawnPlayer(PlayerController);
-		PlayerController->ClientPostLogin();
-	}
-
-	GameController->ServerAddPlayer(PlayerController);
+	verify(SpawnLocations.Num() > 0);
 }
 
-bool AMPGameMode::GetGameController()
+void AMPGameMode::UpdateRemainingTime()
 {
-	AMPGameController* FoundGameController = Cast<AMPGameController>(UGameplayStatics::GetActorOfClass(GetWorld(), AMPGameController::StaticClass()));
-	if (IsValid(FoundGameController))
-	{
-		GameController = FoundGameController;
-		return true;
-	}
+	float RemainingTime = GetWorldTimerManager().GetTimerRemaining(PreparingTimeHandle);
 
-	return false;
+	AMPGameState* MPGameState = GetGameState<AMPGameState>();
+	if (ensureAlways(MPGameState))
+	{
+		MPGameState->DecreaseRemainingPreparingTime();
+		if (MPGameState->GetRemainingPreparingTime() <= 0)
+		{
+			GetWorldTimerManager().ClearTimer(PreparingTimeHandle);
+			StartWave();
+		}
+	}
+}
+
+void AMPGameMode::StartWave()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Wave has started!"));
 }
 
 void AMPGameMode::ClientRespawnPlayer_Implementation(APlayerController* PlayerController)
@@ -65,7 +83,7 @@ void AMPGameMode::ClientRespawnPlayer_Implementation(APlayerController* PlayerCo
 		GetWorld()->DestroyActor(ControlledPawn);
 	}
 	
-	APawn* ToPossessPawn = GetWorld()->SpawnActor<APawn>(SpawnCharClass, StartLocations[SpawnPlayerCount]->GetActorTransform());
+	APawn* ToPossessPawn = GetWorld()->SpawnActor<APawn>(SpawnCharClass, SpawnLocations[SpawnedPlayerCount]->GetActorTransform());
 	PlayerController->Possess(ToPossessPawn);
-	++SpawnPlayerCount;
+	++SpawnedPlayerCount;
 }

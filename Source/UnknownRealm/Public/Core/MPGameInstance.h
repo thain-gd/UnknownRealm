@@ -7,7 +7,7 @@
 #include "MPGameInstance.generated.h"
 
 UENUM(BlueprintType)
-enum EGameplayState
+enum class EGameplayState : uint8
 {
 	Startup,
 	MainMenu,

@@ -6,6 +6,7 @@
 
 class APlayerStart;
 class AMPGameController;
+class AAIChar;
 
 UCLASS()
 class UNKNOWNREALM_API AMPGameMode : public AGameMode
@@ -24,7 +25,8 @@ private:
 	UFUNCTION(Client, Reliable)
 	void ClientRespawnPlayer(APlayerController* PlayerController);
 
-	void InitSpawnLocations();
+	void InitEnemySpawnLocations();
+	void InitPlayerSpawnLocations();
 	void UpdateRemainingTime();
 	
 	void StartWave();
@@ -35,10 +37,16 @@ protected:
 
 private:
 	UPROPERTY()
-	TArray<APlayerStart*> SpawnLocations;
+	TArray<APlayerStart*> PlayerSpawnLocations;
+
+	UPROPERTY()
+	TArray<AActor*> EnemySpawnLocations;
 
 	UPROPERTY(EditDefaultsOnly)
 	int32 MaxPreparingTime; // in seconds
+
+	UPROPERTY(EditDefaultsOnly, Category = WaveGameplay)
+	TArray<TSubclassOf<AAIChar>> AIClasses;
 	
 	uint32 SpawnedPlayerCount;
 	FTimerHandle PreparingTimeHandle;

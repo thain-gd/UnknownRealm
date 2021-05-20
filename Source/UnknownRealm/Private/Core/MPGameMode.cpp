@@ -6,6 +6,7 @@
 #include "Core/MPPlayerController.h"
 #include "Core/MPGameState.h"
 #include "Core/MPPlayerState.h"
+#include "AIs/AIChar.h"
 
 AMPGameMode::AMPGameMode()
 	: MaxPreparingTime(600)
@@ -17,7 +18,7 @@ void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 	if (!HasAuthority())
 		return;
 
-	InitSpawnLocations();
+	InitPlayerSpawnLocations();
 	
 	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(NewPlayer);
 	if (!PlayerController)
@@ -29,6 +30,8 @@ void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 
 void AMPGameMode::BeginPlay()
 {
+	InitEnemySpawnLocations();
+
 	AMPGameState* MPGameState = GetGameState<AMPGameState>();
 	if (ensureAlways(MPGameState))
 		MPGameState->InitPreparingTime(MaxPreparingTime);
@@ -36,7 +39,20 @@ void AMPGameMode::BeginPlay()
 	GetWorldTimerManager().SetTimer(PreparingTimeHandle, this, &AMPGameMode::UpdateRemainingTime, 1.f, true, 1.f);	
 }
 
-void AMPGameMode::InitSpawnLocations()
+void AMPGameMode::InitEnemySpawnLocations()
+{
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(TEXT("EnemySpawnLocation")), FoundActors);
+	for (AActor* EnemySpawnLocation : FoundActors)
+	{
+		EnemySpawnLocations.Add(EnemySpawnLocation);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("InitEnemySpawnLocations with %i"), EnemySpawnLocations.Num());
+	verify(EnemySpawnLocations.Num() > 0);
+}
+
+void AMPGameMode::InitPlayerSpawnLocations()
 {
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), FoundActors);
@@ -45,11 +61,11 @@ void AMPGameMode::InitSpawnLocations()
 		APlayerStart* PlayerStart = Cast<APlayerStart>(Actor);
 		if (PlayerStart != nullptr)
 		{
-			SpawnLocations.AddUnique(PlayerStart);
+			PlayerSpawnLocations.AddUnique(PlayerStart);
 		}
 	}
 
-	verify(SpawnLocations.Num() > 0);
+	verify(PlayerSpawnLocations.Num() > 0);
 }
 
 void AMPGameMode::UpdateRemainingTime()
@@ -71,6 +87,11 @@ void AMPGameMode::UpdateRemainingTime()
 void AMPGameMode::StartWave()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Wave has started!"));
+
+	for (AActor* SpawnLocationActor : EnemySpawnLocations)
+	{
+		AAIChar* Enemy = GetWorld()->SpawnActor<AAIChar>(AIClasses[0], SpawnLocationActor->GetActorLocation(), FRotator::ZeroRotator);
+	}
 }
 
 void AMPGameMode::ClientRespawnPlayer_Implementation(APlayerController* PlayerController)
@@ -83,7 +104,7 @@ void AMPGameMode::ClientRespawnPlayer_Implementation(APlayerController* PlayerCo
 		GetWorld()->DestroyActor(ControlledPawn);
 	}
 	
-	APawn* ToPossessPawn = GetWorld()->SpawnActor<APawn>(SpawnCharClass, SpawnLocations[SpawnedPlayerCount]->GetActorTransform());
+	APawn* ToPossessPawn = GetWorld()->SpawnActor<APawn>(SpawnCharClass, PlayerSpawnLocations[SpawnedPlayerCount]->GetActorTransform());
 	PlayerController->Possess(ToPossessPawn);
 	++SpawnedPlayerCount;
 }

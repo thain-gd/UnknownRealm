@@ -2,12 +2,16 @@
 
 
 #include "AIs/AIChar.h"
+#include "Components/HealthComponent.h"
 
 // Sets default values
 AAIChar::AAIChar()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComp"));
+	AddOwnedComponent(HealthComp);
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }

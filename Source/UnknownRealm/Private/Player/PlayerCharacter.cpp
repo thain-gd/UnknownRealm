@@ -3,11 +3,14 @@
 
 #include "Player/PlayerCharacter.h"
 
+#include "AIs/AIChar.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -28,6 +31,12 @@ APlayerCharacter::APlayerCharacter()
 	CameraComp->SetupAttachment(SpringArmComp);
 	CameraComp->bUsePawnControlRotation = false;
 
+	AttackBox = CreateDefaultSubobject<UBoxComponent>(TEXT("AttackBox"));
+	AttackBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	AttackBox->SetCollisionResponseToAllChannels(ECR_Ignore);
+	AttackBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	AttackBox->SetupAttachment(RootComponent);
+
 	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComp"));
 	AddOwnedComponent(HealthComp);
 }
@@ -36,7 +45,27 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
+	AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
+}
+
+void APlayerCharacter::SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag(FName("AI")))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Add Enemy"));
+		AttackableEnemies.Add(OtherActor);
+	}
+}
+
+void APlayerCharacter::ResetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor->ActorHasTag(FName("AI")))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Remove Enemy"));
+		AttackableEnemies.Remove(OtherActor);
+	}
 }
 
 // Called to bind functionality to input
@@ -48,6 +77,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAxis("MoveRight/Left", this, &APlayerCharacter::MoveHorizontal);
 	InputComponent->BindAxis("LookLeft/Right", this, &APawn::AddControllerYawInput);
 	InputComponent->BindAxis("LookUp/Down", this, &APawn::AddControllerPitchInput);
+
+	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::Attack);
 }
 
 void APlayerCharacter::MoveVertical(float AxisValue)
@@ -71,4 +102,15 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	// add movement in that direction
 	AddMovementInput(Direction, AxisValue);
+}
+
+void APlayerCharacter::Attack()
+{
+	if (AttackableEnemies.Num() == 0)
+		return;
+
+	for (auto AttackableEnemy : AttackableEnemies)
+	{
+		float Damaged = UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
+	}
 }

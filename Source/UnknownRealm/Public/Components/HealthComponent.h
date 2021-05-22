@@ -19,6 +19,12 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION()
+	void HandleDamageTaken(AActor* OnTakeAnyDamage, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+
+	bool IsAlive() const { return CurrentHealth > 0; }
 	
 private:
 	UPROPERTY(EditDefaultsOnly)

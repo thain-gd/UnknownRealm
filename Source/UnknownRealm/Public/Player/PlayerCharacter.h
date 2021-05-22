@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
+class UBoxComponent;
 class UHealthComponent;
 
 UCLASS()
@@ -27,8 +29,17 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
+	void SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+							bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void ResetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
 	void MoveVertical(float AxisValue);
 	void MoveHorizontal(float AxisValue);
+
+	void Attack();
 	
 	
 private:
@@ -37,7 +48,13 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComp;
+
+	UPROPERTY(VisibleAnywhere)
+	UBoxComponent* AttackBox;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	UHealthComponent* HealthComp;
+
+	UPROPERTY()
+	TArray<AActor*> AttackableEnemies;
 };

@@ -24,8 +24,6 @@ AInteractableItem::AInteractableItem()
 	TriggerBox->SetCollisionResponseToAllChannels(ECR_Ignore);
 	TriggerBox->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	TriggerBox->SetupAttachment(RootComponent);
-	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AInteractableItem::ShowInteractingUI);
-	TriggerBox->OnComponentEndOverlap.AddDynamic(this, &AInteractableItem::HideInteractingUI);
 
 	TriggeredTextRender = CreateDefaultSubobject<UTextRenderComponent>(TEXT("TriggeredTextRender"));
 	TriggeredTextRender->SetVisibility(false);
@@ -36,7 +34,9 @@ AInteractableItem::AInteractableItem()
 void AInteractableItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AInteractableItem::ShowInteractingUI);
+	TriggerBox->OnComponentEndOverlap.AddDynamic(this, &AInteractableItem::HideInteractingUI);
 }
 
 void AInteractableItem::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

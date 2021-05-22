@@ -2,6 +2,8 @@
 
 
 #include "AIs/AIChar.h"
+
+#include "GameplayTagContainer.h"
 #include "Components/HealthComponent.h"
 
 // Sets default values
@@ -14,6 +16,9 @@ AAIChar::AAIChar()
 	AddOwnedComponent(HealthComp);
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	// An identified tag for AI chars (for collision detections, etc.)
+	Tags.Add(FName("AI"));
 }
 
 // Called when the game starts or when spawned

@@ -25,7 +25,27 @@ AAIChar::AAIChar()
 void AAIChar::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	HealthComp->OnHealthChanged.BindDynamic(this, &AAIChar::OnHealthChanged);
+}
+
+void AAIChar::OnHealthChanged()
+{
+	if (HealthComp->IsAlive())
+	{
+		// TODO: Play damaged animation + SFX
+	}
+	else
+	{
+		Die();
+	}
+}
+
+void AAIChar::Die()
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s died"), *GetName());
+	// TODO: Play death animation
+	SetLifeSpan(2.0f);
 }
 
 // Called every frame

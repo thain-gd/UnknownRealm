@@ -30,16 +30,6 @@ void UHealthComponent::HandleDamageTaken(AActor* OnTakeAnyDamage, float Damage, 
 	if (Damage <= 0.0f || !IsAlive())
 		return;
 
-	UE_LOG(LogTemp, Warning, TEXT("%f damage taken"), Damage);
 	CurrentHealth = FMath::Clamp(CurrentHealth - (int32)Damage, 0, MaxHealth);
-
-	if (IsAlive())
-	{
-		// TODO: Play damaged animation + SFX
-	}
-	else
-	{
-		// TODO: Play death animation
-		GetWorld()->DestroyActor(GetOwner()); // temp
-	}
+	OnHealthChanged.Execute();
 }

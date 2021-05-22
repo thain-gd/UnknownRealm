@@ -24,6 +24,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+private:
+	UFUNCTION()
+	void OnHealthChanged();
+	
+	void Die();
+	
+
 private:	
 	UPROPERTY(VisibleAnywhere, Category = Components)
 	UHealthComponent* HealthComp;

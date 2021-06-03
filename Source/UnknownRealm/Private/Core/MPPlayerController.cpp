@@ -29,6 +29,11 @@ void AMPPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		StatusWidget->RemoveFromParent();
 }
 
+void AMPPlayerController::ShowWaveResult() const
+{
+	StatusWidget->AddToViewport();
+}
+
 void AMPPlayerController::SetupUIs()
 {
 	if (!IsLocalPlayerController())
@@ -38,7 +43,6 @@ void AMPPlayerController::SetupUIs()
 	HUD->AddToViewport();
 
 	StatusWidget = CreateWidget(this, StatusWidgetClass);
-	StatusWidget->AddToViewport();
 
 	GameMenu = CreateWidget(this, GameMenuClass);
 

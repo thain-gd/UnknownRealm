@@ -111,6 +111,6 @@ void APlayerCharacter::Attack()
 
 	for (auto AttackableEnemy : AttackableEnemies)
 	{
-		float Damaged = UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
+		UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
 	}
 }

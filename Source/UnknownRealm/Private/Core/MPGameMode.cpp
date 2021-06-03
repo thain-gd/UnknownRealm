@@ -90,7 +90,8 @@ void AMPGameMode::StartWave()
 
 	for (AActor* SpawnLocationActor : EnemySpawnLocations)
 	{
-		AAIChar* Enemy = GetWorld()->SpawnActor<AAIChar>(AIClasses[0], SpawnLocationActor->GetActorLocation(), FRotator::ZeroRotator);
+		GetWorld()->SpawnActor<AAIChar>(AIClasses[0], SpawnLocationActor->GetActorLocation(), FRotator::ZeroRotator);
+		++EnemyCount;
 	}
 }
 
@@ -108,3 +109,19 @@ void AMPGameMode::ClientRespawnPlayer_Implementation(APlayerController* PlayerCo
 	PlayerController->Possess(ToPossessPawn);
 	++SpawnedPlayerCount;
 }
+
+void AMPGameMode::OnEnemyDied()
+{
+	--EnemyCount;
+	UE_LOG(LogTemp, Warning, TEXT("Remaining enemies: %i"), EnemyCount);
+	if (EnemyCount == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Wave is cleared!"));
+		AMPGameState* MPGameState = GetGameState<AMPGameState>();
+		if (MPGameState)
+		{
+			MPGameState->SetWaveStatus(true);
+		}
+	}
+}
+

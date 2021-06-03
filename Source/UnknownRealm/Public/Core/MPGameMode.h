@@ -18,6 +18,8 @@ public:
 	
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+	void OnEnemyDied();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -50,4 +52,5 @@ private:
 	
 	uint32 SpawnedPlayerCount;
 	FTimerHandle PreparingTimeHandle;
+	uint32 EnemyCount;
 };

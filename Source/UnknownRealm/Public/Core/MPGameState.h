@@ -27,8 +27,17 @@ public:
 		--RemainingPreparingTime;
 	}
 
+	void SetWaveStatus(bool Won);
+
+private:
+	UFUNCTION()
+	void OnRep_WaveStatusChanged() const;
+
 	
 protected:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = GameState)
 	int32 RemainingPreparingTime;
+
+	UPROPERTY(ReplicatedUsing=OnRep_WaveStatusChanged, BlueprintReadOnly, Category = GameState)
+	bool bIsWon;
 };

@@ -109,6 +109,11 @@ void APlayerCharacter::Attack()
 	if (AttackableEnemies.Num() == 0)
 		return;
 
+	ServerAttack();
+}
+
+void APlayerCharacter::ServerAttack_Implementation()
+{
 	for (auto AttackableEnemy : AttackableEnemies)
 	{
 		UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());

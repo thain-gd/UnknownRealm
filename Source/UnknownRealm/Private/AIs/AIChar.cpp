@@ -5,6 +5,8 @@
 
 #include "GameplayTagContainer.h"
 #include "Components/HealthComponent.h"
+#include "Core/MPGameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AAIChar::AAIChar()
@@ -46,6 +48,12 @@ void AAIChar::Die()
 	UE_LOG(LogTemp, Warning, TEXT("%s died"), *GetName());
 	// TODO: Play death animation
 	SetLifeSpan(2.0f);
+
+	AMPGameMode* GameMode = Cast<AMPGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GameMode)
+	{
+		GameMode->OnEnemyDied();
+	}
 }
 
 // Called every frame

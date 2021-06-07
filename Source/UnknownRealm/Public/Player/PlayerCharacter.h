@@ -40,6 +40,9 @@ private:
 	void MoveHorizontal(float AxisValue);
 
 	void Attack();
+
+	UFUNCTION(Reliable, Server)
+	void ServerAttack();
 	
 	
 private:

@@ -29,7 +29,7 @@ void AMPPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		StatusWidget->RemoveFromParent();
 }
 
-void AMPPlayerController::ShowWaveResult() const
+void AMPPlayerController::ShowWaveResult()
 {
 	CreateWidget(this, StatusWidgetClass)->AddToViewport();
 }

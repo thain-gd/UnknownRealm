@@ -21,7 +21,7 @@ public:
 	UFUNCTION(Client, Reliable)
 	void ClientPostLogin();
 
-	void ShowWaveResult() const;
+	void ShowWaveResult();
 
 protected:
 	UFUNCTION(BlueprintCallable)

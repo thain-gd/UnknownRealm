@@ -1,5 +1,7 @@
 #include "Components/HealthComponent.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
 	: MaxHealth(100), CurrentHealth(MaxHealth)
@@ -15,11 +17,10 @@ void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetOwnerRole() == ROLE_Authority)
+	AActor* MyOwner = GetOwner();
+	if (MyOwner && MyOwner->HasAuthority())
 	{
-		AActor* MyOwner = GetOwner();
-		if (MyOwner)
-			MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::HandleDamageTaken);
+		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UHealthComponent::HandleDamageTaken);
 	}
 
 	CurrentHealth = MaxHealth;
@@ -30,6 +31,13 @@ void UHealthComponent::HandleDamageTaken(AActor* OnTakeAnyDamage, float Damage, 
 	if (Damage <= 0.0f || !IsAlive())
 		return;
 
-	CurrentHealth = FMath::Clamp(CurrentHealth - (int32)Damage, 0, MaxHealth);
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 	OnHealthChanged.Execute();
+}
+
+void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UHealthComponent, CurrentHealth);
 }

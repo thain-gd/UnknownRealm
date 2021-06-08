@@ -32,8 +32,9 @@ public:
 	FOnHealthChangedDelegate OnHealthChanged;
 
 private:
-	UPROPERTY(EditDefaultsOnly)
-	int32 MaxHealth;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	float MaxHealth;
 
-	int32 CurrentHealth;
+	UPROPERTY(Replicated, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	float CurrentHealth;
 };

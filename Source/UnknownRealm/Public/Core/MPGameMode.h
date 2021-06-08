@@ -20,6 +20,8 @@ public:
 
 	void OnEnemyDied();
 
+	void SetWaveStatus(bool bIsWon) const;
+
 protected:
 	virtual void BeginPlay() override;
 

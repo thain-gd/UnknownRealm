@@ -117,11 +117,16 @@ void AMPGameMode::OnEnemyDied()
 	if (EnemyCount == 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Wave is cleared!"));
-		AMPGameState* MPGameState = GetGameState<AMPGameState>();
-		if (MPGameState)
-		{
-			MPGameState->SetWaveStatus(true);
-		}
+		SetWaveStatus(true);
+	}
+}
+
+void AMPGameMode::SetWaveStatus(bool bIsWon) const
+{
+	AMPGameState* MPGameState = GetGameState<AMPGameState>();
+	if (MPGameState)
+	{
+		MPGameState->SetWaveStatus(bIsWon);
 	}
 }
 

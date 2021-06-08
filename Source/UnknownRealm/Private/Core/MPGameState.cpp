@@ -6,11 +6,14 @@
 void AMPGameState::SetWaveStatus(bool Won)
 {
 	bIsWon = Won;
-	OnRep_WaveStatusChanged();
+
+	MulticastOnWaveStatusChanged();
 }
 
-void AMPGameState::OnRep_WaveStatusChanged() const
+void AMPGameState::MulticastOnWaveStatusChanged_Implementation() const
 {
+	UE_LOG(LogTemp, Warning, TEXT("MulticastOnWaveStatusChanged"));
+	
 	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{

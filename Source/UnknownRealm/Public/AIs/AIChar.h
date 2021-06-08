@@ -31,8 +31,8 @@ private:
 	void Die();
 	
 
-private:	
-	UPROPERTY(VisibleAnywhere, Category = Components)
+protected:	
+	UPROPERTY(EditDefaultsOnly, Category = Components)
 	UHealthComponent* HealthComp;
 
 };

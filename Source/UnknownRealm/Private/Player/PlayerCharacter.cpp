@@ -8,8 +8,10 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
+#include "Core/MPPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Items/InteractableItem.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -48,13 +50,15 @@ void APlayerCharacter::BeginPlay()
 
 	AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
 	AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
+
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
+	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
 }
 
 void APlayerCharacter::SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->ActorHasTag(FName("AI")))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Add Enemy"));
 		AttackableEnemies.Add(OtherActor);
 	}
 }
@@ -63,8 +67,31 @@ void APlayerCharacter::ResetAttackableEnemy(UPrimitiveComponent* OverlappedCompo
 {
 	if (OtherActor->ActorHasTag(FName("AI")))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Remove Enemy"));
 		AttackableEnemies.Remove(OtherActor);
+	}
+}
+
+void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AInteractableItem* Item = Cast<AInteractableItem>(OtherActor);
+	if (Item)
+	{
+		bInteractable = true;
+		InteractingActor = Item;
+		Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController())->ShowInteractingUI();
+	}
+}
+
+void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AInteractableItem* Item = Cast<AInteractableItem>(OtherActor);
+	if (Item && Item == InteractingActor)
+	{
+		bInteractable = false;
+		InteractingActor = nullptr;
+		Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController())->HideInteractingUI();
 	}
 }
 
@@ -79,6 +106,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAxis("LookUp/Down", this, &APawn::AddControllerPitchInput);
 
 	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::Attack);
+	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 }
 
 void APlayerCharacter::MoveVertical(float AxisValue)
@@ -110,6 +138,14 @@ void APlayerCharacter::Attack()
 		return;
 
 	ServerAttack();
+}
+
+void APlayerCharacter::Interact()
+{
+	if (bInteractable && InteractingActor)
+	{
+		InteractingActor->OnInteracted();
+	}
 }
 
 void APlayerCharacter::ServerAttack_Implementation()

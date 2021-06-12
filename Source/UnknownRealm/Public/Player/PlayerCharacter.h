@@ -11,6 +11,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UBoxComponent;
 class UHealthComponent;
+class AInteractableItem;
 
 UCLASS()
 class UNKNOWNREALM_API APlayerCharacter : public ACharacter
@@ -35,11 +36,19 @@ private:
 
 	UFUNCTION()
 	void ResetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
 	void MoveVertical(float AxisValue);
 	void MoveHorizontal(float AxisValue);
 
 	void Attack();
+
+	void Interact();
 
 	UFUNCTION(Reliable, Server)
 	void ServerAttack();
@@ -60,4 +69,9 @@ private:
 
 	UPROPERTY()
 	TArray<AActor*> AttackableEnemies;
+
+	UPROPERTY()
+	AInteractableItem* InteractingActor;
+	
+	bool bInteractable;
 };

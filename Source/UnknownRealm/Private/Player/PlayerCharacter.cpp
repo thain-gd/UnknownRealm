@@ -4,6 +4,7 @@
 #include "Player/PlayerCharacter.h"
 
 #include "AIs/AIChar.h"
+#include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -11,8 +12,9 @@
 #include "Core/MPPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Items/InteractableItem.h"
+#include "Items/CollectibleItem.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/InteractionWidget.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -74,24 +76,35 @@ void APlayerCharacter::ResetAttackableEnemy(UPrimitiveComponent* OverlappedCompo
 void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AInteractableItem* Item = Cast<AInteractableItem>(OtherActor);
+	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
 	if (Item)
 	{
 		bInteractable = true;
-		InteractingActor = Item;
-		Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController())->ShowInteractingUI();
+		CollectibleItem = Item;
+
+		if (!InteractionWidget)
+		{
+			InteractionWidget = CreateWidget<UInteractionWidget>(GetWorld(), InteractionWidgetClass);
+		}
+
+		InteractionWidget->SetInteractText(CollectibleItem->GetInteractString());
+		InteractionWidget->AddToViewport();
 	}
 }
 
 void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	AInteractableItem* Item = Cast<AInteractableItem>(OtherActor);
-	if (Item && Item == InteractingActor)
+	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
+	if (Item && Item == CollectibleItem)
 	{
-		bInteractable = false;
-		InteractingActor = nullptr;
-		Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController())->HideInteractingUI();
+		bInteractable = bInteracting = false;
+		CollectibleItem = nullptr;
+
+		if (InteractionWidget)
+		{
+			InteractionWidget->RemoveFromViewport();
+		}
 	}
 }
 
@@ -111,6 +124,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void APlayerCharacter::MoveVertical(float AxisValue)
 {
+	if (bInteracting)
+		return;
+	
 	// find out which way is forward
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -122,6 +138,9 @@ void APlayerCharacter::MoveVertical(float AxisValue)
 
 void APlayerCharacter::MoveHorizontal(float AxisValue)
 {
+	if (bInteracting)
+		return;
+	
 	// find out which way is right
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -140,18 +159,37 @@ void APlayerCharacter::Attack()
 	ServerAttack();
 }
 
-void APlayerCharacter::Interact()
-{
-	if (bInteractable && InteractingActor)
-	{
-		InteractingActor->OnInteracted();
-	}
-}
-
 void APlayerCharacter::ServerAttack_Implementation()
 {
 	for (auto AttackableEnemy : AttackableEnemies)
 	{
 		UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
+	}
+}
+
+void APlayerCharacter::Interact()
+{
+	if (bInteractable && CollectibleItem)
+	{
+		AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Controller);
+		if (!PlayerController)
+			return;
+
+		if (bInteracting)
+		{
+			InteractionWidget->CancelCollecting();
+			bInteracting = false;
+			return;
+		}
+
+		if (CollectibleItem->GetCollectionTime() > 0)
+		{
+			bInteracting = true;
+			InteractionWidget->OnStartCollecting(CollectibleItem);
+		}
+		else
+		{
+			CollectibleItem->OnFinishedCollecting();
+		}
 	}
 }

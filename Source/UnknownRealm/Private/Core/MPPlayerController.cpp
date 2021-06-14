@@ -44,8 +44,6 @@ void AMPPlayerController::SetupUIs()
 
 	GameMenu = CreateWidget(this, GameMenuClass);
 
-	InteractionWidget = CreateWidget(this, InteractionWidgetClass);
-
 	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputMode.SetHideCursorDuringCapture(true);
@@ -97,14 +95,4 @@ void AMPPlayerController::HideGameMenu()
 	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetPawn());
 	if (PlayerChar)
 		PlayerChar->EnableInput(this);
-}
-
-void AMPPlayerController::ShowInteractingUI() const
-{
-	InteractionWidget->AddToViewport();
-}
-
-void AMPPlayerController::HideInteractingUI() const
-{
-	InteractionWidget->RemoveFromViewport();
 }

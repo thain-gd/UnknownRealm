@@ -7,11 +7,12 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UInteractionWidget;
 class USpringArmComponent;
 class UCameraComponent;
 class UBoxComponent;
 class UHealthComponent;
-class AInteractableItem;
+class ACollectibleItem;
 
 UCLASS()
 class UNKNOWNREALM_API APlayerCharacter : public ACharacter
@@ -24,7 +25,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -70,8 +71,15 @@ private:
 	UPROPERTY()
 	TArray<AActor*> AttackableEnemies;
 
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	ACollectibleItem* CollectibleItem;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> InteractionWidgetClass;
+	
 	UPROPERTY()
-	AInteractableItem* InteractingActor;
+	UInteractionWidget* InteractionWidget;
 	
 	bool bInteractable;
+	bool bInteracting;
 };

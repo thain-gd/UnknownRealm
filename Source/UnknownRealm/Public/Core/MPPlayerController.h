@@ -23,9 +23,6 @@ public:
 
 	void ShowWaveResult();
 
-	void ShowInteractingUI() const;
-	void HideInteractingUI() const;
-
 protected:
 	UFUNCTION(BlueprintCallable)
 	void SetupUIs();
@@ -35,6 +32,7 @@ private:
 	void ShowGameMenu();
 	void HideGameMenu();
 	
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> GameMenuClass;
@@ -45,9 +43,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> StatusWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UUserWidget> InteractionWidgetClass;
-
 private:
 	UPROPERTY()
 	UUserWidget* GameMenu;
@@ -57,9 +52,6 @@ private:
 
 	UPROPERTY()
 	UUserWidget* StatusWidget;
-
-	UPROPERTY()
-	UUserWidget* InteractionWidget;
 
 	bool bGameMenuOn;
 };

@@ -121,14 +121,14 @@ void AMPPlayerController::ToggleInventory()
 		// Close inventory
 		if (bInventoryOn)
 		{
-			GameState->GetInventory()->InventoryWidget->RemoveFromViewport();
+			GameState->CloseInventory();
 			SetInputToGameOnly();
 			bInventoryOn = false;
 		}
 		// Open inventory
 		else
 		{
-			GameState->GetInventory()->InventoryWidget->AddToViewport();
+			GameState->OpenInventory();
 			SetInputToGameAndUI();
 			bInventoryOn = true;
 		}

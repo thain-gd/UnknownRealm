@@ -37,7 +37,8 @@ public:
 
 	void AddToInventory(const FName& ItemID, const int32 Amount);
 
-	UInventoryComponent* GetInventory() const { return InventoryComp; }
+	void OpenInventory() const;
+	void CloseInventory() const;
 
 private:
 	UFUNCTION(Reliable, NetMulticast)

@@ -23,6 +23,16 @@ void AMPGameState::AddToInventory(const FName& ItemID, const int32 Amount)
 	InventoryComp->AddItem(ItemID, Amount);
 }
 
+void AMPGameState::OpenInventory() const
+{
+	InventoryComp->ShowWidget();
+}
+
+void AMPGameState::CloseInventory() const
+{
+	InventoryComp->HideWidget();
+}
+
 void AMPGameState::MulticastOnWaveStatusChanged_Implementation() const
 {
 	UE_LOG(LogTemp, Warning, TEXT("MulticastOnWaveStatusChanged"));

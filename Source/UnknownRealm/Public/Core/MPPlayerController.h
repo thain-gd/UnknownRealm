@@ -14,6 +14,8 @@ class UNKNOWNREALM_API AMPPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+	friend class UInventoryWidget;
+
 public:
 	virtual void SetupInputComponent() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -37,7 +39,7 @@ private:
 
 	void SetInputToGameAndUI();
 	void SetInputToGameOnly();
-	
+
 	void ToggleInventory();
 	
 

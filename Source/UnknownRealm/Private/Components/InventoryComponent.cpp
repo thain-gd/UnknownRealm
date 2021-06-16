@@ -23,18 +23,17 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GetOwner()->HasAuthority())
-	{
-		Init();
-	}
-
-	InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
+	Init();
 }
 
 void UInventoryComponent::Init()
 {
-	FreeSlots = MaxRows * MaxColumns;
+	if (GetOwner()->HasAuthority())
+	{
+		FreeSlots = MaxRows * MaxColumns;
+	}
 
+	InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
 }
 
 void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
@@ -56,6 +55,8 @@ void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("You have %i %s"), Item.Count, *Item.ID.ToString());
 		}
+
+		MulticastUpdateWidget();
 	}
 }
 
@@ -86,6 +87,11 @@ void UInventoryComponent::AddItemToNewSlot(FInventoryItem& Item)
 {
 	Items.Add(Item);
 	--FreeSlots;
+}
+
+void UInventoryComponent::MulticastUpdateWidget_Implementation()
+{
+	InventoryWidget->Refresh(Items);
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

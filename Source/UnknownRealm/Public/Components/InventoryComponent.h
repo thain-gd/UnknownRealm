@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Engine/DataTable.h"
+#include "UI/InventoryWidget.h"
 
 #include "InventoryComponent.generated.h"
 
@@ -57,8 +58,6 @@ class UNKNOWNREALM_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	friend class AMPPlayerController;
-	
 public:	
 	// Sets default values for this component's properties
 	UInventoryComponent();
@@ -66,6 +65,9 @@ public:
 	void AddItem(const FName& ItemID, const int32 Amount);
 
 	int32 GetFreeSlots() const { return FreeSlots; }
+
+	void ShowWidget() const { InventoryWidget->AddToViewport(); }
+	void HideWidget() const { InventoryWidget->RemoveFromParent(); }
 
 protected:
 	// Called when the game starts
@@ -76,7 +78,9 @@ private:
 
 	void AddStackableItem(FInventoryItem StackableItem);
 	void AddItemToNewSlot(FInventoryItem& Item);
-	
+
+	UFUNCTION(Reliable, NetMulticast)
+	void MulticastUpdateWidget();
 	
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))

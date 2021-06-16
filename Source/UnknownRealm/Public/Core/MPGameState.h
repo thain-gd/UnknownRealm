@@ -37,6 +37,8 @@ public:
 
 	void AddToInventory(const FName& ItemID, const int32 Amount);
 
+	UInventoryComponent* GetInventory() const { return InventoryComp; }
+
 private:
 	UFUNCTION(Reliable, NetMulticast)
 	void MulticastOnWaveStatusChanged() const;

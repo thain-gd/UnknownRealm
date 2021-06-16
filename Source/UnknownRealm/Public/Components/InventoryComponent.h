@@ -57,6 +57,8 @@ class UNKNOWNREALM_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+	friend class AMPPlayerController;
+	
 public:	
 	// Sets default values for this component's properties
 	UInventoryComponent();

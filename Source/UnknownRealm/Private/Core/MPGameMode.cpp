@@ -97,7 +97,6 @@ void AMPGameMode::StartWave()
 
 void AMPGameMode::ClientRespawnPlayer_Implementation(APlayerController* PlayerController)
 {
-	UE_LOG(LogTemp, Warning, TEXT("RespawnPlayer"));
 	APlayerState* PlayerState = PlayerController->PlayerState;
 	APawn* ControlledPawn = PlayerController->GetPawn();
 	if (IsValid(ControlledPawn))

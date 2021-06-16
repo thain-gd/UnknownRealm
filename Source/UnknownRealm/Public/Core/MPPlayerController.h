@@ -34,6 +34,11 @@ private:
 	void ToggleGameMenu();
 	void ShowGameMenu();
 	void HideGameMenu();
+
+	void SetInputToGameAndUI();
+	void SetInputToGameOnly();
+	
+	void ToggleInventory();
 	
 
 protected:
@@ -57,4 +62,5 @@ private:
 	UUserWidget* StatusWidget;
 
 	bool bGameMenuOn;
+	bool bInventoryOn;
 };

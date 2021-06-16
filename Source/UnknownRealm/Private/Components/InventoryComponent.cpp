@@ -27,13 +27,14 @@ void UInventoryComponent::BeginPlay()
 	{
 		Init();
 	}
+
+	InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
 }
 
 void UInventoryComponent::Init()
 {
 	FreeSlots = MaxRows * MaxColumns;
 
-	InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
 }
 
 void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)

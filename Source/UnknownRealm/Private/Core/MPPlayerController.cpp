@@ -4,7 +4,9 @@
 #include "Core/MPPlayerController.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Core/MPGameState.h"
 #include "Player/PlayerCharacter.h"
+#include "UI/InventoryWidget.h"
 
 void AMPPlayerController::ClientPostLogin_Implementation()
 {
@@ -16,6 +18,7 @@ void AMPPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 
 	InputComponent->BindAction("OpenGameMenu", IE_Pressed, this, &AMPPlayerController::ToggleGameMenu);
+	InputComponent->BindAction("Inventory", IE_Pressed, this, &AMPPlayerController::ToggleInventory);
 }
 
 void AMPPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -77,11 +80,7 @@ void AMPPlayerController::ToggleGameMenu()
 void AMPPlayerController::ShowGameMenu()
 {
 	GameMenu->AddToViewport();
-
-	bShowMouseCursor = true;
-
-	const FInputModeGameAndUI InputMode;
-	SetInputMode(InputMode);
+	SetInputToGameAndUI();
 
 	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetPawn());
 	if (PlayerChar)
@@ -91,13 +90,47 @@ void AMPPlayerController::ShowGameMenu()
 void AMPPlayerController::HideGameMenu()
 {
 	GameMenu->RemoveFromViewport();
-	
-	bShowMouseCursor = false;
-
-	const FInputModeGameOnly InputMode;
-	SetInputMode(InputMode);
+	SetInputToGameOnly();
 	
 	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetPawn());
 	if (PlayerChar)
 		PlayerChar->EnableInput(this);
+}
+
+void AMPPlayerController::SetInputToGameAndUI()
+{
+	bShowMouseCursor = true;
+
+	const FInputModeGameAndUI InputMode;
+	SetInputMode(InputMode);
+}
+
+void AMPPlayerController::SetInputToGameOnly()
+{
+	bShowMouseCursor = false;
+
+	const FInputModeGameOnly InputMode;
+	SetInputMode(InputMode);
+}
+
+void AMPPlayerController::ToggleInventory()
+{
+	AMPGameState* GameState = Cast<AMPGameState>(GetWorld()->GetGameState());
+	if (GameState)
+	{
+		// Close inventory
+		if (bInventoryOn)
+		{
+			GameState->GetInventory()->InventoryWidget->RemoveFromViewport();
+			SetInputToGameOnly();
+			bInventoryOn = false;
+		}
+		// Open inventory
+		else
+		{
+			GameState->GetInventory()->InventoryWidget->AddToViewport();
+			SetInputToGameAndUI();
+			bInventoryOn = true;
+		}
+	}
 }

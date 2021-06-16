@@ -23,6 +23,9 @@ public:
 
 	void ShowWaveResult();
 
+	UFUNCTION(Server, Reliable)
+	void ServerDestroyActor(AActor* Actor);
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void SetupUIs();

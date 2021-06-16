@@ -18,12 +18,12 @@ public:
 	// Sets default values for this actor's properties
 	ACollectibleItem();
 
-	UFUNCTION(BlueprintCallable)
 	void OnFinishedCollecting();
 
 	float GetCollectionTime() const { return CollectionTime; }
 
 	const FString& GetInteractString() const { return InteractString; }
+
 	
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -34,6 +34,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	FString InteractString;
+
+	UPROPERTY(EditDefaultsOnly)
+	FName ItemID;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float CollectionTime;

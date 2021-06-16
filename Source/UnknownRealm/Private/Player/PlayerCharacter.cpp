@@ -9,6 +9,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
+#include "Core/MPGameState.h"
 #include "Core/MPPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -76,6 +77,9 @@ void APlayerCharacter::ResetAttackableEnemy(UPrimitiveComponent* OverlappedCompo
 void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (!IsLocallyControlled())
+		return;
+	
 	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
 	if (Item)
 	{
@@ -95,6 +99,9 @@ void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponen
 void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (!IsLocallyControlled())
+		return;
+	
 	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
 	if (Item && Item == CollectibleItem)
 	{
@@ -174,7 +181,7 @@ void APlayerCharacter::Interact()
 		AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Controller);
 		if (!PlayerController)
 			return;
-
+		
 		if (bInteracting)
 		{
 			InteractionWidget->CancelCollecting();
@@ -189,7 +196,19 @@ void APlayerCharacter::Interact()
 		}
 		else
 		{
-			CollectibleItem->OnFinishedCollecting();
+			if (HasAuthority())
+			{
+				CollectibleItem->OnFinishedCollecting();
+			}
+			else
+			{
+				ServerFinishCollecting(CollectibleItem);
+			}
 		}
 	}
+}
+
+void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)
+{
+	CollectedItem->OnFinishedCollecting();
 }

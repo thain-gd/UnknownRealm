@@ -32,7 +32,7 @@ private:
 	
 
 protected:	
-	UPROPERTY(EditDefaultsOnly, Category = Components)
+	UPROPERTY(VisibleDefaultsOnly, Category = Components)
 	UHealthComponent* HealthComp;
 
 };

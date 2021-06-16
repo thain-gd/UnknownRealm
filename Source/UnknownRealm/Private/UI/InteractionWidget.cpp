@@ -8,6 +8,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Items/CollectibleItem.h"
+#include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
 
 UInteractionWidget::UInteractionWidget(const FObjectInitializer& ObjectInitializer)
@@ -38,8 +39,18 @@ void UInteractionWidget::OnFinishCollecting()
 {
 	CollectingBar->SetVisibility(ESlateVisibility::Hidden);
 	
-	CollectibleActor->OnFinishedCollecting();
-	CollectibleActor = nullptr;
+	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	if (PlayerChar)
+	{
+		if (PlayerChar->HasAuthority())
+		{
+			CollectibleActor->OnFinishedCollecting();
+		}
+		else
+		{
+			PlayerChar->ServerFinishCollecting(CollectibleActor);
+		}
+	}
 }
 
 void UInteractionWidget::CancelCollecting() const

@@ -5,7 +5,9 @@
 
 #include "Components/SphereComponent.h"
 #include "Components/TextRenderComponent.h"
-#include "Kismet/KismetMathLibrary.h"
+#include "Core/MPGameState.h"
+#include "Core/MPPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
 
 // Sets default values
@@ -26,13 +28,22 @@ ACollectibleItem::ACollectibleItem()
 	TriggerSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	TriggerSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	TriggerSphere->SetupAttachment(RootComponent);
+
+	bReplicates = true;
 }
 
 void ACollectibleItem::OnFinishedCollecting()
 {
-	// TODO: Add into inventory
-	const int32 CollectedAmount = FMath::RandRange(MinCollectibleAmount, MaxCollectibleAmount);
-	UE_LOG(LogTemp, Warning, TEXT("You received %i"), CollectedAmount);
-	
-	GetWorld()->DestroyActor(this);
+	AMPGameState* MPGameState = Cast<AMPGameState>(GetWorld()->GetGameState());
+	if (MPGameState)
+	{
+		const int32 CollectedAmount = FMath::RandRange(MinCollectibleAmount, MaxCollectibleAmount);
+		MPGameState->AddToInventory(ItemID, CollectedAmount);
+
+		AMPPlayerController* PlayerController = Cast<AMPPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+		if (PlayerController)
+		{
+			PlayerController->ServerDestroyActor(this);
+		}
+	}
 }

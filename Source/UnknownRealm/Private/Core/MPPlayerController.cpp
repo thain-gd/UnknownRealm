@@ -34,6 +34,11 @@ void AMPPlayerController::ShowWaveResult()
 	CreateWidget(this, StatusWidgetClass)->AddToViewport();
 }
 
+void AMPPlayerController::ServerDestroyActor_Implementation(AActor* Actor)
+{
+	GetWorld()->DestroyActor(Actor);
+}
+
 void AMPPlayerController::SetupUIs()
 {
 	if (!IsLocalPlayerController())

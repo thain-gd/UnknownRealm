@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Engine/DataTable.h"
-#include "UI/InventoryWidget.h"
 
 #include "InventoryComponent.generated.h"
 
@@ -49,6 +48,9 @@ struct FInventoryItem : public FTableRowBase
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<EItemAction> ContextMenues;
+
+	// For debug purpose
+	FString ToString() const;
 };
 
 class UInventoryWidget;
@@ -66,8 +68,8 @@ public:
 
 	int32 GetFreeSlots() const { return FreeSlots; }
 
-	void ShowWidget() const { InventoryWidget->AddToViewport(); }
-	void HideWidget() const { InventoryWidget->RemoveFromParent(); }
+	void ShowWidget() const;
+	void HideWidget() const;
 
 protected:
 	// Called when the game starts
@@ -80,7 +82,7 @@ private:
 	void AddItemToNewSlot(FInventoryItem& Item);
 
 	UFUNCTION(Reliable, NetMulticast)
-	void MulticastUpdateWidget();
+	void MulticastUpdateWidget(const TArray<FInventoryItem>& ItemList);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
@@ -96,10 +98,10 @@ private:
 	int32 MaxColumns;
 
 	UPROPERTY(Replicated)
-	TArray<FInventoryItem> Items;
-
-	UPROPERTY(Replicated)
 	int32 FreeSlots;
+
+	UPROPERTY()
+	TArray<FInventoryItem> Items;
 
 	UPROPERTY()
 	UInventoryWidget* InventoryWidget;

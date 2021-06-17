@@ -34,6 +34,7 @@ void UInventoryComponent::Init()
 	}
 
 	InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
+	InventoryWidget->Init(MaxRows, MaxColumns);
 }
 
 void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
@@ -56,8 +57,18 @@ void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
 			UE_LOG(LogTemp, Warning, TEXT("You have %i %s"), Item.Count, *Item.ID.ToString());
 		}
 
-		MulticastUpdateWidget();
+		MulticastUpdateWidget(Items);
 	}
+}
+
+void UInventoryComponent::ShowWidget() const
+{
+	InventoryWidget->AddToViewport();
+}
+
+void UInventoryComponent::HideWidget() const
+{
+	InventoryWidget->RemoveFromParent();
 }
 
 void UInventoryComponent::AddStackableItem(FInventoryItem StackableItem)
@@ -89,15 +100,14 @@ void UInventoryComponent::AddItemToNewSlot(FInventoryItem& Item)
 	--FreeSlots;
 }
 
-void UInventoryComponent::MulticastUpdateWidget_Implementation()
+void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
 {
-	InventoryWidget->Refresh(Items);
+	InventoryWidget->Refresh(ItemList);
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UInventoryComponent, Items);
 	DOREPLIFETIME(UInventoryComponent, FreeSlots);
 }

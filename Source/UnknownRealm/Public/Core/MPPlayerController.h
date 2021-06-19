@@ -28,6 +28,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerDestroyActor(AActor* Actor);
 
+	void SetInputToGameAndUI();
+	void SetInputToGameOnly();
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void SetupUIs();
@@ -36,9 +39,6 @@ private:
 	void ToggleGameMenu();
 	void ShowGameMenu();
 	void HideGameMenu();
-
-	void SetInputToGameAndUI();
-	void SetInputToGameOnly();
 
 	void ToggleInventory();
 	

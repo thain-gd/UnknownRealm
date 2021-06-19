@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UCraftingComponent;
 class UInteractionWidget;
 class USpringArmComponent;
 class UCameraComponent;
@@ -56,6 +57,8 @@ private:
 
 	UFUNCTION(Reliable, Server)
 	void ServerAttack();
+
+	void ToggleCraftMenu();
 	
 	
 private:
@@ -70,6 +73,9 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	UHealthComponent* HealthComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UCraftingComponent* CraftingComp;
 
 	UPROPERTY()
 	TArray<AActor*> AttackableEnemies;

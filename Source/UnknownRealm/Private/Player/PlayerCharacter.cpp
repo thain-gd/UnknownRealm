@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/CraftingComponent.h"
 #include "Components/HealthComponent.h"
 #include "Core/MPGameState.h"
 #include "Core/MPPlayerController.h"
@@ -44,6 +45,9 @@ APlayerCharacter::APlayerCharacter()
 
 	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComp"));
 	AddOwnedComponent(HealthComp);
+
+	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("CraftingComp"));
+	AddOwnedComponent(CraftingComp);
 }
 
 // Called when the game starts or when spawned
@@ -127,6 +131,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::Attack);
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
+	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
 }
 
 void APlayerCharacter::MoveVertical(float AxisValue)
@@ -206,6 +211,11 @@ void APlayerCharacter::Interact()
 			}
 		}
 	}
+}
+
+void APlayerCharacter::ToggleCraftMenu()
+{
+	CraftingComp->ToggleWidget(this);
 }
 
 void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)

@@ -7,6 +7,7 @@
 #include "Components/HorizontalBox.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Core/MPGameInstance.h"
 #include "UI/ItemWidget.h"
 
 void UCraftingItemWidget::Init(const FCraftingItem& CraftingItem)
@@ -14,10 +15,19 @@ void UCraftingItemWidget::Init(const FCraftingItem& CraftingItem)
 	Icon->SetBrushFromTexture(CraftingItem.Icon);
 	Name->SetText(CraftingItem.Name);
 
+	UMPGameInstance* GameInstance = Cast<UMPGameInstance>(GetGameInstance());
+	if (!GameInstance)
+		return;
+
 	for (const auto& Requirement : CraftingItem.Requirements)
 	{
-		UItemWidget* RequirementWidget = CreateWidget<UItemWidget>(GetWorld(), ItemWidgetClass);
-		//RequirementWidget->Init(Re)
-		RequirementList->AddChildToHorizontalBox(RequirementWidget);
+		FInventoryItem* Item = GameInstance->GetInventoryItemData()->FindRow<FInventoryItem>(Requirement.Key, TEXT("UCraftingItemWidget::Init"), true);
+		if (Item)
+		{
+			UItemWidget* RequirementWidget = CreateWidget<UItemWidget>(GetWorld(), ItemWidgetClass);
+			RequirementWidget->Init(Item->Icon, Requirement.Value);
+
+			RequirementList->AddChildToHorizontalBox(RequirementWidget);
+		}
 	}
 }

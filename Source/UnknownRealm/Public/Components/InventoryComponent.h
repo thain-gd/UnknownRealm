@@ -82,9 +82,6 @@ private:
 	void MulticastUpdateWidget(const TArray<FInventoryItem>& ItemList);
 	
 private:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
-	UDataTable* ItemTable;
-
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> InventoryWidgetClass;
 	

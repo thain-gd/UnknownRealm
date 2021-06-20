@@ -7,6 +7,7 @@
 #include "Components/CraftingComponent.h"
 #include "Components/VerticalBox.h"
 #include "Components/WidgetSwitcher.h"
+#include "Core/MPGameInstance.h"
 #include "UI/CraftingItemWidget.h"
 
 void UCraftingWidget::Init(UCraftingComponent* Owner)
@@ -14,10 +15,14 @@ void UCraftingWidget::Init(UCraftingComponent* Owner)
 	MyOwner = Owner;
 
 	InitButtonClickedEvents();
-	
-	LoadTab(UseableList, UseableTable);
-	LoadTab(TurretList, TurretTable);
-	LoadTab(TrapList, TrapTable);
+
+	UMPGameInstance* GameInstance = Cast<UMPGameInstance>(GetGameInstance());
+	if (GameInstance)
+	{
+		LoadTab(UseableList, GameInstance->GetCraftingUseableData());
+		LoadTab(TurretList, GameInstance->GetCraftingTurretData());
+		LoadTab(TrapList, GameInstance->GetCraftingTrapData());
+	}
 }
 
 void UCraftingWidget::InitButtonClickedEvents()

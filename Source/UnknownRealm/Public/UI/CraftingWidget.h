@@ -66,15 +66,6 @@ protected:
 	UVerticalBox* TrapList;
 
 private:
-	UPROPERTY(EditDefaultsOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
-	UDataTable* UseableTable;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
-	UDataTable* TurretTable;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
-	UDataTable* TrapTable;
-	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UCraftingItemWidget> CraftingItemWidgetClass;
 

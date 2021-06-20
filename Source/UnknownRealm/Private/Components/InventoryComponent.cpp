@@ -4,6 +4,7 @@
 #include "Components/InventoryComponent.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Core/MPGameInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/InventoryWidget.h"
 
@@ -39,7 +40,11 @@ void UInventoryComponent::Init()
 
 void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
 {
-	FInventoryItem& CollectedItem = *ItemTable->FindRow<FInventoryItem>(ItemID, TEXT("UInventoryComponent::AddItem"), true);
+	UMPGameInstance* GameInstance = Cast<UMPGameInstance>(GetWorld()->GetGameInstance());
+	if (!GameInstance)
+		return;
+	
+	FInventoryItem& CollectedItem = *GameInstance->GetInventoryItemData()->FindRow<FInventoryItem>(ItemID, TEXT("UInventoryComponent::AddItem"), true);
 	if (CollectedItem.ID == ItemID)
 	{
 		CollectedItem.Count = Amount;

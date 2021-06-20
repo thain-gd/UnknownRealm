@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "Engine/DataTable.h"
 #include "Engine/GameInstance.h"
 #include "MPGameInstance.generated.h"
 
@@ -48,6 +50,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool TransitionToState(EGameplayState NewState);
 
+	UDataTable* GetInventoryItemData() const { return InventoryItemData; }
+	UDataTable* GetCraftingUseableData() const { return CraftingUseableData; }
+	UDataTable* GetCraftingTurretData() const { return CraftingTurretData; }
+	UDataTable* GetCraftingTrapData() const { return CraftingTrapData; }
+
 private:
 	bool IsCurrentState(EGameplayState NewState) const;
 	void ShowWidget(UUserWidget*& Widget, TSubclassOf<UUserWidget> WidgetClass);
@@ -75,6 +82,18 @@ public:
 	EGameplayState CurrentState;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* InventoryItemData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* CraftingUseableData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* CraftingTurretData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* CraftingTrapData;
+	
 	UPROPERTY()
 	UUserWidget* MainMenu;
 

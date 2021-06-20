@@ -6,9 +6,19 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 
-void UItemWidget::UpdateDetails(const FInventoryItem& Item)
+void UItemWidget::Init(UTexture2D* ItemIcon, int32 Count)
 {
 	Icon->SetVisibility(ESlateVisibility::Visible);
-	Icon->SetBrushFromTexture(Item.Icon);
-	CountNumber->SetText(FText::AsNumber(Item.Count));
+	Icon->SetBrushFromTexture(ItemIcon);
+
+	// Items that are not stackable, hide the count number
+	if (Count == 0)
+	{
+		CountNumber->SetVisibility(ESlateVisibility::Hidden);
+	}
+	else
+	{
+		CountNumber->SetText(FText::AsNumber(Count));
+		CountNumber->SetVisibility(ESlateVisibility::Visible);
+	}
 }

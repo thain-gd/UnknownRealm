@@ -4,8 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/DataTable.h"
+
 #include "CraftingWidget.generated.h"
 
+class UVerticalBox;
+class UWidgetSwitcher;
+class UCraftingComponent;
+class UCraftingItemWidget;
+class UButton;
 /**
  * 
  */
@@ -13,5 +20,64 @@ UCLASS()
 class UNKNOWNREALM_API UCraftingWidget : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	void Init(UCraftingComponent* Owner);
+
+protected:
 	
+
+private:
+	void InitButtonClickedEvents();
+
+	UFUNCTION()
+	void SwitchToUseableTab();
+	
+	UFUNCTION()
+	void SwitchToTurretTab();
+
+	UFUNCTION()
+	void SwitchToTrapTab();
+	
+	void SwitchToTab(int32 TabIndex) const;
+	void LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList);
+	
+	
+protected:
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UWidgetSwitcher* TabSwitcher;
+	
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UButton* UseablesBtn;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UButton* TurretsBtn;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UButton* TrapsBtn;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UVerticalBox* UseableList;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UVerticalBox* TurretList;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UVerticalBox* TrapList;
+
+private:
+	UPROPERTY(EditDefaultsOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
+	UDataTable* UseableTable;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
+	UDataTable* TurretTable;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Data", meta = (AllowPrivateAccess = "true"))
+	UDataTable* TrapTable;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UCraftingItemWidget> CraftingItemWidgetClass;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UCraftingComponent* MyOwner;
 };

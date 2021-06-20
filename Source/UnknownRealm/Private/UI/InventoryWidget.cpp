@@ -52,6 +52,6 @@ void UInventoryWidget::Refresh(const TArray<FInventoryItem>& Items)
 {
 	for (int i = 0; i < Items.Num(); i++)
 	{
-		ItemWidgets[i]->UpdateDetails(Items[i]);
+		ItemWidgets[i]->Init(Items[i].Icon, Items[i].Count);
 	}
 }

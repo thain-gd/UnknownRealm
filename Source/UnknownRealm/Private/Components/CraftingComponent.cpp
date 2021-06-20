@@ -28,6 +28,7 @@ void UCraftingComponent::BeginPlay()
 	if (PlayerChar && PlayerChar->IsLocallyControlled())
 	{
 		CraftingWidget = CreateWidget<UCraftingWidget>(GetWorld(), CraftingWidgetClass);
+		CraftingWidget->Init(this);
 	}
 }
 

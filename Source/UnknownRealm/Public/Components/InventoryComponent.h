@@ -48,9 +48,6 @@ struct FInventoryItem : public FTableRowBase
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<EItemAction> ContextMenues;
-
-	// For debug purpose
-	FString ToString() const;
 };
 
 class UInventoryWidget;

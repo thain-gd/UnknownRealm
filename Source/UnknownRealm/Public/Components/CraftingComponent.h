@@ -3,9 +3,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
 #include "Components/ActorComponent.h"
+#include "Engine/DataTable.h"
+#include "Containers/Map.h"
+
 #include "CraftingComponent.generated.h"
 
+
+class ACraftingObject;
+
+USTRUCT(BlueprintType)
+struct FCraftingItem : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	FText Name;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<ACraftingObject> Class;
+
+	UPROPERTY(EditDefaultsOnly)
+	FText Description;
+
+	UPROPERTY(EditDefaultsOnly)
+	UTexture2D* Icon;
+
+	UPROPERTY(EditDefaultsOnly)
+	TMap<FName, int32> Requirements;
+};
 
 class UCraftingWidget;
 

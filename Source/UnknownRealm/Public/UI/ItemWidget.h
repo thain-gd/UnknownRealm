@@ -18,7 +18,7 @@ class UNKNOWNREALM_API UItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void UpdateDetails(const FInventoryItem& Item);
+	void Init(UTexture2D* ItemIcon, int32 Count);
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))

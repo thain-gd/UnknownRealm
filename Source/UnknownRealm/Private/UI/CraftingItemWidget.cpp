@@ -10,11 +10,10 @@
 #include "Components/TextBlock.h"
 #include "Core/MPGameInstance.h"
 #include "UI/ItemWidget.h"
-#include "UI/CraftingWidget.h"
 
-void UCraftingItemWidget::Init(UCraftingWidget* Owner, const FCraftingItem* CraftingItem)
+void UCraftingItemWidget::Init(UCraftingComponent* InCraftingComp, const FCraftingItem* CraftingItem)
 {
-	MyOwner = Owner;
+	CraftingComp = InCraftingComp;
 	CraftingItemSettings = const_cast<FCraftingItem*>(CraftingItem);
 	
 	Icon->SetBrushFromTexture(CraftingItem->Icon);
@@ -37,6 +36,24 @@ void UCraftingItemWidget::Init(UCraftingWidget* Owner, const FCraftingItem* Craf
 	CraftingBtn->OnClicked.AddDynamic(this, &UCraftingItemWidget::StartCraftingItem);
 }
 
+void UCraftingItemWidget::UpdateRequirements(const TMap<FName, int32>& AvailableResources)
+{
+	uint32 RequirementIndex = 0;
+	for (auto Requirement : CraftingItemSettings->Requirements)
+	{
+		if (!AvailableResources.Contains(Requirement.Key) || AvailableResources[Requirement.Key] < Requirement.Value)
+		{
+			SetRequirementStatus(RequirementIndex, false);
+		}
+		else
+		{
+			SetRequirementStatus(RequirementIndex, true);
+		}
+
+		++RequirementIndex;
+	}
+}
+
 void UCraftingItemWidget::SetRequirementStatus(int32 RequirementIndex, bool bEnoughResources)
 {
 	UItemWidget* RequirementWidget = Cast<UItemWidget>(RequirementList->GetChildAt(RequirementIndex));
@@ -51,7 +68,7 @@ void UCraftingItemWidget::StartCraftingItem()
 	if (!IsCraftable())
 		return;
 	
-	MyOwner->StartCrafting(CraftingItemSettings);
+	CraftingComp->StartCraftingObject(CraftingItemSettings);
 }
 
 bool UCraftingItemWidget::IsCraftable() const

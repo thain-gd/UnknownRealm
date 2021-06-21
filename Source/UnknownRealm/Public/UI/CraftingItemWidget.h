@@ -8,7 +8,6 @@
 
 #include "CraftingItemWidget.generated.h"
 
-class UCraftingWidget;
 class UButton;
 class UItemWidget;
 class UTextBlock;
@@ -23,9 +22,9 @@ class UNKNOWNREALM_API UCraftingItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void Init(UCraftingWidget* Owner, const FCraftingItem* CraftingItem);
+	void Init(UCraftingComponent* InCraftingComp, const FCraftingItem* CraftingItem);
 
-	void SetRequirementStatus(int32 RequirementIndex, bool bEnoughResources);
+	void UpdateRequirements(const TMap<FName, int32>& AvailableResources);
 	
 	FCraftingItem* GetCraftingItemSettings() const { return CraftingItemSettings; }
 
@@ -34,7 +33,9 @@ private:
 	void StartCraftingItem();
 	
 	bool IsCraftable() const;
-	
+
+	void SetRequirementStatus(int32 RequirementIndex, bool bEnoughResources);
+
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
@@ -54,7 +55,7 @@ private:
 	TSubclassOf<UItemWidget> ItemWidgetClass;
 
 	UPROPERTY()
-	UCraftingWidget* MyOwner;
+	UCraftingComponent* CraftingComp;
 
 	FCraftingItem* CraftingItemSettings;
 };

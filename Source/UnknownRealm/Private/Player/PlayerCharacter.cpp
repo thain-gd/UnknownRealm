@@ -55,6 +55,8 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	CraftingComp->Init(CameraComp);
+
 	AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
 	AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
 

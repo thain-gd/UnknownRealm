@@ -11,6 +11,7 @@
 #include "CraftingComponent.generated.h"
 
 
+class UCameraComponent;
 struct FInventoryItem;
 class ACraftingObject;
 
@@ -46,12 +47,16 @@ public:
 	// Sets default values for this component's properties
 	UCraftingComponent();
 
+	void Init(UCameraComponent* FollowCam);
+
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void ToggleWidget() const;
 
-	void UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList);
+	void UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList) const;
+
+	void StartCraftingObject(FCraftingItem* CraftingItemSettings);
 
 protected:
 	// Called when the game starts
@@ -62,6 +67,18 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> CraftingWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly)
+	UMaterialInstance* CanBuildMat;
+
+	UPROPERTY(EditDefaultsOnly)
+	UMaterialInstance* CanNotBuildMat;
+
 	UPROPERTY()
 	UCraftingWidget* CraftingWidget;
+
+	UPROPERTY()
+	UCameraComponent* CraftingCam;
+	
+	UPROPERTY()
+	ACraftingObject* CraftingObject;
 };

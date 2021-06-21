@@ -8,15 +8,25 @@
 #include "Player/PlayerCharacter.h"
 #include "UI/CraftingWidget.h"
 #include "Components/InventoryComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Buildings/CraftingObject.h"
+#include "Camera/CameraComponent.h"
+
+#include "Engine/Engine.h"
 
 // Sets default values for this component's properties
 UCraftingComponent::UCraftingComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
+}
+
+void UCraftingComponent::Init(UCameraComponent* FollowCam)
+{
+	CraftingCam = FollowCam;
 }
 
 
@@ -39,7 +49,21 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (CraftingObject)
+	{
+		FVector StartPoint = CraftingCam->GetComponentLocation();
+		FVector EndPoint = StartPoint + CraftingCam->GetForwardVector() * 1000.0f;
+		
+		FCollisionQueryParams TraceParams;
+		TraceParams.AddIgnoredActor(GetOwner());
+		TraceParams.AddIgnoredActor(CraftingObject);
+		FHitResult Hit;
+		GetWorld()->LineTraceSingleByChannel(Hit, StartPoint, EndPoint, ECC_Visibility, TraceParams);
+		if (Hit.bBlockingHit)
+		{
+			CraftingObject->SetActorLocation(Hit.Location);
+		}
+	}
 }
 
 void UCraftingComponent::ToggleWidget() const
@@ -66,7 +90,7 @@ void UCraftingComponent::ToggleWidget() const
 	}
 }
 
-void UCraftingComponent::UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList)
+void UCraftingComponent::UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList) const
 {
 	// Accumulate all resources that we have
 	TMap<FName, int32> AvailableResources;
@@ -83,5 +107,16 @@ void UCraftingComponent::UpdateCraftingAvailabilities(const TArray<FInventoryIte
 	}
 
 	CraftingWidget->UpdateCraftableWidgets(AvailableResources);
+}
+
+void UCraftingComponent::StartCraftingObject(FCraftingItem* CraftingItemSettings)
+{
+	ToggleWidget(); // Hide crafting menu
+
+	if (*CraftingItemSettings->Class)
+	{
+		CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingItemSettings->Class, FVector::ZeroVector, FRotator::ZeroRotator);
+		CraftingObject->SetMaterials(CanBuildMat);
+	}
 }
 

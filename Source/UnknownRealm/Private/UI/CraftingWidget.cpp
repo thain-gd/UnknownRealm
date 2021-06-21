@@ -10,9 +10,9 @@
 #include "Core/MPGameInstance.h"
 #include "UI/CraftingItemWidget.h"
 
-void UCraftingWidget::Init(UCraftingComponent* Owner)
+void UCraftingWidget::Init(UCraftingComponent* InCraftingComp)
 {
-	CraftingComp = Owner;
+	CraftingComp = InCraftingComp;
 
 	InitButtonClickedEvents();
 
@@ -59,7 +59,7 @@ void UCraftingWidget::LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList
 	for (auto CraftingItem : CraftingItems)
 	{
 		UCraftingItemWidget* CraftingItemWidget = CreateWidget<UCraftingItemWidget>(this, CraftingItemWidgetClass);
-		CraftingItemWidget->Init(this, CraftingItem);
+		CraftingItemWidget->Init(CraftingComp, CraftingItem);
 		
 		ListWidget->AddChildToVerticalBox(CraftingItemWidget);
 
@@ -71,27 +71,6 @@ void UCraftingWidget::UpdateCraftableWidgets(const TMap<FName, int32>& Available
 {
 	for (UCraftingItemWidget* CraftingItemWidget : CraftingItemWidgets)
 	{
-		FCraftingItem* CraftingItemSettings = CraftingItemWidget->GetCraftingItemSettings();
-		uint32 RequirementIndex = 0;
-		for (auto Requirement : CraftingItemSettings->Requirements)
-		{
-			if (!AvailableResources.Contains(Requirement.Key) || AvailableResources[Requirement.Key] < Requirement.Value)
-			{
-				CraftingItemWidget->SetRequirementStatus(RequirementIndex, false);
-			}
-			else
-			{
-				CraftingItemWidget->SetRequirementStatus(RequirementIndex, true);
-			}
-
-			++RequirementIndex;
-		}
+		CraftingItemWidget->UpdateRequirements(AvailableResources);
 	}
-}
-
-void UCraftingWidget::StartCrafting(const FCraftingItem* CraftingItemSettings)
-{
-	CraftingComp->ToggleWidget(); // Hide crafting menu
-
-	
 }

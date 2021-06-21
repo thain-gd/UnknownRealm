@@ -23,10 +23,9 @@ class UNKNOWNREALM_API UCraftingWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void Init(UCraftingComponent* Owner);
+	void Init(UCraftingComponent* InCraftingComp);
 
 	void UpdateCraftableWidgets(const TMap<FName, int32>& AvailableResources);
-	void StartCrafting(const FCraftingItem* CraftingItemSettings);
 
 private:
 	void InitButtonClickedEvents();

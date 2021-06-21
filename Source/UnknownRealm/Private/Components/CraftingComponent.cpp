@@ -7,6 +7,7 @@
 #include "Core/MPPlayerController.h"
 #include "Player/PlayerCharacter.h"
 #include "UI/CraftingWidget.h"
+#include "Components/InventoryComponent.h"
 
 // Sets default values for this component's properties
 UCraftingComponent::UCraftingComponent()
@@ -41,9 +42,9 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// ...
 }
 
-void UCraftingComponent::ToggleWidget(ACharacter* Crafter) const
+void UCraftingComponent::ToggleWidget() const
 {
-	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Crafter->Controller);
+	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Cast<APlayerCharacter>(GetOwner())->Controller);
 	
 	if (CraftingWidget->IsInViewport())
 	{
@@ -63,5 +64,24 @@ void UCraftingComponent::ToggleWidget(ACharacter* Crafter) const
 		
 		CraftingWidget->AddToViewport();
 	}
+}
+
+void UCraftingComponent::UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList)
+{
+	// Accumulate all resources that we have
+	TMap<FName, int32> AvailableResources;
+	for (const FInventoryItem& Item : ItemList)
+	{
+		if (AvailableResources.Contains(Item.ID))
+		{
+			AvailableResources[Item.ID] += Item.Count;
+		}
+		else
+		{
+			AvailableResources.Add(Item.ID, Item.Count);
+		}
+	}
+
+	CraftingWidget->UpdateCraftableWidgets(AvailableResources);
 }
 

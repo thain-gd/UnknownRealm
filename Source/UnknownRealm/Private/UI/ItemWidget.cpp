@@ -22,3 +22,20 @@ void UItemWidget::Init(UTexture2D* ItemIcon, int32 Count)
 		CountNumber->SetVisibility(ESlateVisibility::Visible);
 	}
 }
+
+void UItemWidget::SetCountStatus(bool bEnoughCount)
+{
+	FSlateColor Color;
+	if (bEnoughCount)
+	{
+		Color = FSlateColor(FLinearColor::Black);
+		bResourcesEnough = true;
+	}
+	else
+	{
+		Color = FSlateColor(FLinearColor::Red);
+		bResourcesEnough = false;
+	}
+
+	CountNumber->SetColorAndOpacity(Color);
+}

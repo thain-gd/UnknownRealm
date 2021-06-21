@@ -11,6 +11,7 @@
 #include "CraftingComponent.generated.h"
 
 
+struct FInventoryItem;
 class ACraftingObject;
 
 USTRUCT(BlueprintType)
@@ -48,7 +49,9 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void ToggleWidget(ACharacter* Crafter) const;
+	void ToggleWidget() const;
+
+	void UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList);
 
 protected:
 	// Called when the game starts

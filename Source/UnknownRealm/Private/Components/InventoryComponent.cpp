@@ -5,7 +5,9 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Core/MPGameInstance.h"
+#include "Core/MPPlayerController.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/PlayerCharacter.h"
 #include "UI/InventoryWidget.h"
 
 class AMPGameState;
@@ -107,6 +109,16 @@ void UInventoryComponent::AddItemToNewSlot(FInventoryItem& Item)
 
 void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
 {
+	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(PlayerController->GetPawn());
+		if (PlayerChar)
+		{
+			PlayerChar->UpdateCraftingMenu(ItemList);
+		}
+	}
+	
 	InventoryWidget->Refresh(ItemList);
 }
 

@@ -12,7 +12,7 @@
 
 void UCraftingWidget::Init(UCraftingComponent* Owner)
 {
-	MyOwner = Owner;
+	CraftingComp = Owner;
 
 	InitButtonClickedEvents();
 
@@ -56,12 +56,42 @@ void UCraftingWidget::LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList
 {
 	TArray<FCraftingItem*> CraftingItems;
 	CraftingList->GetAllRows(TEXT("UCraftingWidget::LoadUseableTab"), CraftingItems);
-
 	for (auto CraftingItem : CraftingItems)
 	{
-		UCraftingItemWidget* CraftingItemWidget = CreateWidget<UCraftingItemWidget>(GetWorld(), CraftingItemWidgetClass);
-		CraftingItemWidget->Init(*CraftingItem);
+		UCraftingItemWidget* CraftingItemWidget = CreateWidget<UCraftingItemWidget>(this, CraftingItemWidgetClass);
+		CraftingItemWidget->Init(this, CraftingItem);
 		
 		ListWidget->AddChildToVerticalBox(CraftingItemWidget);
+
+		CraftingItemWidgets.Add(CraftingItemWidget);
 	}
+}
+
+void UCraftingWidget::UpdateCraftableWidgets(const TMap<FName, int32>& AvailableResources)
+{
+	for (UCraftingItemWidget* CraftingItemWidget : CraftingItemWidgets)
+	{
+		FCraftingItem* CraftingItemSettings = CraftingItemWidget->GetCraftingItemSettings();
+		uint32 RequirementIndex = 0;
+		for (auto Requirement : CraftingItemSettings->Requirements)
+		{
+			if (!AvailableResources.Contains(Requirement.Key) || AvailableResources[Requirement.Key] < Requirement.Value)
+			{
+				CraftingItemWidget->SetRequirementStatus(RequirementIndex, false);
+			}
+			else
+			{
+				CraftingItemWidget->SetRequirementStatus(RequirementIndex, true);
+			}
+
+			++RequirementIndex;
+		}
+	}
+}
+
+void UCraftingWidget::StartCrafting(const FCraftingItem* CraftingItemSettings)
+{
+	CraftingComp->ToggleWidget(); // Hide crafting menu
+
+	
 }

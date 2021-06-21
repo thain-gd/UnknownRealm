@@ -19,6 +19,10 @@ class UNKNOWNREALM_API UItemWidget : public UUserWidget
 
 public:
 	void Init(UTexture2D* ItemIcon, int32 Count);
+	
+	void SetCountStatus(bool bEnoughCount);
+
+	bool AreResourcesEnough() const { return bResourcesEnough; };
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
@@ -26,4 +30,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UTextBlock* CountNumber;
+
+	bool bResourcesEnough;
 };

@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 
+#include "Components/CraftingComponent.h"
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+struct FInventoryItem;
 class UCraftingComponent;
 class UInteractionWidget;
 class USpringArmComponent;
@@ -29,6 +31,8 @@ public:
 
 	UFUNCTION(Reliable, Server)
 	void ServerFinishCollecting(ACollectibleItem* CollectedItem);
+
+	void UpdateCraftingMenu(const TArray<FInventoryItem>& ItemList) const { CraftingComp->UpdateCraftingAvailabilities(ItemList); }
 
 protected:
 	// Called when the game starts or when spawned

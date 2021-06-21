@@ -8,6 +8,7 @@
 
 #include "CraftingWidget.generated.h"
 
+struct FCraftingItem;
 class UVerticalBox;
 class UWidgetSwitcher;
 class UCraftingComponent;
@@ -24,8 +25,8 @@ class UNKNOWNREALM_API UCraftingWidget : public UUserWidget
 public:
 	void Init(UCraftingComponent* Owner);
 
-protected:
-	
+	void UpdateCraftableWidgets(const TMap<FName, int32>& AvailableResources);
+	void StartCrafting(const FCraftingItem* CraftingItemSettings);
 
 private:
 	void InitButtonClickedEvents();
@@ -70,5 +71,8 @@ private:
 	TSubclassOf<UCraftingItemWidget> CraftingItemWidgetClass;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	UCraftingComponent* MyOwner;
+	UCraftingComponent* CraftingComp;
+
+	UPROPERTY()
+	TArray<UCraftingItemWidget*> CraftingItemWidgets;
 };

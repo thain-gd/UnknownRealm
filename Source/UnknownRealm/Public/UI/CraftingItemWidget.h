@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/CraftingComponent.h"
+
 #include "CraftingItemWidget.generated.h"
 
+class UCraftingWidget;
+class UButton;
 class UItemWidget;
-struct FCraftingItem;
 class UTextBlock;
 class UImage;
 class UHorizontalBox;
@@ -20,10 +23,23 @@ class UNKNOWNREALM_API UCraftingItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void Init(const FCraftingItem& CraftingItem);
+	void Init(UCraftingWidget* Owner, const FCraftingItem* CraftingItem);
+
+	void SetRequirementStatus(int32 RequirementIndex, bool bEnoughResources);
+	
+	FCraftingItem* GetCraftingItemSettings() const { return CraftingItemSettings; }
+
+private:
+	UFUNCTION()
+	void StartCraftingItem();
+	
+	bool IsCraftable() const;
 	
 
 protected:
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UButton* CraftingBtn;
+	
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UImage* Icon;
 
@@ -36,4 +52,9 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UItemWidget> ItemWidgetClass;
+
+	UPROPERTY()
+	UCraftingWidget* MyOwner;
+
+	FCraftingItem* CraftingItemSettings;
 };

@@ -33,13 +33,18 @@ void ACraftingObject::Tick(float DeltaTime)
 
 }
 
-void ACraftingObject::Init(UMaterialInstance* NewMaterial) const
+void ACraftingObject::MulticastInit_Implementation(UMaterialInstance* NewMaterial) const
 {
 	MeshComp->SetCollisionResponseToAllChannels(ECR_Overlap);
-	MulticastSetMaterials(NewMaterial);
+	SetMaterials(NewMaterial);
 }
 
 void ACraftingObject::MulticastSetMaterials_Implementation(UMaterialInstance* NewMaterial) const
+{
+	SetMaterials(NewMaterial);
+}
+
+void ACraftingObject::SetMaterials(UMaterialInstance* NewMaterial) const
 {
 	for (size_t i = 0; i < MeshComp->GetMaterials().Num(); ++i)
 	{

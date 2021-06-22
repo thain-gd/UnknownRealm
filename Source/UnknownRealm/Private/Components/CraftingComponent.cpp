@@ -52,16 +52,23 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	if (CraftingObject)
 	{
 		FVector StartPoint = CraftingCam->GetComponentLocation();
-		FVector EndPoint = StartPoint + CraftingCam->GetForwardVector() * 1000.0f;
+		FVector EndPoint = StartPoint + CraftingCam->GetForwardVector() * 600.0f;
 		
 		FCollisionQueryParams TraceParams;
 		TraceParams.AddIgnoredActor(GetOwner());
 		TraceParams.AddIgnoredActor(CraftingObject);
 		FHitResult Hit;
 		GetWorld()->LineTraceSingleByChannel(Hit, StartPoint, EndPoint, ECC_Visibility, TraceParams);
+
 		if (Hit.bBlockingHit)
 		{
 			CraftingObject->SetActorLocation(Hit.Location);
+			CraftingObject->MulticastSetMaterials(CanBuildMat);
+		}
+		else
+		{
+			CraftingObject->SetActorLocation(EndPoint);
+			CraftingObject->MulticastSetMaterials(CanNotBuildMat);
 		}
 	}
 }
@@ -122,7 +129,7 @@ void UCraftingComponent::StartCrafting(FCraftingItem* CraftingItemSettings)
 void UCraftingComponent::ServerSpawnCraftingObject_Implementation(TSubclassOf<ACraftingObject> CraftingObjectClass)
 {
 	CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingObjectClass, FVector::ZeroVector, FRotator::ZeroRotator);
-	CraftingObject->Init(CanBuildMat);
+	CraftingObject->MulticastInit(CanBuildMat);
 }
 
 void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

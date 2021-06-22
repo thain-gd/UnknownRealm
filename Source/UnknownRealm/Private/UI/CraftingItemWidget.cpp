@@ -68,7 +68,7 @@ void UCraftingItemWidget::StartCraftingItem()
 	if (!IsCraftable())
 		return;
 	
-	CraftingComp->StartCraftingObject(CraftingItemSettings);
+	CraftingComp->StartCrafting(CraftingItemSettings);
 }
 
 bool UCraftingItemWidget::IsCraftable() const

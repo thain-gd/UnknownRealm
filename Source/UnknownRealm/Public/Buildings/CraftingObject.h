@@ -18,7 +18,10 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetMaterials(UMaterialInstance* NewMaterial) const;
+	void Init(UMaterialInstance* NewMaterial) const;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSetMaterials(UMaterialInstance* NewMaterial) const;
 
 protected:
 	// Called when the game starts or when spawned

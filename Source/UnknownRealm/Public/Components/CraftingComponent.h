@@ -56,11 +56,15 @@ public:
 
 	void UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList) const;
 
-	void StartCraftingObject(FCraftingItem* CraftingItemSettings);
+	void StartCrafting(FCraftingItem* CraftingItemSettings);
 
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION(Server, Reliable)
+	void ServerSpawnCraftingObject(TSubclassOf<ACraftingObject> CraftingObjectClass);
 
 
 private:
@@ -79,6 +83,6 @@ private:
 	UPROPERTY()
 	UCameraComponent* CraftingCam;
 	
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	ACraftingObject* CraftingObject;
 };

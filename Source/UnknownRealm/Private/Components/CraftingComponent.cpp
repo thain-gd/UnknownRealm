@@ -13,6 +13,7 @@
 #include "Camera/CameraComponent.h"
 
 #include "Engine/Engine.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UCraftingComponent::UCraftingComponent()
@@ -42,7 +43,6 @@ void UCraftingComponent::BeginPlay()
 		CraftingWidget->Init(this);
 	}
 }
-
 
 // Called every frame
 void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -109,14 +109,26 @@ void UCraftingComponent::UpdateCraftingAvailabilities(const TArray<FInventoryIte
 	CraftingWidget->UpdateCraftableWidgets(AvailableResources);
 }
 
-void UCraftingComponent::StartCraftingObject(FCraftingItem* CraftingItemSettings)
+void UCraftingComponent::StartCrafting(FCraftingItem* CraftingItemSettings)
 {
 	ToggleWidget(); // Hide crafting menu
 
 	if (*CraftingItemSettings->Class)
 	{
-		CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingItemSettings->Class, FVector::ZeroVector, FRotator::ZeroRotator);
-		CraftingObject->SetMaterials(CanBuildMat);
+		ServerSpawnCraftingObject(CraftingItemSettings->Class);
 	}
+}
+
+void UCraftingComponent::ServerSpawnCraftingObject_Implementation(TSubclassOf<ACraftingObject> CraftingObjectClass)
+{
+	CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingObjectClass, FVector::ZeroVector, FRotator::ZeroRotator);
+	CraftingObject->Init(CanBuildMat);
+}
+
+void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCraftingComponent, CraftingObject);
 }
 

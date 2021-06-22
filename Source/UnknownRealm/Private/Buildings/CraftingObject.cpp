@@ -3,6 +3,8 @@
 
 #include "Buildings/CraftingObject.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 ACraftingObject::ACraftingObject()
 {
@@ -13,8 +15,9 @@ ACraftingObject::ACraftingObject()
 	
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	MeshComp->SetupAttachment(RootComponent);
-
+	
 	SetReplicates(true);
+	SetReplicatingMovement(true);
 }
 
 // Called when the game starts or when spawned
@@ -30,7 +33,13 @@ void ACraftingObject::Tick(float DeltaTime)
 
 }
 
-void ACraftingObject::SetMaterials(UMaterialInstance* NewMaterial) const
+void ACraftingObject::Init(UMaterialInstance* NewMaterial) const
+{
+	MeshComp->SetCollisionResponseToAllChannels(ECR_Overlap);
+	MulticastSetMaterials(NewMaterial);
+}
+
+void ACraftingObject::MulticastSetMaterials_Implementation(UMaterialInstance* NewMaterial) const
 {
 	for (size_t i = 0; i < MeshComp->GetMaterials().Num(); ++i)
 	{

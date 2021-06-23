@@ -47,6 +47,7 @@ APlayerCharacter::APlayerCharacter()
 	AddOwnedComponent(HealthComp);
 
 	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("CraftingComp"));
+	CraftingComp->SetIsReplicated(true);
 	AddOwnedComponent(CraftingComp);
 }
 
@@ -183,6 +184,12 @@ void APlayerCharacter::ServerAttack_Implementation()
 
 void APlayerCharacter::Interact()
 {
+	if (CraftingComp->IsCrafting())
+	{
+		CraftingComp->ServerVerifyPlacement();
+		return;
+	}
+	
 	if (bInteractable && CollectibleItem)
 	{
 		AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Controller);

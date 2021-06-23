@@ -58,6 +58,11 @@ public:
 
 	void StartCrafting(FCraftingItem* CraftingItemSettings);
 
+	UFUNCTION(Server, Reliable)
+	void ServerVerifyPlacement();
+	
+	bool IsCrafting() const { return CraftingObject != nullptr; }
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -65,6 +70,9 @@ protected:
 private:
 	UFUNCTION(Server, Reliable)
 	void ServerSpawnCraftingObject(TSubclassOf<ACraftingObject> CraftingObjectClass);
+
+	UFUNCTION(Server, Reliable)
+	void ServerUpdateCraftingObjectLocation(const FVector& NewLocation, bool bBuidable);
 
 
 private:

@@ -16,7 +16,7 @@ ACraftingObject::ACraftingObject()
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	MeshComp->SetupAttachment(RootComponent);
 	
-	SetReplicates(true);
+	bReplicates = true;
 	SetReplicatingMovement(true);
 }
 
@@ -24,6 +24,16 @@ ACraftingObject::ACraftingObject()
 void ACraftingObject::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SaveDefaultMaterials();
+}
+
+void ACraftingObject::SaveDefaultMaterials()
+{
+	for (size_t i = 0; i < MeshComp->GetMaterials().Num(); ++i)
+	{
+		DefaultMaterials.Add(MeshComp->GetMaterial(i));
+	}
 }
 
 // Called every frame
@@ -39,6 +49,12 @@ void ACraftingObject::MulticastInit_Implementation(UMaterialInstance* NewMateria
 	SetMaterials(NewMaterial);
 }
 
+void ACraftingObject::SetBuildability(bool bInIsBuidable, UMaterialInstance* NewMaterial)
+{
+	bIsBuildable = bInIsBuidable;
+	MulticastSetMaterials(NewMaterial);
+}
+
 void ACraftingObject::MulticastSetMaterials_Implementation(UMaterialInstance* NewMaterial) const
 {
 	SetMaterials(NewMaterial);
@@ -52,3 +68,19 @@ void ACraftingObject::SetMaterials(UMaterialInstance* NewMaterial) const
 	}
 }
 
+void ACraftingObject::MulticastConfirmPlacement_Implementation() const
+{
+	MeshComp->SetCollisionResponseToAllChannels(ECR_Block);
+
+	for (size_t i = 0; i < MeshComp->GetMaterials().Num(); ++i)
+	{
+		MeshComp->SetMaterial(i, DefaultMaterials[i]);
+	}
+}
+
+void ACraftingObject::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACraftingObject, bIsBuildable);
+}

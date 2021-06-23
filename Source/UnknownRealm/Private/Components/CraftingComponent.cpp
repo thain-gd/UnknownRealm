@@ -36,7 +36,7 @@ void UCraftingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(GetOwner());
+	APlayerCharacter* PlayerChar = GetOwner<APlayerCharacter>();
 	if (PlayerChar && PlayerChar->IsLocallyControlled())
 	{
 		CraftingWidget = CreateWidget<UCraftingWidget>(GetWorld(), CraftingWidgetClass);
@@ -49,7 +49,7 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (CraftingObject)
+	if (CraftingObject && GetOwner<APawn>()->IsLocallyControlled())
 	{
 		FVector StartPoint = CraftingCam->GetComponentLocation();
 		FVector EndPoint = StartPoint + CraftingCam->GetForwardVector() * 600.0f;
@@ -62,14 +62,21 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 		if (Hit.bBlockingHit)
 		{
-			CraftingObject->SetActorLocation(Hit.Location);
-			CraftingObject->MulticastSetMaterials(CanBuildMat);
+			ServerUpdateCraftingObjectLocation(Hit.Location, true);
 		}
 		else
 		{
-			CraftingObject->SetActorLocation(EndPoint);
-			CraftingObject->MulticastSetMaterials(CanNotBuildMat);
+			ServerUpdateCraftingObjectLocation(EndPoint, false);
 		}
+	}
+}
+
+void UCraftingComponent::ServerUpdateCraftingObjectLocation_Implementation(const FVector& NewLocation, bool bBuidable)
+{
+	if (CraftingObject)
+	{
+		CraftingObject->SetActorLocation(NewLocation);
+		CraftingObject->SetBuildability(bBuidable, bBuidable ? CanBuildMat : CanNotBuildMat);
 	}
 }
 
@@ -130,6 +137,16 @@ void UCraftingComponent::ServerSpawnCraftingObject_Implementation(TSubclassOf<AC
 {
 	CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingObjectClass, FVector::ZeroVector, FRotator::ZeroRotator);
 	CraftingObject->MulticastInit(CanBuildMat);
+}
+
+void UCraftingComponent::ServerVerifyPlacement_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s"), CraftingObject->IsBuildable() ? TEXT("Buildable") : TEXT("Not Buildable"));
+	if (!CraftingObject->IsBuildable())
+		return;
+
+	CraftingObject->MulticastConfirmPlacement();
+	CraftingObject = nullptr;
 }
 
 void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

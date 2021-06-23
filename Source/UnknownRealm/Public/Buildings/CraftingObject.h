@@ -21,19 +21,33 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastInit(UMaterialInstance* NewMaterial) const;
 
+	void SetBuildability(bool bInIsBuidable, UMaterialInstance* NewMaterial);
+
+	bool IsBuildable() const { return bIsBuildable; }
+
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastSetMaterials(UMaterialInstance* NewMaterial) const;
-	
+	void MulticastConfirmPlacement() const;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
+	void SaveDefaultMaterials();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSetMaterials(UMaterialInstance* NewMaterial) const;
+	
 	void SetMaterials(UMaterialInstance* NewMaterial) const;
 
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* MeshComp;
+
+	UPROPERTY()
+	TArray<UMaterialInterface*> DefaultMaterials;
+
+	UPROPERTY(Replicated)
+	bool bIsBuildable;
 };

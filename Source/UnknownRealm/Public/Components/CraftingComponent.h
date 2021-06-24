@@ -72,7 +72,7 @@ private:
 	void ServerSpawnCraftingObject(TSubclassOf<ACraftingObject> CraftingObjectClass);
 
 	UFUNCTION(Server, Reliable)
-	void ServerUpdateCraftingObjectLocation(const FVector& NewLocation, bool bBuidable);
+	void ServerUpdateCraftingObjectLocation(const FVector& NewLocation, bool bFoundPlacement);
 
 
 private:

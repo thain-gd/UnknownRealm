@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "CraftingObject.generated.h"
 
+class UBoxComponent;
 UCLASS()
 class UNKNOWNREALM_API ACraftingObject : public AActor
 {
@@ -26,7 +27,12 @@ public:
 	bool IsBuildable() const { return bIsBuildable; }
 
 	UFUNCTION(NetMulticast, Reliable)
+	void MulticastSetMaterials(UMaterialInstance* NewMaterial) const;
+
+	UFUNCTION(NetMulticast, Reliable)
 	void MulticastConfirmPlacement() const;
+
+	bool CheckBuildStatus();
 
 protected:
 	// Called when the game starts or when spawned
@@ -35,15 +41,20 @@ protected:
 private:
 	void SaveDefaultMaterials();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastSetMaterials(UMaterialInstance* NewMaterial) const;
-	
 	void SetMaterials(UMaterialInstance* NewMaterial) const;
+
+	bool IsLandScape(AActor* Actor) const;
 
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* MeshComp;
+
+	UPROPERTY(VisibleAnywhere)
+	UBoxComponent* BuildCollision;
+
+	UPROPERTY(VisibleAnywhere)
+	UBoxComponent* FoundationCollision;
 
 	UPROPERTY()
 	TArray<UMaterialInterface*> DefaultMaterials;

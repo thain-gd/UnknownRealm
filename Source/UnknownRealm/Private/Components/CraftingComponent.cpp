@@ -71,12 +71,20 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 }
 
-void UCraftingComponent::ServerUpdateCraftingObjectLocation_Implementation(const FVector& NewLocation, bool bBuidable)
+void UCraftingComponent::ServerUpdateCraftingObjectLocation_Implementation(const FVector& NewLocation, bool bFoundPlacement)
 {
 	if (CraftingObject)
 	{
 		CraftingObject->SetActorLocation(NewLocation);
-		CraftingObject->SetBuildability(bBuidable, bBuidable ? CanBuildMat : CanNotBuildMat);
+		if (bFoundPlacement)
+		{
+			const bool bBuildable = CraftingObject->CheckBuildStatus();
+			CraftingObject->MulticastSetMaterials(bBuildable ? CanBuildMat : CanNotBuildMat);
+		}
+		else
+		{
+			CraftingObject->MulticastSetMaterials(CanNotBuildMat);
+		}
 	}
 }
 

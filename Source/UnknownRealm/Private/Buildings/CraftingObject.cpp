@@ -3,6 +3,8 @@
 
 #include "Buildings/CraftingObject.h"
 
+#include "Landscape.h"
+#include "Components/BoxComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -15,7 +17,17 @@ ACraftingObject::ACraftingObject()
 	
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	MeshComp->SetupAttachment(RootComponent);
-	
+
+	BuildCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BuildCollision"));
+	BuildCollision->SetGenerateOverlapEvents(true);
+	BuildCollision->SetCollisionResponseToAllChannels(ECR_Overlap);
+	BuildCollision->SetupAttachment(RootComponent);
+
+	FoundationCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("Foundation"));
+	FoundationCollision->SetGenerateOverlapEvents(true);
+	FoundationCollision->SetCollisionResponseToAllChannels(ECR_Overlap);
+	FoundationCollision->SetupAttachment(RootComponent);
+
 	bReplicates = true;
 	SetReplicatingMovement(true);
 }
@@ -34,6 +46,64 @@ void ACraftingObject::SaveDefaultMaterials()
 	{
 		DefaultMaterials.Add(MeshComp->GetMaterial(i));
 	}
+}
+
+bool ACraftingObject::CheckBuildStatus()
+{
+	TArray<AActor*> FoundationOverlappingActors;
+	FoundationCollision->GetOverlappingActors(FoundationOverlappingActors);
+	bool bOnGround = false;
+	for (AActor* Actor : FoundationOverlappingActors)
+	{
+		if (IsLandScape(Actor))
+		{
+			bOnGround = true;
+			break;
+		}
+	}
+
+	if (!bOnGround)
+	{
+		return false;
+	}
+
+	TArray<AActor*> OverlappingActors;
+	BuildCollision->GetOverlappingActors(OverlappingActors);
+	int32 RelevantOverlappingActorCount = OverlappingActors.Num();
+	for (AActor* Actor : OverlappingActors)
+	{
+		bool bNotBlocked = true;
+		if (Actor != this && !IsLandScape(Actor))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Overlapping Actor: %s"), *this->GetName());
+
+			TArray<UPrimitiveComponent*> OverlappingComponents;
+			Actor->GetOverlappingComponents(OverlappingComponents);
+			for (auto Component : OverlappingComponents)
+			{
+				if ((Component->GetCollisionResponseToChannel(BuildCollision->GetCollisionObjectType()) == ECR_Block) ||
+					(Component->GetOwner() == Actor))
+				{
+					bNotBlocked = false;
+					break;
+				}
+			}
+		}
+		
+		if (bNotBlocked)
+			--RelevantOverlappingActorCount;
+	}
+
+	if (RelevantOverlappingActorCount == 0)
+	{
+		bIsBuildable = true;
+	}
+	else
+	{
+		bIsBuildable = false;
+	}
+
+	return bIsBuildable;
 }
 
 // Called every frame
@@ -66,6 +136,11 @@ void ACraftingObject::SetMaterials(UMaterialInstance* NewMaterial) const
 	{
 		MeshComp->SetMaterial(i, NewMaterial);
 	}
+}
+
+bool ACraftingObject::IsLandScape(AActor* Actor) const
+{
+	return Actor->GetClass() == ALandscape::StaticClass() || Actor->ActorHasTag(TEXT("Landscape"));
 }
 
 void ACraftingObject::MulticastConfirmPlacement_Implementation() const

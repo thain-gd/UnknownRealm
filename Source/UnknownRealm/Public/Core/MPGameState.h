@@ -40,6 +40,8 @@ public:
 	void OpenInventory() const;
 	void CloseInventory() const;
 
+	UInventoryComponent* GetInventory() const { return InventoryComp; }
+
 private:
 	UFUNCTION(Reliable, NetMulticast)
 	void MulticastOnWaveStatusChanged() const;

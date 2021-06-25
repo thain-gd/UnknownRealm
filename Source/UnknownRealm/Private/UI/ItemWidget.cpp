@@ -8,8 +8,15 @@
 
 void UItemWidget::Init(UTexture2D* ItemIcon, int32 Count)
 {
-	Icon->SetVisibility(ESlateVisibility::Visible);
-	Icon->SetBrushFromTexture(ItemIcon);
+	if (ItemIcon)
+	{
+		Icon->SetVisibility(ESlateVisibility::Visible);
+		Icon->SetBrushFromTexture(ItemIcon);
+	}
+	else
+	{
+		Icon->SetVisibility(ESlateVisibility::Hidden);
+	}
 
 	// Items that are not stackable, hide the count number
 	if (Count == 0)

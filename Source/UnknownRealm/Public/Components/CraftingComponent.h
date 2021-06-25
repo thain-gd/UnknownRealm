@@ -56,7 +56,7 @@ public:
 
 	void UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList) const;
 
-	void StartCrafting(FCraftingItem* CraftingItemSettings);
+	void StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings);
 
 	UFUNCTION(Server, Reliable)
 	void ServerVerifyPlacement();
@@ -69,7 +69,7 @@ protected:
 
 private:
 	UFUNCTION(Server, Reliable)
-	void ServerSpawnCraftingObject(TSubclassOf<ACraftingObject> CraftingObjectClass);
+	void ServerSpawnCraftingObject(const FName& CraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass);
 
 	UFUNCTION(Server, Reliable)
 	void ServerUpdateCraftingObjectLocation(const FVector& NewLocation, bool bFoundPlacement);
@@ -93,4 +93,6 @@ private:
 	
 	UPROPERTY(Replicated)
 	ACraftingObject* CraftingObject;
+
+	FName SelectedCraftingItemID;
 };

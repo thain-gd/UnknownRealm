@@ -54,12 +54,12 @@ void UCraftingWidget::SwitchToTrapTab()
 
 void UCraftingWidget::LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList)
 {
-	TArray<FCraftingItem*> CraftingItems;
-	CraftingList->GetAllRows(TEXT("UCraftingWidget::LoadUseableTab"), CraftingItems);
-	for (auto CraftingItem : CraftingItems)
+	for (auto& Row : CraftingList->GetRowMap())
 	{
+		FCraftingItem* CraftingItem = reinterpret_cast<FCraftingItem*>(Row.Value);
 		UCraftingItemWidget* CraftingItemWidget = CreateWidget<UCraftingItemWidget>(this, CraftingItemWidgetClass);
-		CraftingItemWidget->Init(CraftingComp, CraftingItem);
+		
+		CraftingItemWidget->Init(CraftingComp, Row.Key, CraftingItem);
 		
 		ListWidget->AddChildToVerticalBox(CraftingItemWidget);
 

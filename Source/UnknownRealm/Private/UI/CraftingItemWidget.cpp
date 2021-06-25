@@ -11,9 +11,10 @@
 #include "Core/MPGameInstance.h"
 #include "UI/ItemWidget.h"
 
-void UCraftingItemWidget::Init(UCraftingComponent* InCraftingComp, const FCraftingItem* CraftingItem)
+void UCraftingItemWidget::Init(UCraftingComponent* InCraftingComp, const FName& InCraftingItemID, const FCraftingItem* CraftingItem)
 {
 	CraftingComp = InCraftingComp;
+	CraftingItemID = InCraftingItemID;
 	CraftingItemSettings = const_cast<FCraftingItem*>(CraftingItem);
 	
 	Icon->SetBrushFromTexture(CraftingItem->Icon);
@@ -68,7 +69,7 @@ void UCraftingItemWidget::StartCraftingItem()
 	if (!IsCraftable())
 		return;
 	
-	CraftingComp->StartCrafting(CraftingItemSettings);
+	CraftingComp->StartCrafting(CraftingItemID, CraftingItemSettings);
 }
 
 bool UCraftingItemWidget::IsCraftable() const

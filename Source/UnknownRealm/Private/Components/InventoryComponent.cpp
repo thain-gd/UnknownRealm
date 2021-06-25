@@ -10,7 +10,12 @@
 #include "Player/PlayerCharacter.h"
 #include "UI/InventoryWidget.h"
 
-class AMPGameState;
+void FInventoryItem::Reset()
+{
+	ID = EMPTY_ID;
+	Icon = nullptr;
+	Count = 0;
+}
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -34,10 +39,21 @@ void UInventoryComponent::Init()
 	if (GetOwner()->HasAuthority())
 	{
 		FreeSlots = MaxRows * MaxColumns;
+		Items.SetNum(FreeSlots);
 	}
 
 	InventoryWidget = CreateWidget<UInventoryWidget>(GetWorld(), InventoryWidgetClass);
 	InventoryWidget->Init(MaxRows, MaxColumns);
+}
+
+void UInventoryComponent::ShowWidget() const
+{
+	InventoryWidget->AddToViewport();
+}
+
+void UInventoryComponent::HideWidget() const
+{
+	InventoryWidget->RemoveFromParent();
 }
 
 void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
@@ -68,16 +84,6 @@ void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
 	}
 }
 
-void UInventoryComponent::ShowWidget() const
-{
-	InventoryWidget->AddToViewport();
-}
-
-void UInventoryComponent::HideWidget() const
-{
-	InventoryWidget->RemoveFromParent();
-}
-
 void UInventoryComponent::AddStackableItem(FInventoryItem StackableItem)
 {
 	for (FInventoryItem& Item : Items)
@@ -103,8 +109,15 @@ void UInventoryComponent::AddStackableItem(FInventoryItem StackableItem)
 
 void UInventoryComponent::AddItemToNewSlot(FInventoryItem& Item)
 {
-	Items.Add(Item);
-	--FreeSlots;
+	for (int i = 0; i < Items.Num(); ++i)
+	{
+		if (Items[i].ID == EMPTY_ID)
+		{
+			Items[i] = Item;
+			--FreeSlots;
+			return;
+		}
+	}
 }
 
 void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
@@ -120,6 +133,53 @@ void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInv
 	}
 	
 	InventoryWidget->Refresh(ItemList);
+}
+
+bool UInventoryComponent::UseItems(const FName& CraftingItemID)
+{
+	UMPGameInstance* GameInstance = GetWorld()->GetGameInstance<UMPGameInstance>();
+	FCraftingItem* CraftingItem = GameInstance->GetCraftingDataRow(CraftingItemID);
+	auto Requirements = CraftingItem->Requirements; // verify if edit this one affects the row of udata after that
+
+	// Decrease count to check if there are enough resources
+	for (auto& Item: Items)
+	{
+		if (Requirements.Contains(Item.ID) && Requirements[Item.ID] > 0)
+		{
+			Requirements[Item.ID] = FMath::Min(0, Requirements[Item.ID] - Item.Count);
+		}
+	}
+
+	// Reset requirement count
+	for (auto& Requirement : Requirements)
+	{
+		// There is not enough resources
+		if (Requirement.Value > 0)
+		{
+			return false;
+		}
+		
+		Requirement.Value = CraftingItem->Requirements[Requirement.Key];
+	}
+
+	for (int i = 0; i < Items.Num(); ++i)
+	{
+		FInventoryItem& Item = Items[i];
+		if (Requirements.Contains(Item.ID) && Requirements[Item.ID] > 0)
+		{
+			const int32 Available = Item.Count;
+			Item.Count -= Requirements[Item.ID];
+			Requirements[Item.ID] = FMath::Min(0, Requirements[Item.ID] - Available);
+			if (Item.Count <= 0)
+			{
+				Items[i].Reset();
+				--FreeSlots;
+			}
+		}
+	}
+
+	MulticastUpdateWidget(Items);
+	return true;
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

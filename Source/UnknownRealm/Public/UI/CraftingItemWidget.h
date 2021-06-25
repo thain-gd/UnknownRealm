@@ -22,7 +22,7 @@ class UNKNOWNREALM_API UCraftingItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void Init(UCraftingComponent* InCraftingComp, const FCraftingItem* CraftingItem);
+	void Init(UCraftingComponent* InCraftingComp, const FName& InCraftingItemID, const FCraftingItem* CraftingItem);
 
 	void UpdateRequirements(const TMap<FName, int32>& AvailableResources);
 	
@@ -57,5 +57,6 @@ private:
 	UPROPERTY()
 	UCraftingComponent* CraftingComp;
 
+	FName CraftingItemID;
 	FCraftingItem* CraftingItemSettings;
 };

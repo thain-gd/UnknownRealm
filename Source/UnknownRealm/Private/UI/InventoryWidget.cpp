@@ -50,7 +50,7 @@ void UInventoryWidget::CloseWidget()
 
 void UInventoryWidget::Refresh(const TArray<FInventoryItem>& Items)
 {
-	for (int i = 0; i < Items.Num(); i++)
+	for (int i = 0; i < Items.Num(); ++i)
 	{
 		ItemWidgets[i]->Init(Items[i].Icon, Items[i].Count);
 	}

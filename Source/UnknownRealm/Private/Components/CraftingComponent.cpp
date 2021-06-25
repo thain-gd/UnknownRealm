@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Buildings/CraftingObject.h"
 #include "Camera/CameraComponent.h"
+#include "Core/MPGameState.h"
 
 #include "Engine/Engine.h"
 #include "Net/UnrealNetwork.h"
@@ -131,29 +132,38 @@ void UCraftingComponent::UpdateCraftingAvailabilities(const TArray<FInventoryIte
 	CraftingWidget->UpdateCraftableWidgets(AvailableResources);
 }
 
-void UCraftingComponent::StartCrafting(FCraftingItem* CraftingItemSettings)
+void UCraftingComponent::StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings)
 {
 	ToggleWidget(); // Hide crafting menu
 
 	if (*CraftingItemSettings->Class)
 	{
-		ServerSpawnCraftingObject(CraftingItemSettings->Class);
+		ServerSpawnCraftingObject(CraftingItemID, CraftingItemSettings->Class);
 	}
 }
 
-void UCraftingComponent::ServerSpawnCraftingObject_Implementation(TSubclassOf<ACraftingObject> CraftingObjectClass)
+void UCraftingComponent::ServerSpawnCraftingObject_Implementation(const FName& InCraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass)
 {
+	SelectedCraftingItemID = InCraftingItemID;
 	CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingObjectClass, FVector::ZeroVector, FRotator::ZeroRotator);
-	CraftingObject->MulticastInit(CanBuildMat);
+	CraftingObject->Init(CanBuildMat);
 }
 
 void UCraftingComponent::ServerVerifyPlacement_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s"), CraftingObject->IsBuildable() ? TEXT("Buildable") : TEXT("Not Buildable"));
 	if (!CraftingObject->IsBuildable())
 		return;
 
-	CraftingObject->MulticastConfirmPlacement();
+	if (GetWorld()->GetGameState<AMPGameState>()->GetInventory()->UseItems(SelectedCraftingItemID))
+	{
+		CraftingObject->MulticastConfirmPlacement();
+	}
+	else
+	{
+		// TODO: Notify player that there are not enough resources
+		GetWorld()->DestroyActor(CraftingObject);
+	}
+	
 	CraftingObject = nullptr;
 }
 

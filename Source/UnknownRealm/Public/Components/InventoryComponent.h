@@ -8,6 +8,8 @@
 
 #include "InventoryComponent.generated.h"
 
+#define EMPTY_ID TEXT("None")
+
 UENUM(BlueprintType)
 enum class EItemCategory : uint8
 {
@@ -28,20 +30,23 @@ struct FInventoryItem : public FTableRowBase
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly)
-	FName ID;
+	// Make it as an invalid item (for empty slots)
+	void Reset();
 
 	UPROPERTY(EditDefaultsOnly)
-	int32 Count;
+	FName ID = EMPTY_ID;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 Count = 0;
 
 	UPROPERTY(EditDefaultsOnly)
 	bool bStackable;
 
 	UPROPERTY(EditDefaultsOnly)
-	int32 MaxStackCount;
+	int32 MaxStackCount = 0;
 
 	UPROPERTY(EditDefaultsOnly)
-	UTexture2D* Icon;
+	UTexture2D* Icon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly)
 	EItemCategory Category;
@@ -62,6 +67,9 @@ public:
 	UInventoryComponent();
 
 	void AddItem(const FName& ItemID, const int32 Amount);
+
+	// Use (remove) items that are used for crafting the given object
+	bool UseItems(const FName& CraftingItemID);
 
 	int32 GetFreeSlots() const { return FreeSlots; }
 

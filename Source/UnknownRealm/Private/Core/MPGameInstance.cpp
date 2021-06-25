@@ -4,6 +4,7 @@
 #include "Core/MPGameInstance.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Components/CraftingComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 void UMPGameInstance::ShowServers()
@@ -85,6 +86,19 @@ bool UMPGameInstance::TransitionToState(EGameplayState NewState)
 
 	CurrentState = NewState;
 	return true;
+}
+
+FCraftingItem* UMPGameInstance::GetCraftingDataRow(const FName& ID) const
+{
+	FCraftingItem* CraftingItem = CraftingUseableData->FindRow<FCraftingItem>(ID, TEXT("UMPGameInstance::GetCraftingDataRow"));
+	if (CraftingItem)
+		return CraftingItem;
+
+	CraftingItem = CraftingTurretData->FindRow<FCraftingItem>(ID, TEXT("UMPGameInstance::GetCraftingDataRow"));
+	if (CraftingItem)
+		return CraftingItem;
+
+	return CraftingTrapData->FindRow<FCraftingItem>(ID, TEXT("UMPGameInstance::GetCraftingDataRow"));
 }
 
 bool UMPGameInstance::IsCurrentState(EGameplayState NewState) const

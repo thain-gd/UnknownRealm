@@ -8,6 +8,7 @@
 #include "Engine/GameInstance.h"
 #include "MPGameInstance.generated.h"
 
+struct FCraftingItem;
 UENUM(BlueprintType)
 enum class EGameplayState : uint8
 {
@@ -50,6 +51,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool TransitionToState(EGameplayState NewState);
 
+	FCraftingItem* GetCraftingDataRow(const FName& ID) const;
 	UDataTable* GetInventoryItemData() const { return InventoryItemData; }
 	UDataTable* GetCraftingUseableData() const { return CraftingUseableData; }
 	UDataTable* GetCraftingTurretData() const { return CraftingTurretData; }

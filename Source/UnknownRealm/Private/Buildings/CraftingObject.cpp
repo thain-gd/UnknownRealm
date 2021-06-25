@@ -16,6 +16,7 @@ ACraftingObject::ACraftingObject()
 	RootComponent = CreateDefaultSubobject<USceneComponent>("Root");
 	
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	MeshComp->SetCollisionResponseToAllChannels(ECR_Overlap);
 	MeshComp->SetupAttachment(RootComponent);
 
 	BuildCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BuildCollision"));
@@ -113,10 +114,9 @@ void ACraftingObject::Tick(float DeltaTime)
 
 }
 
-void ACraftingObject::MulticastInit_Implementation(UMaterialInstance* NewMaterial) const
+void ACraftingObject::Init(UMaterialInstance* NewMaterial)
 {
-	MeshComp->SetCollisionResponseToAllChannels(ECR_Overlap);
-	SetMaterials(NewMaterial);
+	MulticastSetMaterials(NewMaterial);
 }
 
 void ACraftingObject::SetBuildability(bool bInIsBuidable, UMaterialInstance* NewMaterial)

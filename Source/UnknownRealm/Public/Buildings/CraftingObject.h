@@ -19,8 +19,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastInit(UMaterialInstance* NewMaterial) const;
+	void Init(UMaterialInstance* NewMaterial);
 
 	void SetBuildability(bool bInIsBuidable, UMaterialInstance* NewMaterial);
 

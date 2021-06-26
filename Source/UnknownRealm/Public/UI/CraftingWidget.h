@@ -25,7 +25,7 @@ class UNKNOWNREALM_API UCraftingWidget : public UUserWidget
 public:
 	void Init(UCraftingComponent* InCraftingComp);
 
-	void UpdateCraftableWidgets(const TMap<FName, int32>& AvailableResources);
+	void UpdateCraftableWidgets();
 
 private:
 	void InitButtonClickedEvents();
@@ -40,7 +40,7 @@ private:
 	void SwitchToTrapTab();
 	
 	void SwitchToTab(int32 TabIndex) const;
-	void LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList);
+	void LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList, bool bIsUseable = false);
 	
 	
 protected:

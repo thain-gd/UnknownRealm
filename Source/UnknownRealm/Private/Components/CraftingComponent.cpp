@@ -113,23 +113,9 @@ void UCraftingComponent::ToggleWidget() const
 	}
 }
 
-void UCraftingComponent::UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList) const
+void UCraftingComponent::UpdateCraftingAvailabilities() const
 {
-	// Accumulate all resources that we have
-	TMap<FName, int32> AvailableResources;
-	for (const FInventoryItem& Item : ItemList)
-	{
-		if (AvailableResources.Contains(Item.ID))
-		{
-			AvailableResources[Item.ID] += Item.Count;
-		}
-		else
-		{
-			AvailableResources.Add(Item.ID, Item.Count);
-		}
-	}
-
-	CraftingWidget->UpdateCraftableWidgets(AvailableResources);
+	CraftingWidget->UpdateCraftableWidgets();
 }
 
 void UCraftingComponent::StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings)

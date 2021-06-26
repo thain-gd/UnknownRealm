@@ -32,7 +32,7 @@ public:
 	UFUNCTION(Reliable, Server)
 	void ServerFinishCollecting(ACollectibleItem* CollectedItem);
 
-	void UpdateCraftingMenu(const TArray<FInventoryItem>& ItemList) const { CraftingComp->UpdateCraftingAvailabilities(ItemList); }
+	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
 
 protected:
 	// Called when the game starts or when spawned

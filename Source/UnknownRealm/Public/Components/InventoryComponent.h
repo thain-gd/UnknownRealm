@@ -73,6 +73,9 @@ public:
 
 	int32 GetFreeSlots() const { return FreeSlots; }
 
+	// Accumulate and return all resources that we have
+	void GetAvailableResources(TMap<FName, int32>& OutAvailableResources);
+
 	void ShowWidget() const;
 	void HideWidget() const;
 

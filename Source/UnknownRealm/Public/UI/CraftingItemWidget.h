@@ -8,6 +8,8 @@
 
 #include "CraftingItemWidget.generated.h"
 
+class UVerticalBox;
+class UEditableTextBox;
 class UButton;
 class UItemWidget;
 class UTextBlock;
@@ -22,15 +24,26 @@ class UNKNOWNREALM_API UCraftingItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void Init(UCraftingComponent* InCraftingComp, const FName& InCraftingItemID, const FCraftingItem* CraftingItem);
+	void Init(bool bInIsUseable, UCraftingComponent* InCraftingComp, const FName& InCraftingItemID, const FCraftingItem* CraftingItem);
 
-	void UpdateRequirements(const TMap<FName, int32>& AvailableResources);
+	void VerifyRequirements(const TMap<FName, int32>& AvailableResources, TMap<FName, int32>* RequirementsPtr = nullptr);
 	
 	FCraftingItem* GetCraftingItemSettings() const { return CraftingItemSettings; }
 
 private:
 	UFUNCTION()
 	void StartCraftingItem();
+
+	UFUNCTION()
+	void OnTextCommitted(const FText& InCraftTimeText, ETextCommit::Type CommitMethod);
+
+	UFUNCTION()
+	void IncreaseCraftTime();
+
+	UFUNCTION()
+	void DecreaseCraftTime();
+	
+	void UpdateRequirements(int32 CraftTime);
 	
 	bool IsCraftable() const;
 
@@ -48,6 +61,21 @@ protected:
 	UTextBlock* Name;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UVerticalBox* UseableCraftingBox;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UEditableTextBox* CraftTimeTextBox;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UButton* IncreaseCraftTimeBtn;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UButton* DecreaseCraftTimeBtn;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UTextBlock* DefaultAmount;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UHorizontalBox* RequirementList;
 
 private:
@@ -59,4 +87,5 @@ private:
 
 	FName CraftingItemID;
 	FCraftingItem* CraftingItemSettings;
+	bool bIsUseable;
 };

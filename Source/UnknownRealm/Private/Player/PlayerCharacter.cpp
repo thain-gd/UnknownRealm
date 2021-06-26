@@ -99,7 +99,10 @@ void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponen
 		}
 
 		InteractionWidget->SetInteractText(CollectibleItem->GetInteractString());
-		InteractionWidget->AddToViewport();
+		if (!InteractionWidget->IsInViewport())
+		{
+			InteractionWidget->AddToViewport();
+		}
 	}
 }
 

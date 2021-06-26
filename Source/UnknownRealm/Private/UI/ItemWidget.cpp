@@ -46,3 +46,8 @@ void UItemWidget::SetCountStatus(bool bEnoughCount)
 
 	CountNumber->SetColorAndOpacity(Color);
 }
+
+void UItemWidget::SetCountNumberText(int32 Count)
+{
+	CountNumber->SetText(FText::AsNumber(Count));
+}

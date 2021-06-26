@@ -21,8 +21,10 @@ public:
 	void Init(UTexture2D* ItemIcon, int32 Count);
 	
 	void SetCountStatus(bool bEnoughCount);
+	void SetCountNumberText(int32 Count);
 
 	bool AreResourcesEnough() const { return bResourcesEnough; };
+
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))

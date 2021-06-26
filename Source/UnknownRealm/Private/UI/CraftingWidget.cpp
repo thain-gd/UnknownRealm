@@ -8,6 +8,7 @@
 #include "Components/VerticalBox.h"
 #include "Components/WidgetSwitcher.h"
 #include "Core/MPGameInstance.h"
+#include "Core/MPGameState.h"
 #include "UI/CraftingItemWidget.h"
 
 void UCraftingWidget::Init(UCraftingComponent* InCraftingComp)
@@ -19,7 +20,7 @@ void UCraftingWidget::Init(UCraftingComponent* InCraftingComp)
 	UMPGameInstance* GameInstance = Cast<UMPGameInstance>(GetGameInstance());
 	if (GameInstance)
 	{
-		LoadTab(UseableList, GameInstance->GetCraftingUseableData());
+		LoadTab(UseableList, GameInstance->GetCraftingUseableData(), true);
 		LoadTab(TurretList, GameInstance->GetCraftingTurretData());
 		LoadTab(TrapList, GameInstance->GetCraftingTrapData());
 	}
@@ -52,14 +53,14 @@ void UCraftingWidget::SwitchToTrapTab()
 	SwitchToTab(2);
 }
 
-void UCraftingWidget::LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList)
+void UCraftingWidget::LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList, bool bIsUseable)
 {
 	for (auto& Row : CraftingList->GetRowMap())
 	{
 		FCraftingItem* CraftingItem = reinterpret_cast<FCraftingItem*>(Row.Value);
 		UCraftingItemWidget* CraftingItemWidget = CreateWidget<UCraftingItemWidget>(this, CraftingItemWidgetClass);
 		
-		CraftingItemWidget->Init(CraftingComp, Row.Key, CraftingItem);
+		CraftingItemWidget->Init(bIsUseable, CraftingComp, Row.Key, CraftingItem);
 		
 		ListWidget->AddChildToVerticalBox(CraftingItemWidget);
 
@@ -67,10 +68,12 @@ void UCraftingWidget::LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList
 	}
 }
 
-void UCraftingWidget::UpdateCraftableWidgets(const TMap<FName, int32>& AvailableResources)
+void UCraftingWidget::UpdateCraftableWidgets()
 {
+	TMap<FName, int32> AvailableResources;
+	GetWorld()->GetGameState<AMPGameState>()->GetInventory()->GetAvailableResources(AvailableResources);
 	for (UCraftingItemWidget* CraftingItemWidget : CraftingItemWidgets)
 	{
-		CraftingItemWidget->UpdateRequirements(AvailableResources);
+		CraftingItemWidget->VerifyRequirements(AvailableResources);
 	}
 }

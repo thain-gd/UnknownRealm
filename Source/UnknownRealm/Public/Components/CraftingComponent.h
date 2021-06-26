@@ -33,6 +33,9 @@ struct FCraftingItem : public FTableRowBase
 	UTexture2D* Icon;
 
 	UPROPERTY(EditDefaultsOnly)
+	int32 AmountPerCraftTime = 1;
+
+	UPROPERTY(EditDefaultsOnly)
 	TMap<FName, int32> Requirements;
 };
 
@@ -54,7 +57,7 @@ public:
 
 	void ToggleWidget() const;
 
-	void UpdateCraftingAvailabilities(const TArray<FInventoryItem>& ItemList) const;
+	void UpdateCraftingAvailabilities() const;
 
 	void StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings);
 

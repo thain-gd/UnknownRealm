@@ -46,6 +46,21 @@ void UInventoryComponent::Init()
 	InventoryWidget->Init(MaxRows, MaxColumns);
 }
 
+void UInventoryComponent::GetAvailableResources(TMap<FName, int32>& OutAvailableResources)
+{
+	for (const FInventoryItem& Item : Items)
+	{
+		if (OutAvailableResources.Contains(Item.ID))
+		{
+			OutAvailableResources[Item.ID] += Item.Count;
+		}
+		else
+		{
+			OutAvailableResources.Add(Item.ID, Item.Count);
+		}
+	}
+}
+
 void UInventoryComponent::ShowWidget() const
 {
 	InventoryWidget->AddToViewport();
@@ -128,7 +143,7 @@ void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInv
 		APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(PlayerController->GetPawn());
 		if (PlayerChar)
 		{
-			PlayerChar->UpdateCraftingMenu(ItemList);
+			PlayerChar->UpdateCraftingMenu();
 		}
 	}
 	

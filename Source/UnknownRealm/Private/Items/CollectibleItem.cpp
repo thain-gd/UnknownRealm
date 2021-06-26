@@ -23,6 +23,7 @@ ACollectibleItem::ACollectibleItem()
 	MeshComp->SetupAttachment(RootComponent);
 
 	TriggerSphere = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerSphere"));
+	TriggerSphere->SetMobility(EComponentMobility::Static);
 	TriggerSphere->SetSphereRadius(100.0f);
 	TriggerSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	TriggerSphere->SetCollisionResponseToAllChannels(ECR_Ignore);

@@ -55,7 +55,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void ToggleWidget() const;
+	void ToggleCraftingWidget();
 
 	void UpdateCraftingAvailabilities() const;
 
@@ -76,6 +76,11 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerUpdateCraftingObjectLocation(const FVector& NewLocation, bool bFoundPlacement);
+
+	void CancelCrafting();
+
+	void ShowCraftingWidget() const;
+	void HideCraftingWidget() const;
 
 
 private:

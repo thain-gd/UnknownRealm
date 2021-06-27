@@ -3,8 +3,10 @@
 
 #include "UI/CraftingWidget.h"
 
+#include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/CraftingComponent.h"
+#include "Components/HorizontalBox.h"
 #include "Components/VerticalBox.h"
 #include "Components/WidgetSwitcher.h"
 #include "Core/MPGameInstance.h"
@@ -76,4 +78,28 @@ void UCraftingWidget::UpdateCraftableWidgets()
 	{
 		CraftingItemWidget->VerifyRequirements(AvailableResources);
 	}
+}
+
+void UCraftingWidget::Show()
+{
+	HideCraftingGuidelines();
+	AddToViewport();
+}
+
+void UCraftingWidget::Hide()
+{
+	ShowCraftingGuidelines();
+	RemoveFromViewport();
+}
+
+void UCraftingWidget::ShowCraftingGuidelines() const
+{
+	CraftingMenu->SetVisibility(ESlateVisibility::Hidden);
+	CraftingGuide->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UCraftingWidget::HideCraftingGuidelines() const
+{
+	CraftingMenu->SetVisibility(ESlateVisibility::Visible);
+	CraftingGuide->SetVisibility(ESlateVisibility::Hidden);
 }

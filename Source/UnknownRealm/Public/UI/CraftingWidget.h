@@ -8,6 +8,8 @@
 
 #include "CraftingWidget.generated.h"
 
+class UBorder;
+class UHorizontalBox;
 struct FCraftingItem;
 class UVerticalBox;
 class UWidgetSwitcher;
@@ -27,6 +29,11 @@ public:
 
 	void UpdateCraftableWidgets();
 
+	void Show();
+	void Hide();
+	void ShowCraftingGuidelines() const;
+	void HideCraftingGuidelines() const;
+
 private:
 	void InitButtonClickedEvents();
 
@@ -44,6 +51,12 @@ private:
 	
 	
 protected:
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UBorder* CraftingMenu;
+	
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UHorizontalBox* CraftingGuide;
+	
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UWidgetSwitcher* TabSwitcher;
 	

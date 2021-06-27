@@ -76,8 +76,6 @@ bool ACraftingObject::CheckBuildStatus()
 		bool bNotBlocked = true;
 		if (Actor != this && !IsLandScape(Actor))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Overlapping Actor: %s"), *this->GetName());
-
 			TArray<UPrimitiveComponent*> OverlappingComponents;
 			Actor->GetOverlappingComponents(OverlappingComponents);
 			for (auto Component : OverlappingComponents)

@@ -89,28 +89,44 @@ void UCraftingComponent::ServerUpdateCraftingObjectLocation_Implementation(const
 	}
 }
 
-void UCraftingComponent::ToggleWidget() const
+void UCraftingComponent::ToggleCraftingWidget()
 {
-	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(Cast<APlayerCharacter>(GetOwner())->Controller);
-	
 	if (CraftingWidget->IsInViewport())
 	{
-		if (PlayerController)
+		if (CraftingObject)
 		{
-			PlayerController->SetInputToGameOnly();
+			CancelCrafting();
+			return;
 		}
 		
-		CraftingWidget->RemoveFromViewport();
+		HideCraftingWidget();
 	}
 	else
 	{
-		if (PlayerController)
-		{
-			PlayerController->SetInputToGameAndUI();
-		}
 		
-		CraftingWidget->AddToViewport();
+		
+		ShowCraftingWidget();
 	}
+}
+
+void UCraftingComponent::HideCraftingWidget() const
+{
+	Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->SetInputToGameOnly();
+	CraftingWidget->Hide();
+}
+
+void UCraftingComponent::CancelCrafting()
+{
+	Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->ServerDestroyActor(CraftingObject);
+	CraftingObject = nullptr;
+	Cast<AMPPlayerController>(Cast<APlayerCharacter>(GetOwner())->Controller)->SetInputToGameAndUI();
+	CraftingWidget->HideCraftingGuidelines();
+}
+
+void UCraftingComponent::ShowCraftingWidget() const
+{
+	Cast<AMPPlayerController>(Cast<APlayerCharacter>(GetOwner())->Controller)->SetInputToGameAndUI();
+	CraftingWidget->Show();
 }
 
 void UCraftingComponent::UpdateCraftingAvailabilities() const
@@ -120,11 +136,17 @@ void UCraftingComponent::UpdateCraftingAvailabilities() const
 
 void UCraftingComponent::StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings)
 {
-	ToggleWidget(); // Hide crafting menu
-
+	// Non-useables (traps/turrets)
 	if (*CraftingItemSettings->Class)
 	{
+		Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->SetInputToGameOnly();
+		CraftingWidget->ShowCraftingGuidelines();
 		ServerSpawnCraftingObject(CraftingItemID, CraftingItemSettings->Class);
+	}
+	// Useables
+	else
+	{
+		HideCraftingWidget();
 	}
 }
 
@@ -149,7 +171,8 @@ void UCraftingComponent::ServerVerifyPlacement_Implementation()
 		// TODO: Notify player that there are not enough resources
 		GetWorld()->DestroyActor(CraftingObject);
 	}
-	
+
+	HideCraftingWidget();
 	CraftingObject = nullptr;
 }
 

@@ -227,7 +227,7 @@ void APlayerCharacter::Interact()
 
 void APlayerCharacter::ToggleCraftMenu()
 {
-	CraftingComp->ToggleWidget();
+	CraftingComp->ToggleCraftingWidget();
 }
 
 void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)

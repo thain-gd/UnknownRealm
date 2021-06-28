@@ -137,6 +137,8 @@ void UInventoryComponent::AddItemToNewSlot(FInventoryItem& Item)
 
 void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
 {
+	Items = ItemList;
+	
 	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{

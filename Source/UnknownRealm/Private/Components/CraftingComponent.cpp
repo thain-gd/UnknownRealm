@@ -102,8 +102,6 @@ void UCraftingComponent::ToggleCraftingWidget()
 	}
 	else
 	{
-		
-		
 		ShowCraftingWidget();
 	}
 }
@@ -156,11 +154,17 @@ void UCraftingComponent::ServerSpawnCraftingObject_Implementation(const FName& I
 	CraftingObject->Init(CanBuildMat);
 }
 
-void UCraftingComponent::ServerVerifyPlacement_Implementation()
+void UCraftingComponent::VerifyPlacement()
 {
 	if (!CraftingObject->IsBuildable())
 		return;
 
+	HideCraftingWidget();
+	ServerPlaceCraftingObject();
+}
+
+void UCraftingComponent::ServerPlaceCraftingObject_Implementation()
+{
 	if (GetWorld()->GetGameState<AMPGameState>()->GetInventory()->UseItems(SelectedCraftingItemID))
 	{
 		CraftingObject->MulticastConfirmPlacement();
@@ -171,7 +175,6 @@ void UCraftingComponent::ServerVerifyPlacement_Implementation()
 		GetWorld()->DestroyActor(CraftingObject);
 	}
 
-	HideCraftingWidget();
 	CraftingObject = nullptr;
 }
 

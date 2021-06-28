@@ -61,8 +61,7 @@ public:
 
 	void StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings);
 
-	UFUNCTION(Server, Reliable)
-	void ServerVerifyPlacement();
+	void VerifyPlacement();
 	
 	bool IsCrafting() const { return CraftingObject != nullptr; }
 
@@ -81,6 +80,9 @@ private:
 	void ServerUpdateCraftingObjectLocation(const FVector& NewLocation, bool bFoundPlacement);
 
 	void CancelCrafting();
+
+	UFUNCTION(Server, Reliable)
+	void ServerPlaceCraftingObject();
 
 	void ShowCraftingWidget() const;
 	void HideCraftingWidget() const;

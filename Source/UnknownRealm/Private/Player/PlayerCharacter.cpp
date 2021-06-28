@@ -189,7 +189,7 @@ void APlayerCharacter::Interact()
 {
 	if (CraftingComp->IsCrafting())
 	{
-		CraftingComp->ServerVerifyPlacement();
+		CraftingComp->VerifyPlacement();
 		return;
 	}
 	

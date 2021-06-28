@@ -66,6 +66,9 @@ public:
 	
 	bool IsCrafting() const { return CraftingObject != nullptr; }
 
+	UFUNCTION(Server, Reliable)
+	void ServerRotateCraftingObject(float AxisValue);
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

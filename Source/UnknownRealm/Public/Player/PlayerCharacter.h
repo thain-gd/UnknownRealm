@@ -63,6 +63,8 @@ private:
 	void ServerAttack();
 
 	void ToggleCraftMenu();
+
+	void OnWheelAxisChanged(float AxisValue);
 	
 	
 private:

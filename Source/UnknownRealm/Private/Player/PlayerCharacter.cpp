@@ -10,7 +10,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/CraftingComponent.h"
 #include "Components/HealthComponent.h"
-#include "Core/MPGameState.h"
 #include "Core/MPPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -134,6 +133,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAxis("MoveRight/Left", this, &APlayerCharacter::MoveHorizontal);
 	InputComponent->BindAxis("LookLeft/Right", this, &APawn::AddControllerYawInput);
 	InputComponent->BindAxis("LookUp/Down", this, &APawn::AddControllerPitchInput);
+	InputComponent->BindAxis("Scroll", this, &APlayerCharacter::OnWheelAxisChanged);
 
 	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::Attack);
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
@@ -228,6 +228,15 @@ void APlayerCharacter::Interact()
 void APlayerCharacter::ToggleCraftMenu()
 {
 	CraftingComp->ToggleCraftingWidget();
+}
+
+void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
+{
+	if (AxisValue != 0 && CraftingComp->IsCrafting())
+	{
+		CraftingComp->ServerRotateCraftingObject(AxisValue);
+		UE_LOG(LogTemp, Warning, TEXT("OnWheelAxisChanged: %f"), AxisValue);
+	}
 }
 
 void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)

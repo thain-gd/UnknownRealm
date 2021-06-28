@@ -31,7 +31,6 @@ void UCraftingComponent::Init(UCameraComponent* FollowCam)
 	CraftingCam = FollowCam;
 }
 
-
 // Called when the game starts
 void UCraftingComponent::BeginPlay()
 {
@@ -174,6 +173,11 @@ void UCraftingComponent::ServerVerifyPlacement_Implementation()
 
 	HideCraftingWidget();
 	CraftingObject = nullptr;
+}
+
+void UCraftingComponent::ServerRotateCraftingObject_Implementation(float AxisValue)
+{
+	CraftingObject->AddActorLocalRotation(FRotator(0.0f, AxisValue * 15.0f, 0.0f));
 }
 
 void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

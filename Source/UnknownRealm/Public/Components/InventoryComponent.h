@@ -69,7 +69,7 @@ public:
 	void AddItem(const FName& ItemID, const int32 Amount);
 
 	// Use (remove) items that are used for crafting the given object
-	bool UseItems(const FName& CraftingItemID);
+	bool UseItems(const FName& CraftingItemID, int32 CraftTime = 1);
 
 	int32 GetFreeSlots() const { return FreeSlots; }
 

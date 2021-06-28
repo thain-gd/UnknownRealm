@@ -71,6 +71,15 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 }
 
+void UCraftingComponent::ServerCraftUseables_Implementation(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const
+{
+	UInventoryComponent* Inventory = GetWorld()->GetGameState<AMPGameState>()->GetInventory();
+	if (Inventory->UseItems(UseableID, CraftTime))
+	{
+		Inventory->AddItem(UseableID, DefaultAmount * CraftTime);
+	}
+}
+
 void UCraftingComponent::ServerUpdateCraftingObjectLocation_Implementation(const FVector& NewLocation, bool bFoundPlacement)
 {
 	if (CraftingObject)
@@ -133,18 +142,9 @@ void UCraftingComponent::UpdateCraftingAvailabilities() const
 
 void UCraftingComponent::StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings)
 {
-	// Non-useables (traps/turrets)
-	if (*CraftingItemSettings->Class)
-	{
-		Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->SetInputToGameOnly();
-		CraftingWidget->ShowCraftingGuidelines();
-		ServerSpawnCraftingObject(CraftingItemID, CraftingItemSettings->Class);
-	}
-	// Useables
-	else
-	{
-		HideCraftingWidget();
-	}
+	Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->SetInputToGameOnly();
+	CraftingWidget->ShowCraftingGuidelines();
+	ServerSpawnCraftingObject(CraftingItemID, CraftingItemSettings->Class);
 }
 
 void UCraftingComponent::ServerSpawnCraftingObject_Implementation(const FName& InCraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass)

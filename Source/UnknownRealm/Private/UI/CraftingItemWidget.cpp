@@ -14,6 +14,7 @@
 #include "Core/MPGameState.h"
 #include "Misc/DefaultValueHelper.h"
 #include "UI/ItemWidget.h"
+#include "Buildings/CraftingObject.h"
 
 #define MIN_CRAFT_TIME 1
 #define MAX_CRAFT_TIME 99
@@ -91,8 +92,19 @@ void UCraftingItemWidget::StartCraftingItem()
 {
 	if (!IsCraftable())
 		return;
-	
-	CraftingComp->StartCrafting(CraftingItemID, CraftingItemSettings);
+
+	// Non-useables (traps/turrets)
+	int32 CraftTime = FCString::Atoi(*CraftTimeTextBox->GetText().ToString());
+	if (*CraftingItemSettings->Class)
+	{
+		CraftingComp->StartCrafting(CraftingItemID, CraftingItemSettings);
+	}
+	// Useables
+	else 
+	{
+		CraftingComp->ToggleCraftingWidget();
+		CraftingComp->ServerCraftUseables(CraftingItemID, FCString::Atoi(*DefaultAmount->GetText().ToString()), CraftTime);
+	}
 }
 
 bool UCraftingItemWidget::IsCraftable() const

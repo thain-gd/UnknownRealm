@@ -68,6 +68,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRotateCraftingObject(float AxisValue);
 
+	UFUNCTION(Server, Reliable)
+	void ServerCraftUseables(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

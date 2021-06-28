@@ -235,7 +235,6 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 	if (AxisValue != 0 && CraftingComp->IsCrafting())
 	{
 		CraftingComp->ServerRotateCraftingObject(AxisValue);
-		UE_LOG(LogTemp, Warning, TEXT("OnWheelAxisChanged: %f"), AxisValue);
 	}
 }
 

@@ -25,7 +25,6 @@ UInventoryComponent::UInventoryComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
 // Called when the game starts
 void UInventoryComponent::BeginPlay()
 {
@@ -152,12 +151,21 @@ void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInv
 	InventoryWidget->Refresh(ItemList);
 }
 
-bool UInventoryComponent::UseItems(const FName& CraftingItemID)
+bool UInventoryComponent::UseItems(const FName& CraftingItemID, int32 CraftTime)
 {
 	UMPGameInstance* GameInstance = GetWorld()->GetGameInstance<UMPGameInstance>();
 	FCraftingItem* CraftingItem = GameInstance->GetCraftingDataRow(CraftingItemID);
 	auto Requirements = CraftingItem->Requirements; // verify if edit this one affects the row of udata after that
 
+	// Update requirements by number of crafting time
+	if (CraftTime > 1)
+	{
+		for (auto& Requirement : Requirements)
+		{
+			Requirement.Value *= CraftTime;
+		}
+	}
+	
 	// Decrease count to check if there are enough resources
 	for (auto& Item: Items)
 	{
@@ -176,7 +184,7 @@ bool UInventoryComponent::UseItems(const FName& CraftingItemID)
 			return false;
 		}
 		
-		Requirement.Value = CraftingItem->Requirements[Requirement.Key];
+		Requirement.Value = CraftingItem->Requirements[Requirement.Key] * CraftTime;
 	}
 
 	for (int i = 0; i < Items.Num(); ++i)

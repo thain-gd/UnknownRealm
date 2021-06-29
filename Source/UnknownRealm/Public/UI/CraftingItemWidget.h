@@ -26,6 +26,9 @@ class UNKNOWNREALM_API UCraftingItemWidget : public UUserWidget
 public:
 	void Init(bool bInIsUseable, UCraftingComponent* InCraftingComp, const FName& InCraftingItemID, const FCraftingItem* CraftingItem);
 
+	// Used for useables to reset requirements and craft time
+	void Reset() const;
+
 	void VerifyRequirements(const TMap<FName, int32>& AvailableResources, TMap<FName, int32>* RequirementsPtr = nullptr);
 	
 	FCraftingItem* GetCraftingItemSettings() const { return CraftingItemSettings; }

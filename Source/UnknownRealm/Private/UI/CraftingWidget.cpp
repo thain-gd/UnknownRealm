@@ -88,8 +88,23 @@ void UCraftingWidget::Show()
 
 void UCraftingWidget::Hide()
 {
+	ResetUseableTab();
 	ShowCraftingGuidelines();
 	RemoveFromViewport();
+}
+
+
+void UCraftingWidget::ResetUseableTab() const
+{
+	TArray<UWidget*> UseableWidgets = UseableList->GetAllChildren();
+	for (UWidget* Widget : UseableWidgets)
+	{
+		UCraftingItemWidget* UseableWidget = Cast<UCraftingItemWidget>(Widget);
+		if (UseableWidget)
+		{
+			UseableWidget->Reset();
+		}
+	}
 }
 
 void UCraftingWidget::ShowCraftingGuidelines() const

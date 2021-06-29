@@ -60,6 +60,20 @@ void UCraftingItemWidget::Init(bool bInIsUseable, UCraftingComponent* InCrafting
 	}
 }
 
+void UCraftingItemWidget::Reset() const
+{
+	CraftTimeTextBox->SetText(FText::AsNumber(1));
+
+	TArray<UWidget*> RequirementWidgets = RequirementList->GetAllChildren();
+	uint32 i = 0;
+	for (auto& Requirement : CraftingItemSettings->Requirements)
+	{
+		Cast<UItemWidget>(RequirementWidgets[i])->SetCountNumberText(Requirement.Value);
+
+		++i;
+	}
+}
+
 void UCraftingItemWidget::VerifyRequirements(const TMap<FName, int32>& AvailableResources, TMap<FName, int32>* RequirementsPtr)
 {
 	const TMap<FName, int32>& Requirements = RequirementsPtr ? *RequirementsPtr : CraftingItemSettings->Requirements;

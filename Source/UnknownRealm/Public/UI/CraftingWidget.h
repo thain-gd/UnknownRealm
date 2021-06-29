@@ -31,6 +31,7 @@ public:
 
 	void Show();
 	void Hide();
+	
 	void ShowCraftingGuidelines() const;
 	void HideCraftingGuidelines() const;
 
@@ -48,7 +49,9 @@ private:
 	
 	void SwitchToTab(int32 TabIndex) const;
 	void LoadTab(UVerticalBox* ListWidget, UDataTable* CraftingList, bool bIsUseable = false);
-	
+
+	void ResetUseableTab() const;
+
 	
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))

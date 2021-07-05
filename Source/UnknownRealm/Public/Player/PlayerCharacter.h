@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class AWeapon;
 struct FInventoryItem;
 class UCraftingComponent;
 class UInteractionWidget;
@@ -39,6 +40,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void SetupWeapon();
+	
 	UFUNCTION()
 	void SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 							bool bFromSweep, const FHitResult& SweepResult);
@@ -57,10 +60,13 @@ private:
 
 	void Attack();
 
-	void Interact();
-
 	UFUNCTION(Reliable, Server)
 	void ServerAttack();
+
+	UFUNCTION(Reliable, Server)
+	void ServerPutWeaponAway();
+	
+	void Interact();
 
 	void ToggleCraftMenu();
 
@@ -68,6 +74,8 @@ private:
 	
 	
 private:
+	static const FName InactiveWeaponSocketName;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArmComp;
 	
@@ -83,18 +91,25 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	UCraftingComponent* CraftingComp;
 
-	UPROPERTY()
-	TArray<AActor*> AttackableEnemies;
-
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ACollectibleItem* CollectibleItem;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> InteractionWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	FName WeaponID;
+
+	UPROPERTY()
+	TArray<AActor*> AttackableEnemies;
 	
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;
+
+	UPROPERTY(Replicated)
+	AWeapon* Weapon;
 	
 	bool bInteractable;
 	bool bInteracting;
+	bool bUsingWeapon;
 };

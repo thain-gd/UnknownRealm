@@ -10,12 +10,18 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/CraftingComponent.h"
 #include "Components/HealthComponent.h"
+#include "Core/MPGameInstance.h"
 #include "Core/MPPlayerController.h"
+#include "Equips/Equipment.h"
+#include "Equips/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Items/CollectibleItem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "UI/InteractionWidget.h"
+
+const FName APlayerCharacter::InactiveWeaponSocketName = FName("InactiveWeaponSocket");
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -55,6 +61,11 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (HasAuthority())
+	{
+		SetupWeapon();
+	}
+
 	CraftingComp->Init(CameraComp);
 
 	AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
@@ -62,6 +73,14 @@ void APlayerCharacter::BeginPlay()
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
+}
+
+void APlayerCharacter::SetupWeapon()
+{
+	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(WeaponID, TEXT("APlayerCharacter::SetupWeapon"));
+	Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponInfo->Class);
+	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
+	Weapon->SetOwner(this);
 }
 
 void APlayerCharacter::SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -135,7 +154,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAxis("LookUp/Down", this, &APawn::AddControllerPitchInput);
 	InputComponent->BindAxis("Scroll", this, &APlayerCharacter::OnWheelAxisChanged);
 
-	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::Attack);
+	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerAttack);
+	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
 }
@@ -169,20 +189,31 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 	AddMovementInput(Direction, AxisValue);
 }
 
-void APlayerCharacter::Attack()
-{
-	if (AttackableEnemies.Num() == 0)
-		return;
-
-	ServerAttack();
-}
-
 void APlayerCharacter::ServerAttack_Implementation()
 {
-	for (auto AttackableEnemy : AttackableEnemies)
+	if (bUsingWeapon)
 	{
-		UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
+		if (AttackableEnemies.Num() == 0)
+			return;
+
+		for (auto AttackableEnemy : AttackableEnemies)
+		{
+			UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
+		}
 	}
+	else
+	{
+		// TODO: Switch to using weapon animation
+		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, Weapon->GetAttachPoint());
+
+		bUsingWeapon = true;
+	}
+}
+
+void APlayerCharacter::ServerPutWeaponAway_Implementation()
+{
+	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
+	bUsingWeapon = false;
 }
 
 void APlayerCharacter::Interact()
@@ -241,4 +272,11 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)
 {
 	CollectedItem->OnFinishedCollecting();
+}
+
+void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APlayerCharacter, Weapon);
 }

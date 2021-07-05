@@ -56,6 +56,8 @@ public:
 	UDataTable* GetCraftingUseableData() const { return CraftingUseableData; }
 	UDataTable* GetCraftingTurretData() const { return CraftingTurretData; }
 	UDataTable* GetCraftingTrapData() const { return CraftingTrapData; }
+	UDataTable* GetWeaponData() const { return WeaponData; }
+	UDataTable* GetArmorData() const { return ArmorData; }
 
 private:
 	bool IsCurrentState(EGameplayState NewState) const;
@@ -95,6 +97,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Data")
 	UDataTable* CraftingTrapData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* WeaponData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Data")
+	UDataTable* ArmorData;
 	
 	UPROPERTY()
 	UUserWidget* MainMenu;

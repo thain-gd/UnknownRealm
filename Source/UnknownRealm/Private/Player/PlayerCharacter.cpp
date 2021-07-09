@@ -25,6 +25,7 @@ const FName APlayerCharacter::InactiveWeaponSocketName = FName("InactiveWeaponSo
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
+	: AimingFOV(50.0f), AimingInterpSpeed(20.0f)
 {
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -32,7 +33,7 @@ APlayerCharacter::APlayerCharacter()
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 580.0f, 0.0f); // ...at this rotation rate
-
+	
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->SetupAttachment(RootComponent);
 	SpringArmComp->bUsePawnControlRotation = true;
@@ -64,15 +65,19 @@ void APlayerCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		SetupWeapon();
+
+		AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
+		AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
 	}
 
-	CraftingComp->Init(CameraComp);
-
-	AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
-	AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
-
+	DefaultFOV = CameraComp->FieldOfView;
+	DefaultMovingSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	AimingMovingSpeed = DefaultMovingSpeed * 0.45f;
+	
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
+
+	CraftingComp->Init(CameraComp);
 }
 
 void APlayerCharacter::SetupWeapon()
@@ -143,6 +148,24 @@ void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponen
 	}
 }
 
+void APlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	UpdateCameraFOV(DeltaSeconds);
+}
+
+void APlayerCharacter::UpdateCameraFOV(float DeltaTime)
+{
+	const float TargetFOV = bIsAiming ? AimingFOV : DefaultFOV;
+	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, AimingInterpSpeed);
+	CameraComp->SetFieldOfView(NewFOV);
+
+	const float SpringArmTargetY = bIsAiming ? 60.0f : 0.0f;
+	const float SpringArmNewY = FMath::FInterpTo(SpringArmComp->GetRelativeLocation().Y, SpringArmTargetY, DeltaTime, AimingInterpSpeed);
+	SpringArmComp->SetRelativeLocation(FVector(SpringArmComp->GetRelativeLocation().X, SpringArmNewY, SpringArmComp->GetRelativeLocation().Z));
+}
+
 // Called to bind functionality to input
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -154,10 +177,14 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAxis("LookUp/Down", this, &APawn::AddControllerPitchInput);
 	InputComponent->BindAxis("Scroll", this, &APlayerCharacter::OnWheelAxisChanged);
 
-	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerAttack);
-	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
+
+	// Combat
+	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerNormalAttack);
+	InputComponent->BindAction("HeavyAttack", IE_Pressed, this, &APlayerCharacter::ServerOnRightMousePressed);
+	InputComponent->BindAction("HeavyAttack", IE_Released, this, &APlayerCharacter::ServerOnRightMouseReleased); // for weapons with aiming mechanic
+	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
 }
 
 void APlayerCharacter::MoveVertical(float AxisValue)
@@ -189,7 +216,7 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 	AddMovementInput(Direction, AxisValue);
 }
 
-void APlayerCharacter::ServerAttack_Implementation()
+void APlayerCharacter::ServerNormalAttack_Implementation()
 {
 	if (bUsingWeapon)
 	{
@@ -214,6 +241,65 @@ void APlayerCharacter::ServerPutWeaponAway_Implementation()
 {
 	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
 	bUsingWeapon = false;
+}
+
+
+
+void APlayerCharacter::ServerOnRightMousePressed_Implementation()
+{
+	if (!bUsingWeapon)
+		return;
+
+	const EWeaponType WeaponType = Weapon->GetWeaponType();
+	if (WeaponType == EWeaponType::Bow)
+	{
+		bIsAiming = true;
+		OnAimingStart();
+	}
+	else
+	{
+		OnHeavyAttackTriggered();
+	}
+}
+
+void APlayerCharacter::ServerOnRightMouseReleased_Implementation()
+{
+	if (!bUsingWeapon || Weapon->GetWeaponType() != EWeaponType::Bow)
+		return;
+
+	bIsAiming = false;
+	OnAimingEnd();
+}
+
+void APlayerCharacter::OnRepAimingStatusChanged()
+{
+	if (bIsAiming)
+	{
+		OnAimingStart();
+	}
+	else
+	{
+		OnAimingEnd();
+	}
+}
+
+void APlayerCharacter::OnAimingStart()
+{
+	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	bUseControllerRotationYaw = true;
+}
+
+void APlayerCharacter::OnAimingEnd()
+{
+	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
+}
+
+void APlayerCharacter::OnHeavyAttackTriggered()
+{
+	UE_LOG(LogTemp, Warning, TEXT("HeavyAttack"));
 }
 
 void APlayerCharacter::Interact()
@@ -279,4 +365,5 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APlayerCharacter, Weapon);
+	DOREPLIFETIME(APlayerCharacter, bIsAiming);
 }

@@ -32,7 +32,7 @@ public:
 
 	virtual FName GetAttachPoint() const override;
 
-	bool GetIsDrawing() const { return bIsDrawing; }
+	EWeaponType GetWeaponType() const { return WeaponType; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -49,6 +49,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
-
-	bool bIsDrawing;
 };

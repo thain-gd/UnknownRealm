@@ -30,6 +30,8 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void Tick(float DeltaSeconds) override;
+
 	UFUNCTION(Reliable, Server)
 	void ServerFinishCollecting(ACollectibleItem* CollectedItem);
 
@@ -54,17 +56,31 @@ private:
 
 	UFUNCTION()
 	void HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void UpdateCameraFOV(float DeltaTime);
 	
 	void MoveVertical(float AxisValue);
 	void MoveHorizontal(float AxisValue);
 
-	void Attack();
-
 	UFUNCTION(Reliable, Server)
-	void ServerAttack();
+	void ServerNormalAttack();
 
 	UFUNCTION(Reliable, Server)
 	void ServerPutWeaponAway();
+
+	UFUNCTION(Reliable, Server)
+	void ServerOnRightMousePressed();
+
+	UFUNCTION(Reliable, Server)
+	void ServerOnRightMouseReleased();
+
+	void OnHeavyAttackTriggered();
+
+	UFUNCTION()
+	void OnRepAimingStatusChanged();
+
+	void OnAimingStart();
+	void OnAimingEnd();
 	
 	void Interact();
 
@@ -112,4 +128,18 @@ private:
 	bool bInteractable;
 	bool bInteracting;
 	bool bUsingWeapon;
+
+	// Combat system
+	UPROPERTY(EditAnywhere, Category = Combat)
+	float AimingFOV;
+
+	UPROPERTY(EditAnywhere, Category = Combat)
+	float AimingInterpSpeed;
+	
+	UPROPERTY(ReplicatedUsing=OnRepAimingStatusChanged)
+	bool bIsAiming;
+	float DefaultFOV;
+	float AimingMovingSpeed;
+	float DefaultMovingSpeed;
+	uint32 AttackCount;
 };

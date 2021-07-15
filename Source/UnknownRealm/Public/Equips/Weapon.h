@@ -16,6 +16,18 @@ enum class EWeaponType : uint8
 	Staff
 };
 
+USTRUCT(BlueprintType)
+struct FWeaponInfo : public FEquipmentInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly)
+	EWeaponType WeaponType;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 BaseDmg;
+};
+
 UCLASS()
 class UNKNOWNREALM_API AWeapon : public AEquipment
 {
@@ -28,7 +40,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void BindInputs(APlayerController Controller);
+	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
 	virtual FName GetAttachPoint() const override;
 
@@ -44,9 +56,11 @@ private:
 	
 
 private:
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* MeshComp;
+	
 	UPROPERTY(EditDefaultsOnly)
 	int32 BaseDmg;
 
-	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
 };

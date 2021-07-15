@@ -9,6 +9,8 @@ AArmor::AArmor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComp"));
+	RootComponent = SkeletalMeshComp;
 }
 
 // Called when the game starts or when spawned

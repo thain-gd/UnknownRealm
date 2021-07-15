@@ -4,9 +4,6 @@ AEquipment::AEquipment()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	RootComponent = MeshComp;
-
 	bReplicates = true;
 }
 

@@ -30,6 +30,12 @@ struct FEquipmentInfo : public FTableRowBase
 	TSubclassOf<AActor> Class;
 
 	UPROPERTY(EditDefaultsOnly)
+	UStaticMesh* StaticMesh;
+
+	UPROPERTY(EditDefaultsOnly)
+	USkeletalMesh* SkeletalMesh;
+
+	UPROPERTY(EditDefaultsOnly)
 	UTexture2D* Icon;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -52,8 +58,5 @@ public:
 	virtual FName GetAttachPoint() const;
 
 protected:
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* MeshComp;
-	
 	FEquipmentInfo* EquipInfo;
 };

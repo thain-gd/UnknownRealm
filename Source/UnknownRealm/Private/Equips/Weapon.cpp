@@ -11,16 +11,6 @@ AWeapon::AWeapon()
 
 }
 
-void AWeapon::BindInputs(APlayerController Controller)
-{
-	InputComponent = NewObject<UInputComponent>(this);
-	InputComponent->RegisterComponent();
-	if (InputComponent)
-	{
-		//InputComponent->BindAction("NormalAttack", IE_Pressed, this, &AWeapon::OnNormalAttackPressed);
-	}
-}
-
 FName AWeapon::GetAttachPoint() const
 {
 	switch (WeaponType)
@@ -53,5 +43,12 @@ void AWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AWeapon::Init(FEquipmentInfo* InEquipInfo)
+{
+	Super::Init(InEquipInfo);
+
+	WeaponType = StaticCast<FWeaponInfo*>(InEquipInfo)->WeaponType;
 }
 

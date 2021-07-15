@@ -100,6 +100,7 @@ void APlayerCharacter::SetupWeapon()
 {
 	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(WeaponID, TEXT("APlayerCharacter::SetupWeapon"));
 	Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponInfo->Class);
+	Weapon->Init(WeaponInfo);
 	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
 	Weapon->SetOwner(this);
 }

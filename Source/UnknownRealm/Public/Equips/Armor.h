@@ -25,6 +25,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* SkeletalMeshComp;
+	
 	UPROPERTY(EditDefaultsOnly)
 	int32 Defense;
 };

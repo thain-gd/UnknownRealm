@@ -15,6 +15,12 @@ class UNKNOWNREALM_API ARangeWeapon : public AWeapon
 	GENERATED_BODY()
 
 public:
+	ARangeWeapon();
+
+	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
 
+private:
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* SkeletalMeshComp;
 };

@@ -63,24 +63,34 @@ private:
 	void MoveHorizontal(float AxisValue);
 
 	UFUNCTION(Reliable, Server)
-	void ServerNormalAttack();
+	void ServerDoNormalAttack();
 
+	UFUNCTION(Reliable, Server)
+	void ServerDoHeavyAttack();
+
+	UFUNCTION(Reliable, Server)
+	void ServerGetWeapon();
+	
 	UFUNCTION(Reliable, Server)
 	void ServerPutWeaponAway();
 
 	UFUNCTION(Reliable, Server)
-	void ServerOnRightMousePressed();
+	void ServerOnAimingPressed();
 
 	UFUNCTION(Reliable, Server)
-	void ServerOnRightMouseReleased();
-
-	void OnHeavyAttackTriggered();
+	void ServerOnAimingReleased();
 
 	UFUNCTION()
 	void OnRepAimingStatusChanged();
 
 	void OnAimingStart();
 	void OnAimingEnd();
+
+	UFUNCTION(Reliable, Server)
+	void ServerOnChargingStart();
+
+	UFUNCTION(Reliable, Server)
+	void ServerOnChargingEnd();
 	
 	void Interact();
 
@@ -136,7 +146,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float AimingInterpSpeed;
 	
-	UPROPERTY(ReplicatedUsing=OnRepAimingStatusChanged)
+	UPROPERTY(ReplicatedUsing=OnRepAimingStatusChanged, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bIsAiming;
 	float DefaultFOV;
 	float AimingMovingSpeed;

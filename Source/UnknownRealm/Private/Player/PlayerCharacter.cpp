@@ -70,6 +70,22 @@ void APlayerCharacter::BeginPlay()
 		AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
 	}
 
+	if (IsValid(Weapon) && InputComponent && IsLocallyControlled())
+	{
+		// Binding actions by weapon type
+		if (Weapon->GetWeaponType() == EWeaponType::Bow)
+		{
+			InputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacter::ServerOnAimingPressed);
+			InputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacter::ServerOnAimingReleased);
+			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::ServerOnChargingStart);
+			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::ServerOnChargingEnd);
+		}
+		else
+		{
+			InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerDoNormalAttack);
+		}
+	}
+
 	DefaultFOV = CameraComp->FieldOfView;
 	DefaultMovingSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	AimingMovingSpeed = DefaultMovingSpeed * 0.45f;
@@ -181,9 +197,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
 
 	// Combat
-	InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerNormalAttack);
-	InputComponent->BindAction("HeavyAttack", IE_Pressed, this, &APlayerCharacter::ServerOnRightMousePressed);
-	InputComponent->BindAction("HeavyAttack", IE_Released, this, &APlayerCharacter::ServerOnRightMouseReleased); // for weapons with aiming mechanic
 	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
 }
 
@@ -216,25 +229,39 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 	AddMovementInput(Direction, AxisValue);
 }
 
-void APlayerCharacter::ServerNormalAttack_Implementation()
+
+
+void APlayerCharacter::ServerDoNormalAttack_Implementation()
 {
-	if (bUsingWeapon)
+	if (!bUsingWeapon)
 	{
-		if (AttackableEnemies.Num() == 0)
-			return;
-
-		for (auto AttackableEnemy : AttackableEnemies)
-		{
-			UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
-		}
+		ServerGetWeapon();
+		return;
 	}
-	else
+
+	if (AttackableEnemies.Num() == 0)
+		return;
+
+	for (auto AttackableEnemy : AttackableEnemies)
 	{
-		// TODO: Switch to using weapon animation
-		Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, Weapon->GetAttachPoint());
-
-		bUsingWeapon = true;
+		UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
 	}
+}
+
+void APlayerCharacter::ServerGetWeapon_Implementation()
+{
+	// TODO: Switch to using weapon animation
+	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, Weapon->GetAttachPoint());
+
+	bUsingWeapon = true;
+}
+
+void APlayerCharacter::ServerDoHeavyAttack_Implementation()
+{
+	if (!bUsingWeapon)
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("DoHeavyAttack"));
 }
 
 void APlayerCharacter::ServerPutWeaponAway_Implementation()
@@ -245,26 +272,18 @@ void APlayerCharacter::ServerPutWeaponAway_Implementation()
 
 
 
-void APlayerCharacter::ServerOnRightMousePressed_Implementation()
+void APlayerCharacter::ServerOnAimingPressed_Implementation()
 {
 	if (!bUsingWeapon)
 		return;
 
-	const EWeaponType WeaponType = Weapon->GetWeaponType();
-	if (WeaponType == EWeaponType::Bow)
-	{
-		bIsAiming = true;
-		OnAimingStart();
-	}
-	else
-	{
-		OnHeavyAttackTriggered();
-	}
+	bIsAiming = true;
+	OnAimingStart();
 }
 
-void APlayerCharacter::ServerOnRightMouseReleased_Implementation()
+void APlayerCharacter::ServerOnAimingReleased_Implementation()
 {
-	if (!bUsingWeapon || Weapon->GetWeaponType() != EWeaponType::Bow)
+	if (!bUsingWeapon)
 		return;
 
 	bIsAiming = false;
@@ -297,9 +316,20 @@ void APlayerCharacter::OnAimingEnd()
 	bUseControllerRotationYaw = false;
 }
 
-void APlayerCharacter::OnHeavyAttackTriggered()
+void APlayerCharacter::ServerOnChargingStart_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("HeavyAttack"));
+	if (!bUsingWeapon)
+	{
+		ServerGetWeapon();
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("Start Charging"));
+}
+
+void APlayerCharacter::ServerOnChargingEnd_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("End Charging"));
 }
 
 void APlayerCharacter::Interact()

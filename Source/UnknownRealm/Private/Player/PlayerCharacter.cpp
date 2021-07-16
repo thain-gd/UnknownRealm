@@ -13,6 +13,7 @@
 #include "Core/MPGameInstance.h"
 #include "Core/MPPlayerController.h"
 #include "Equips/Equipment.h"
+#include "Equips/RangeWeapon.h"
 #include "Equips/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -278,8 +279,15 @@ void APlayerCharacter::ServerOnAimingPressed_Implementation()
 	if (!bUsingWeapon)
 		return;
 
-	bIsAiming = true;
-	OnAimingStart();
+	if (Cast<ARangeWeapon>(Weapon)->TryReload())
+	{
+		bIsAiming = true;
+		OnAimingStart();
+	}
+	else
+	{
+		// TODO: Notify no arrow left
+	}
 }
 
 void APlayerCharacter::ServerOnAimingReleased_Implementation()
@@ -288,6 +296,7 @@ void APlayerCharacter::ServerOnAimingReleased_Implementation()
 		return;
 
 	bIsAiming = false;
+	Cast<ARangeWeapon>(Weapon)->StopAiming();
 	OnAimingEnd();
 }
 

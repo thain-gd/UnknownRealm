@@ -6,6 +6,7 @@
 #include "Equips/Weapon.h"
 #include "RangeWeapon.generated.h"
 
+class AProjectile;
 /**
  * 
  */
@@ -19,8 +20,23 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
+	bool TryReload();
+	void StopAiming();
+	void BeginCharge();
+	void StopCharge();
+	void Fire();
+
+private:
+	void Reload();
 
 private:
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* SkeletalMeshComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AProjectile> ArrowClass;
+	
+	UPROPERTY()
+	AProjectile* Arrow;
+	
 };

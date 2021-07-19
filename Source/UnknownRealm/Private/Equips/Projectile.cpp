@@ -41,27 +41,34 @@ void AProjectile::BeginPlay()
 void AProjectile::OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (bHit || OtherActor->ActorHasTag(TEXT("Player")))
+	if (bHit || OtherActor->ActorHasTag(TEXT("Player")) || OtherActor->IsA(StaticClass()))
 		return;
 
 	// TODO: Play hit SFX
 	
 	if (!HasAuthority())
 		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *OtherActor->GetName());
 	
 	bHit = true;
 	ProjectileMovement->DestroyComponent();
 
 	if (OtherActor->ActorHasTag(FName("AI")))
 	{
-		UGameplayStatics::ApplyDamage(OtherActor, TotalDamage, nullptr, this, UDamageType::StaticClass());
+		OnEnemyHit(OtherActor);
 	}
 	
 	const FVector NewLocation = SweepResult.ImpactPoint - GetActorForwardVector() * 60.0f;
 	SetActorLocation(NewLocation);
 	
 	AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+}
 
+void AProjectile::OnEnemyHit(AActor* Enemy)
+{
+	MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
+	UGameplayStatics::ApplyDamage(Enemy, TotalDamage, nullptr, this, UDamageType::StaticClass());
 	SetLifeSpan(3.5f);
 }
 

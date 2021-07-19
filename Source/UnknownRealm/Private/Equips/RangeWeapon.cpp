@@ -65,7 +65,10 @@ void ARangeWeapon::ShowIndicator()
 
 void ARangeWeapon::HideIndicator() const
 {
-	BowWidget->RemoveFromViewport();
+	if (BowWidget)
+	{
+		BowWidget->RemoveFromViewport();
+	}
 }
 
 void ARangeWeapon::Fire(const FVector& TargetLocation)

@@ -3,6 +3,7 @@
 
 #include "Player/PlayerCharacter.h"
 
+#include "DrawDebugHelpers.h"
 #include "AIs/AIChar.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
@@ -19,6 +20,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Items/CollectibleItem.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "UI/InteractionWidget.h"
 
@@ -179,9 +181,9 @@ void APlayerCharacter::UpdateCameraFOV(float DeltaTime)
 	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, AimingInterpSpeed);
 	CameraComp->SetFieldOfView(NewFOV);
 
-	const float SpringArmTargetY = bIsAiming ? 60.0f : 0.0f;
-	const float SpringArmNewY = FMath::FInterpTo(SpringArmComp->GetRelativeLocation().Y, SpringArmTargetY, DeltaTime, AimingInterpSpeed);
-	SpringArmComp->SetRelativeLocation(FVector(SpringArmComp->GetRelativeLocation().X, SpringArmNewY, SpringArmComp->GetRelativeLocation().Z));
+	const float TargetSocketOffsetY = bIsAiming ? 60.0f : 0.0f;
+	const float NewSocketOffsetY = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, AimingInterpSpeed);
+	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
 }
 
 // Called to bind functionality to input
@@ -272,14 +274,12 @@ void APlayerCharacter::ServerPutWeaponAway_Implementation()
 	bUsingWeapon = false;
 }
 
-
-
 void APlayerCharacter::ServerOnAimingPressed_Implementation()
 {
 	if (!bUsingWeapon)
 		return;
 
-	if (Cast<ARangeWeapon>(Weapon)->TryReload())
+	if (Cast<ARangeWeapon>(Weapon)->StartAiming())
 	{
 		bIsAiming = true;
 		OnAimingStart();
@@ -317,6 +317,11 @@ void APlayerCharacter::OnAimingStart()
 	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	bUseControllerRotationYaw = true;
+
+	if (IsLocallyControlled())
+	{
+		Cast<ARangeWeapon>(Weapon)->ShowIndicator();
+	}
 }
 
 void APlayerCharacter::OnAimingEnd()
@@ -324,6 +329,11 @@ void APlayerCharacter::OnAimingEnd()
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
+
+	if (IsLocallyControlled())
+	{
+		Cast<ARangeWeapon>(Weapon)->HideIndicator();
+	}
 }
 
 void APlayerCharacter::ServerOnChargingStart_Implementation()
@@ -333,13 +343,39 @@ void APlayerCharacter::ServerOnChargingStart_Implementation()
 		ServerGetWeapon();
 		return;
 	}
+
+	if (!bIsAiming)
+		return;
 	
+	Cast<ARangeWeapon>(Weapon)->BeginCharge();
 	UE_LOG(LogTemp, Warning, TEXT("Start Charging"));
 }
 
 void APlayerCharacter::ServerOnChargingEnd_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("End Charging"));
+	if (!bUsingWeapon || !bIsAiming)
+		return;
+	
+	const FVector TargetLocation = CalculateTargetLocation();
+	Cast<ARangeWeapon>(Weapon)->Fire(TargetLocation);
+}
+
+FVector APlayerCharacter::CalculateTargetLocation() const
+{
+	const float MaxRange = 1500.0f;
+	const FVector StartLocation = CameraComp->GetComponentLocation();
+	const FVector EndLocation = StartLocation + CameraComp->GetForwardVector() * MaxRange;
+
+	FHitResult OutHit;
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(this);
+	GetWorld()->LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, TraceParams);
+	if (OutHit.bBlockingHit)
+	{
+		return OutHit.Location;
+	}
+	
+	return EndLocation;
 }
 
 void APlayerCharacter::Interact()

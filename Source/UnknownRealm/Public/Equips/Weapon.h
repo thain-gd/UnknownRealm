@@ -54,13 +54,13 @@ private:
 	void OnNormalAttackPressed();
 	void OnHeavyAttackPressed();
 	
-
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	int32 BaseDmg;
+	
 private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComp;
-	
-	UPROPERTY(EditDefaultsOnly)
-	int32 BaseDmg;
 
 	EWeaponType WeaponType;
 };

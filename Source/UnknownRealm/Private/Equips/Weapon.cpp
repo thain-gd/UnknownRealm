@@ -49,6 +49,8 @@ void AWeapon::Init(FEquipmentInfo* InEquipInfo)
 {
 	Super::Init(InEquipInfo);
 
-	WeaponType = StaticCast<FWeaponInfo*>(InEquipInfo)->WeaponType;
+	FWeaponInfo* WeaponInfo = StaticCast<FWeaponInfo*>(InEquipInfo);
+	WeaponType = WeaponInfo->WeaponType;
+	BaseDmg = WeaponInfo->BaseDmg;
 }
 

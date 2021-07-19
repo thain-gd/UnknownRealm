@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
+class UProjectileMovementComponent;
 UCLASS()
 class UNKNOWNREALM_API AProjectile : public AActor
 {
@@ -15,16 +16,29 @@ public:
 	// Sets default values for this actor's properties
 	AProjectile();
 
+	void OnFired(const FVector& TargetLocation, float InTotalDamage);
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+private:
+	UFUNCTION()
+	void OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	void AddProjectileMovementComponent(const FVector& TargetLocation);
 
 
 private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComp;
+
+	UPROPERTY(EditAnywhere)
+	float FlyingSpeed;
+
+	bool bHit;
+
+	UPROPERTY()
+	UProjectileMovementComponent* ProjectileMovement;
+
+	float TotalDamage;
 };

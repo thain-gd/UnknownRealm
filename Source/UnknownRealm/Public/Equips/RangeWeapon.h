@@ -20,13 +20,22 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	bool TryReload();
+	bool StartAiming();
 	void StopAiming();
+
+	void ShowIndicator();
+	void HideIndicator() const;
+
+	UFUNCTION(BlueprintImplementableEvent)
 	void BeginCharge();
+	
+	UFUNCTION(BlueprintImplementableEvent)
 	void StopCharge();
-	void Fire();
+	
+	void Fire(const FVector& TargetLocation);
 
 private:
+	bool TryReload();
 	void Reload();
 
 private:
@@ -38,5 +47,10 @@ private:
 	
 	UPROPERTY()
 	AProjectile* Arrow;
-	
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> BowWidgetClass;
+
+	UPROPERTY()
+	UUserWidget* BowWidget;
 };

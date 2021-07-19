@@ -91,7 +91,9 @@ private:
 
 	UFUNCTION(Reliable, Server)
 	void ServerOnChargingEnd();
-	
+
+	FVector CalculateTargetLocation() const;
+
 	void Interact();
 
 	void ToggleCraftMenu();

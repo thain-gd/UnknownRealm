@@ -3,6 +3,7 @@
 
 #include "Equips/RangeWeapon.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Equips/Projectile.h"
 
 
@@ -21,6 +22,16 @@ void ARangeWeapon::Init(FEquipmentInfo* InEquipInfo)
 	SkeletalMeshComp->SetSkeletalMesh(InEquipInfo->SkeletalMesh);
 }
 
+bool ARangeWeapon::StartAiming()
+{
+	if (TryReload())
+	{
+		return true;
+	}
+
+	return false;
+}
+
 bool ARangeWeapon::TryReload()
 {
 	// TODO: Check if there is any arrow before reload
@@ -35,8 +46,37 @@ bool ARangeWeapon::TryReload()
 
 void ARangeWeapon::StopAiming()
 {
-	GetWorld()->DestroyActor(Arrow);
+	if (Arrow)
+	{
+		GetWorld()->DestroyActor(Arrow);
+		Arrow = nullptr;
+	}
+}
+
+void ARangeWeapon::ShowIndicator()
+{
+	if (!BowWidget)
+	{
+		BowWidget = CreateWidget<UUserWidget>(GetWorld(), BowWidgetClass);
+	}
+
+	BowWidget->AddToViewport();
+}
+
+void ARangeWeapon::HideIndicator() const
+{
+	BowWidget->RemoveFromViewport();
+}
+
+void ARangeWeapon::Fire(const FVector& TargetLocation)
+{
+	if (!IsValid(Arrow))
+		return;
+
+	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	Arrow->OnFired(TargetLocation, BaseDmg * 1.5f);
 	Arrow = nullptr;
+	StopCharge();
 }
 
 void ARangeWeapon::Reload()

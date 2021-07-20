@@ -5,6 +5,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Equips/Projectile.h"
+#include "Net/UnrealNetwork.h"
 
 
 ARangeWeapon::ARangeWeapon()
@@ -12,6 +13,7 @@ ARangeWeapon::ARangeWeapon()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComp"));
+	SkeletalMeshComp->SetIsReplicated(true);
 	RootComponent = SkeletalMeshComp;
 }
 
@@ -19,7 +21,13 @@ void ARangeWeapon::Init(FEquipmentInfo* InEquipInfo)
 {
 	Super::Init(InEquipInfo);
 
-	SkeletalMeshComp->SetSkeletalMesh(InEquipInfo->SkeletalMesh);
+	SkeletalMesh = InEquipInfo->SkeletalMesh;
+	OnRepSetMesh();
+}
+
+void ARangeWeapon::OnRepSetMesh()
+{
+	SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
 }
 
 bool ARangeWeapon::StartAiming()
@@ -86,4 +94,11 @@ void ARangeWeapon::Reload()
 {
 	Arrow = GetWorld()->SpawnActor<AProjectile>(ArrowClass);
 	Arrow->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ArrowSocket"));
+}
+
+void ARangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ARangeWeapon, SkeletalMesh);
 }

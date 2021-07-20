@@ -68,25 +68,9 @@ void APlayerCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		SetupWeapon();
-
+		
 		AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
 		AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
-	}
-
-	if (IsValid(Weapon) && InputComponent && IsLocallyControlled())
-	{
-		// Binding actions by weapon type
-		if (Weapon->GetWeaponType() == EWeaponType::Bow)
-		{
-			InputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacter::ServerOnAimingPressed);
-			InputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacter::ServerOnAimingReleased);
-			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::ServerOnChargingStart);
-			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::ServerOnChargingEnd);
-		}
-		else
-		{
-			InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerDoNormalAttack);
-		}
 	}
 
 	DefaultFOV = CameraComp->FieldOfView;
@@ -103,9 +87,36 @@ void APlayerCharacter::SetupWeapon()
 {
 	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(WeaponID, TEXT("APlayerCharacter::SetupWeapon"));
 	Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponInfo->Class);
+	if (!Weapon)
+		return;
+	
 	Weapon->Init(WeaponInfo);
 	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
 	Weapon->SetOwner(this);
+
+	if (IsLocallyControlled())
+	{
+		SetupWeaponInputs();
+	}
+}
+
+void APlayerCharacter::SetupWeaponInputs()
+{
+	if (InputComponent)
+	{
+		// Binding actions by weapon type
+		if (Weapon->GetWeaponType() == EWeaponType::Bow)
+		{
+			InputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacter::ServerOnAimingPressed);
+			InputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacter::ServerOnAimingReleased);
+			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::ServerOnChargingStart);
+			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::ServerOnChargingEnd);
+		}
+		else
+		{
+			InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerDoNormalAttack);
+		}
+	}
 }
 
 void APlayerCharacter::SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -202,6 +213,11 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	// Combat
 	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
+
+	if (Weapon)
+	{
+		SetupWeaponInputs();
+	}
 }
 
 void APlayerCharacter::MoveVertical(float AxisValue)
@@ -270,6 +286,9 @@ void APlayerCharacter::ServerDoHeavyAttack_Implementation()
 
 void APlayerCharacter::ServerPutWeaponAway_Implementation()
 {
+	if (!bUsingWeapon)
+		return;
+	
 	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
 	bUsingWeapon = false;
 }
@@ -348,7 +367,6 @@ void APlayerCharacter::ServerOnChargingStart_Implementation()
 		return;
 	
 	Cast<ARangeWeapon>(Weapon)->BeginCharge();
-	UE_LOG(LogTemp, Warning, TEXT("Start Charging"));
 }
 
 void APlayerCharacter::ServerOnChargingEnd_Implementation()
@@ -441,5 +459,6 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APlayerCharacter, Weapon);
+	DOREPLIFETIME(APlayerCharacter, bUsingWeapon);
 	DOREPLIFETIME(APlayerCharacter, bIsAiming);
 }

@@ -34,6 +34,10 @@ public:
 	
 	void Fire(const FVector& TargetLocation);
 
+protected:
+	UFUNCTION()
+	virtual void OnRepSetMesh() override;
+
 private:
 	bool TryReload();
 	void Reload();
@@ -41,6 +45,9 @@ private:
 private:
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* SkeletalMeshComp;
+
+	UPROPERTY(ReplicatedUsing = OnRepSetMesh)
+	USkeletalMesh* SkeletalMesh;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AProjectile> ArrowClass;

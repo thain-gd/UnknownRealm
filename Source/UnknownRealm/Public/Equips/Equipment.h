@@ -55,7 +55,13 @@ public:
 	AEquipment();
 	
 	virtual void Init(FEquipmentInfo* InEquipInfo);
+	
 	virtual FName GetAttachPoint() const;
+
+protected:
+	// Children should handle implementation themselves
+	virtual void OnRepSetMesh() {};
+	
 
 protected:
 	FEquipmentInfo* EquipInfo;

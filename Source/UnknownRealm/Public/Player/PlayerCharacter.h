@@ -43,7 +43,8 @@ protected:
 
 private:
 	void SetupWeapon();
-	
+	void SetupWeaponInputs();
+
 	UFUNCTION()
 	void SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 							bool bFromSweep, const FHitResult& SweepResult);
@@ -139,7 +140,6 @@ private:
 	
 	bool bInteractable;
 	bool bInteracting;
-	bool bUsingWeapon;
 
 	// Combat system
 	UPROPERTY(EditAnywhere, Category = Combat)
@@ -147,6 +147,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float AimingInterpSpeed;
+
+	UPROPERTY(Replicated)
+	bool bUsingWeapon;
 	
 	UPROPERTY(ReplicatedUsing=OnRepAimingStatusChanged, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bIsAiming;

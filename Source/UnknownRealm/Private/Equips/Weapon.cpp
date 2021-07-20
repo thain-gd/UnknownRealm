@@ -3,6 +3,8 @@
 
 #include "Equips/Weapon.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 AWeapon::AWeapon()
 {
@@ -50,7 +52,12 @@ void AWeapon::Init(FEquipmentInfo* InEquipInfo)
 	Super::Init(InEquipInfo);
 
 	FWeaponInfo* WeaponInfo = StaticCast<FWeaponInfo*>(InEquipInfo);
-	WeaponType = WeaponInfo->WeaponType;
 	BaseDmg = WeaponInfo->BaseDmg;
 }
 
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AWeapon, BaseDmg);
+}

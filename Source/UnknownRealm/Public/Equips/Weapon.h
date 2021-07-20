@@ -22,9 +22,6 @@ struct FWeaponInfo : public FEquipmentInfo
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly)
-	EWeaponType WeaponType;
-
-	UPROPERTY(EditDefaultsOnly)
 	int32 BaseDmg;
 };
 
@@ -55,12 +52,13 @@ private:
 	void OnHeavyAttackPressed();
 	
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(Replicated, EditInstanceOnly)
 	int32 BaseDmg;
 	
 private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComp;
 
+	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
 };

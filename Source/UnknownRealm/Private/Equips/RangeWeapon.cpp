@@ -93,6 +93,7 @@ void ARangeWeapon::Fire(const FVector& TargetLocation)
 void ARangeWeapon::Reload()
 {
 	Arrow = GetWorld()->SpawnActor<AProjectile>(ArrowClass);
+	Arrow->SetOwner(GetOwner());
 	Arrow->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ArrowSocket"));
 }
 

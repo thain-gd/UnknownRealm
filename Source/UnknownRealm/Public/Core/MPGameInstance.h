@@ -8,6 +8,7 @@
 #include "Engine/GameInstance.h"
 #include "MPGameInstance.generated.h"
 
+class UNotifierWidget;
 struct FCraftingItem;
 UENUM(BlueprintType)
 enum class EGameplayState : uint8
@@ -51,6 +52,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool TransitionToState(EGameplayState NewState);
 
+	void ShowDamage(int32 Damage, bool bIsCrit) const;
+
 	FCraftingItem* GetCraftingDataRow(const FName& ID) const;
 	UDataTable* GetInventoryItemData() const { return InventoryItemData; }
 	UDataTable* GetCraftingUseableData() const { return CraftingUseableData; }
@@ -83,6 +86,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> LoadingScreenClass;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> NotifierWidgetClass;
+
 	EGameplayState CurrentState;
 
 private:
@@ -112,4 +118,7 @@ private:
 
 	UPROPERTY()
 	UUserWidget* LoadingScreen;
+
+	UPROPERTY()
+	UNotifierWidget* NotifierWidget;
 };

@@ -4,6 +4,7 @@
 #include "Equips/Projectile.h"
 
 #include "DrawDebugHelpers.h"
+#include "Core/MPGameInstance.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -70,6 +71,20 @@ void AProjectile::OnEnemyHit(AActor* Enemy)
 	MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	UGameplayStatics::ApplyDamage(Enemy, TotalDamage, nullptr, this, UDamageType::StaticClass());
 	SetLifeSpan(3.5f);
+
+	if (GetOwner<APawn>()->GetController()->IsLocalPlayerController())
+	{
+		GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDamage, true);
+	}
+	else
+	{
+		ClientShowEnemyDamageTaken(TotalDamage, true);
+	}
+}
+
+void AProjectile::ClientShowEnemyDamageTaken_Implementation(int32 Damage, bool bIsCrit)
+{
+	GetGameInstance<UMPGameInstance>()->ShowDamage(Damage, bIsCrit);
 }
 
 void AProjectile::AddProjectileMovementComponent(const FVector& TargetLocation)

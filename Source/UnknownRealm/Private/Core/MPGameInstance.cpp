@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/CraftingComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/NotifierWidget.h"
 
 void UMPGameInstance::ShowServers()
 {
@@ -18,6 +19,11 @@ void UMPGameInstance::ShowServers()
 void UMPGameInstance::StartPlaying()
 {
 	TransitionToState(EGameplayState::GameInProgress);
+
+	if (!NotifierWidget)
+	{
+		NotifierWidget = CreateWidget<UNotifierWidget>(this, NotifierWidgetClass);
+	}
 }
 
 void UMPGameInstance::OnGameStarted()
@@ -86,6 +92,11 @@ bool UMPGameInstance::TransitionToState(EGameplayState NewState)
 
 	CurrentState = NewState;
 	return true;
+}
+
+void UMPGameInstance::ShowDamage(int32 Damage, bool bIsCrit) const
+{
+	NotifierWidget->ShowDamage(Damage, bIsCrit);
 }
 
 FCraftingItem* UMPGameInstance::GetCraftingDataRow(const FName& ID) const

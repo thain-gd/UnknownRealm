@@ -39,6 +39,7 @@ protected:
 	virtual void OnRepSetMesh() override;
 
 private:
+	UFUNCTION(BlueprintCallable)
 	bool TryReload();
 	void Reload();
 

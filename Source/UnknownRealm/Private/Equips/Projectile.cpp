@@ -72,13 +72,14 @@ void AProjectile::OnEnemyHit(AActor* Enemy)
 	UGameplayStatics::ApplyDamage(Enemy, TotalDamage, nullptr, this, UDamageType::StaticClass());
 	SetLifeSpan(3.5f);
 
+	bool bIsCrit = false;
 	if (GetOwner<APawn>()->GetController()->IsLocalPlayerController())
 	{
-		GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDamage, true);
+		GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDamage, bIsCrit);
 	}
 	else
 	{
-		ClientShowEnemyDamageTaken(TotalDamage, true);
+		ClientShowEnemyDamageTaken(TotalDamage, bIsCrit);
 	}
 }
 

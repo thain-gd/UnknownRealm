@@ -380,7 +380,7 @@ void APlayerCharacter::ServerOnChargingEnd_Implementation()
 
 FVector APlayerCharacter::CalculateTargetLocation() const
 {
-	const float MaxRange = 1500.0f;
+	const float MaxRange = 10000.0f;
 	const FVector StartLocation = CameraComp->GetComponentLocation();
 	const FVector EndLocation = StartLocation + CameraComp->GetForwardVector() * MaxRange;
 

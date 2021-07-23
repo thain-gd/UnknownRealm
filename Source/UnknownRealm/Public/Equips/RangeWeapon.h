@@ -34,6 +34,8 @@ public:
 	
 	void Fire(const FVector& TargetLocation);
 
+	float GetChargeAmount() const { return ChargeAmount; }
+
 protected:
 	UFUNCTION()
 	virtual void OnRepSetMesh() override;
@@ -61,4 +63,7 @@ private:
 
 	UPROPERTY()
 	UUserWidget* BowWidget;
+
+	UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float ChargeAmount;
 };

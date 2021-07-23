@@ -100,6 +100,9 @@ private:
 	void ToggleCraftMenu();
 
 	void OnWheelAxisChanged(float AxisValue);
+
+	UFUNCTION(BlueprintCallable)
+	float GetChargeAmount() const;
 	
 	
 private:

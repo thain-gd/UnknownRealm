@@ -102,4 +102,5 @@ void ARangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ARangeWeapon, SkeletalMesh);
+	DOREPLIFETIME(ARangeWeapon, ChargeAmount);
 }

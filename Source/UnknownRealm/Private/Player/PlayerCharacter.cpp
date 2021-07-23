@@ -183,7 +183,18 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	if (!IsLocallyControlled())
+		return;
+	
 	UpdateCameraFOV(DeltaSeconds);
+
+	if (!bIsAiming)
+		return;
+	
+	const FRotator TargetRotation(GetActorRotation().Pitch, GetControlRotation().Yaw + 20.0f, GetActorRotation().Roll);
+	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, AimingInterpSpeed);
+	SetActorRotation(NewRotation);
+	UE_LOG(LogTemp, Warning, TEXT("Controller Yaw = %f - NewYaw = %f"), GetControlRotation().Yaw, GetActorRotation().Yaw);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaTime)
@@ -335,7 +346,7 @@ void APlayerCharacter::OnAimingStart()
 {
 	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	bUseControllerRotationYaw = true;
+	//bUseControllerRotationYaw = true;
 
 	if (IsLocallyControlled())
 	{
@@ -447,6 +458,11 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 	{
 		CraftingComp->ServerRotateCraftingObject(AxisValue);
 	}
+}
+
+float APlayerCharacter::GetChargeAmount() const
+{
+	return Cast<ARangeWeapon>(Weapon)->GetChargeAmount();
 }
 
 void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)

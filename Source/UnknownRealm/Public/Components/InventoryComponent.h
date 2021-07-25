@@ -67,14 +67,15 @@ public:
 	UInventoryComponent();
 
 	void AddItem(const FName& ItemID, const int32 Amount);
+	bool RemoveItems(TMap<FName, int32>& ToRemoveItems);
+	bool RemoveItem(const FName& ItemID, const int32 Amount = 1);
 
-	// Use (remove) items that are used for crafting the given object
-	bool UseItems(const FName& CraftingItemID, int32 CraftTime = 1);
-
-	int32 GetFreeSlots() const { return FreeSlots; }
+	bool AreItemsAvailable(const TMap<FName, int32>& ItemPairs);
 
 	// Accumulate and return all resources that we have
 	void GetAvailableResources(TMap<FName, int32>& OutAvailableResources);
+
+	int32 GetFreeSlots() const { return FreeSlots; }
 
 	void ShowWidget() const;
 	void HideWidget() const;

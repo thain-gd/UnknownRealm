@@ -76,6 +76,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void GetCraftingRequirements(const FName& UseableID, TMap<FName, int32>& OutRequirements, const int32 CraftTime = 1) const;
+	
 	UFUNCTION(Server, Reliable)
 	void ServerSpawnCraftingObject(const FName& CraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass);
 

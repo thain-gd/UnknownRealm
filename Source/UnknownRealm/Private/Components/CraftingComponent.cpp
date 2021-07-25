@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Buildings/CraftingObject.h"
 #include "Camera/CameraComponent.h"
+#include "Core/MPGameInstance.h"
 #include "Core/MPGameState.h"
 
 #include "Engine/Engine.h"
@@ -73,10 +74,30 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 void UCraftingComponent::ServerCraftUseables_Implementation(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const
 {
+	TMap<FName, int32> Requirements;
+	GetCraftingRequirements(UseableID, Requirements, CraftTime);
+	
 	UInventoryComponent* Inventory = GetWorld()->GetGameState<AMPGameState>()->GetInventory();
-	if (Inventory->UseItems(UseableID, CraftTime))
+	// TODO: Check if slots are enough
+	if (Inventory->RemoveItems(Requirements))
 	{
 		Inventory->AddItem(UseableID, DefaultAmount * CraftTime);
+	}
+}
+
+void UCraftingComponent::GetCraftingRequirements(const FName& UseableID, TMap<FName, int32>& OutRequirements, const int32 CraftTime) const
+{
+	UMPGameInstance* GameInstance = GetWorld()->GetGameInstance<UMPGameInstance>();
+	FCraftingItem* CraftingItem = GameInstance->GetCraftingDataRow(UseableID);
+	OutRequirements = CraftingItem->Requirements; // verify if edit this one affects the row of udata after that
+
+	// Update requirements by number of crafting time
+	if (CraftTime > 1)
+	{
+		for (auto& Requirement : OutRequirements)
+		{
+			Requirement.Value *= CraftTime;
+		}
 	}
 }
 
@@ -165,7 +186,10 @@ void UCraftingComponent::VerifyPlacement()
 
 void UCraftingComponent::ServerPlaceCraftingObject_Implementation()
 {
-	if (GetWorld()->GetGameState<AMPGameState>()->GetInventory()->UseItems(SelectedCraftingItemID))
+	TMap<FName, int32> Requirements;
+	GetCraftingRequirements(SelectedCraftingItemID, Requirements);
+	
+	if (GetWorld()->GetGameState<AMPGameState>()->GetInventory()->RemoveItems(Requirements))
 	{
 		CraftingObject->MulticastConfirmPlacement();
 	}

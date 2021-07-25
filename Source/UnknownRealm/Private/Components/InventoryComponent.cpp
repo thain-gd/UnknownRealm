@@ -134,6 +134,97 @@ void UInventoryComponent::AddItemToNewSlot(FInventoryItem& Item)
 	}
 }
 
+bool UInventoryComponent::RemoveItems(TMap<FName, int32>& ToRemoveItems)
+{
+	if (!AreItemsAvailable(ToRemoveItems))
+		return false;
+
+	TArray<int32> ItemIndices;
+	for (int i = 0; i < Items.Num(); ++i)
+	{
+		if (!ToRemoveItems.Contains(Items[i].ID))
+			continue;
+
+		ItemIndices.Add(i);
+	}
+
+	for (int ItemIndex : ItemIndices)
+	{
+		int32* RemainingAmountPtr = &ToRemoveItems[Items[ItemIndex].ID];
+		if (*RemainingAmountPtr <= 0)
+			continue;
+
+		const int32 Available = Items[ItemIndex].Count;
+		Items[ItemIndex].Count -= *RemainingAmountPtr;
+		*RemainingAmountPtr -= Available;
+		if (Items[ItemIndex].Count <= 0)
+		{
+			Items[ItemIndex].Reset();
+			++FreeSlots;
+		}
+	}
+
+	MulticastUpdateWidget(Items);
+	return true;
+}
+
+bool UInventoryComponent::RemoveItem(const FName& ItemID, const int32 Amount)
+{
+	int32 RemainingAmount = Amount;
+	TArray<int32> ItemIndices;
+	for (int i = 0; i < Items.Num() && RemainingAmount > 0; ++i)
+	{
+		if (Items[i].ID != ItemID)
+			continue;
+
+		if (Items[i].Count >= RemainingAmount)
+		{
+			RemainingAmount = 0;
+		}
+		else
+		{
+			RemainingAmount -= Items[i].Count;
+		}
+
+		ItemIndices.Add(i);
+	}
+
+	if (RemainingAmount != 0)
+		return false;
+
+	RemainingAmount = Amount;
+	for (int ItemIndex : ItemIndices)
+	{
+		const int32 Available = Items[ItemIndex].Count;
+		Items[ItemIndex].Count -= RemainingAmount;
+		RemainingAmount -= Available;
+		if (Items[ItemIndex].Count <= 0)
+		{
+			Items[ItemIndex].Reset();
+			++FreeSlots;
+		}
+	}
+
+	MulticastUpdateWidget(Items);
+	return true;
+}
+
+bool UInventoryComponent::AreItemsAvailable(const TMap<FName, int32>& ItemPairs)
+{
+	TMap<FName, int32> AvailableResources;
+	GetAvailableResources(AvailableResources);
+
+	for (auto& ItemPair : ItemPairs)
+	{
+		if (!AvailableResources.Contains(ItemPair.Key) || AvailableResources[ItemPair.Key] < ItemPair.Value)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
 {
 	Items = ItemList;
@@ -149,62 +240,6 @@ void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInv
 	}
 	
 	InventoryWidget->Refresh(ItemList);
-}
-
-bool UInventoryComponent::UseItems(const FName& CraftingItemID, int32 CraftTime)
-{
-	UMPGameInstance* GameInstance = GetWorld()->GetGameInstance<UMPGameInstance>();
-	FCraftingItem* CraftingItem = GameInstance->GetCraftingDataRow(CraftingItemID);
-	auto Requirements = CraftingItem->Requirements; // verify if edit this one affects the row of udata after that
-
-	// Update requirements by number of crafting time
-	if (CraftTime > 1)
-	{
-		for (auto& Requirement : Requirements)
-		{
-			Requirement.Value *= CraftTime;
-		}
-	}
-	
-	// Decrease count to check if there are enough resources
-	for (auto& Item: Items)
-	{
-		if (Requirements.Contains(Item.ID) && Requirements[Item.ID] > 0)
-		{
-			Requirements[Item.ID] = FMath::Min(0, Requirements[Item.ID] - Item.Count);
-		}
-	}
-
-	// Reset requirement count
-	for (auto& Requirement : Requirements)
-	{
-		// There is not enough resources
-		if (Requirement.Value > 0)
-		{
-			return false;
-		}
-		
-		Requirement.Value = CraftingItem->Requirements[Requirement.Key] * CraftTime;
-	}
-
-	for (int i = 0; i < Items.Num(); ++i)
-	{
-		FInventoryItem& Item = Items[i];
-		if (Requirements.Contains(Item.ID) && Requirements[Item.ID] > 0)
-		{
-			const int32 Available = Item.Count;
-			Item.Count -= Requirements[Item.ID];
-			Requirements[Item.ID] = FMath::Min(0, Requirements[Item.ID] - Available);
-			if (Item.Count <= 0)
-			{
-				Items[i].Reset();
-				--FreeSlots;
-			}
-		}
-	}
-
-	MulticastUpdateWidget(Items);
-	return true;
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

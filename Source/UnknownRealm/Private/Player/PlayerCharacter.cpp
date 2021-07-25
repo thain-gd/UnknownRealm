@@ -194,7 +194,6 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	const FRotator TargetRotation(GetActorRotation().Pitch, GetControlRotation().Yaw + 20.0f, GetActorRotation().Roll);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, AimingInterpSpeed);
 	SetActorRotation(NewRotation);
-	UE_LOG(LogTemp, Warning, TEXT("Controller Yaw = %f - NewYaw = %f"), GetControlRotation().Yaw, GetActorRotation().Yaw);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaTime)

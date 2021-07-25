@@ -4,6 +4,7 @@
 #include "Equips/RangeWeapon.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Core/MPGameState.h"
 #include "Equips/Projectile.h"
 #include "Net/UnrealNetwork.h"
 
@@ -42,13 +43,15 @@ bool ARangeWeapon::StartAiming()
 
 bool ARangeWeapon::TryReload()
 {
-	// TODO: Check if there is any arrow before reload
-	if (true)
+	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
+	if (GameState && GameState->GetInventory()->AreItemsAvailable({{ TEXT("NormalArrow"), 1 }}))
 	{
 		Reload();
 		return true;
 	}
 
+	// TODO: Notify player about not enough arrow
+	UE_LOG(LogTemp, Warning, TEXT("Not enough arrow!"));
 	return false;
 }
 
@@ -56,6 +59,8 @@ void ARangeWeapon::StopAiming()
 {
 	if (Arrow)
 	{
+		//StopCharge(); // TODO: Change this to sth else to reset bow animation without TryReload
+		
 		GetWorld()->DestroyActor(Arrow);
 		Arrow = nullptr;
 	}
@@ -84,6 +89,12 @@ void ARangeWeapon::Fire(const FVector& TargetLocation)
 	if (!IsValid(Arrow))
 		return;
 
+	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
+	if (GameState)
+	{
+		GameState->GetInventory()->RemoveItem(TEXT("NormalArrow"));
+	}
+	
 	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Arrow->OnFired(TargetLocation, BaseDmg * 1.5f);
 	Arrow = nullptr;

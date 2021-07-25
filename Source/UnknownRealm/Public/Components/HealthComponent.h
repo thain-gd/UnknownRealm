@@ -18,6 +18,8 @@ public:
 	UHealthComponent();
 
 	bool IsAlive() const { return CurrentHealth > 0; }
+
+	float GetRemainingHealthPercent() const { return CurrentHealth / MaxHealth; }
 	
 protected:
 	// Called when the game starts

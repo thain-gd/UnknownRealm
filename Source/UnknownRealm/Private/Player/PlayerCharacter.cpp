@@ -119,7 +119,7 @@ void APlayerCharacter::SetupWeaponInputs()
 			InputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacter::ServerOnAimingPressed);
 			InputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacter::ServerOnAimingReleased);
 			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::ServerOnChargingStart);
-			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::ServerOnChargingEnd);
+			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::OnChargingEnd);
 		}
 		else
 		{
@@ -203,6 +203,40 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	const FRotator TargetRotation(GetActorRotation().Pitch, GetControlRotation().Yaw + 20.0f, GetActorRotation().Roll);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, AimingInterpSpeed);
 	SetActorRotation(NewRotation);
+
+	UpdateTarget();
+}
+
+void APlayerCharacter::UpdateTarget()
+{
+	const float MaxTargetRange = 10000.0f;
+	const FVector StartLocation = CameraComp->GetComponentLocation();
+	const FVector EndLocation = StartLocation + CameraComp->GetForwardVector() * MaxTargetRange;
+
+	FHitResult OutHit;
+	TraceHitTarget(OutHit, StartLocation, EndLocation);
+
+	bool bIsTargetEnemy = false;
+	if (OutHit.bBlockingHit)
+	{
+		TargetLocation = OutHit.Location;
+		TargetRange = FVector::Distance(StartLocation, TargetLocation);
+		bIsTargetEnemy = OutHit.Actor->ActorHasTag(FName("AI"));
+	}
+	else
+	{
+		TargetLocation = EndLocation;
+		TargetRange = MaxTargetRange;
+	}
+
+	Cast<ARangeWeapon>(Weapon)->UpdateIndicatorByRange(bIsTargetEnemy, TargetRange);
+}
+
+void APlayerCharacter::TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const
+{
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(this);
+	GetWorld()->LineTraceSingleByChannel(OutHitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaTime)
@@ -364,7 +398,6 @@ void APlayerCharacter::OnAimingStart()
 {
 	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	//bUseControllerRotationYaw = true;
 
 	if (IsLocallyControlled())
 	{
@@ -398,31 +431,12 @@ void APlayerCharacter::ServerOnChargingStart_Implementation()
 	Cast<ARangeWeapon>(Weapon)->BeginCharge();
 }
 
-void APlayerCharacter::ServerOnChargingEnd_Implementation()
+void APlayerCharacter::OnChargingEnd()
 {
 	if (!bUsingWeapon || !bIsAiming)
 		return;
 	
-	const FVector TargetLocation = CalculateTargetLocation();
 	Cast<ARangeWeapon>(Weapon)->Fire(TargetLocation);
-}
-
-FVector APlayerCharacter::CalculateTargetLocation() const
-{
-	const float MaxRange = 10000.0f;
-	const FVector StartLocation = CameraComp->GetComponentLocation();
-	const FVector EndLocation = StartLocation + CameraComp->GetForwardVector() * MaxRange;
-
-	FHitResult OutHit;
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(this);
-	GetWorld()->LineTraceSingleByChannel(OutHit, StartLocation, EndLocation, ECC_Visibility, TraceParams);
-	if (OutHit.bBlockingHit)
-	{
-		return OutHit.Location;
-	}
-	
-	return EndLocation;
 }
 
 void APlayerCharacter::Interact()

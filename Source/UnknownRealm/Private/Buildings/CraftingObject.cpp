@@ -138,7 +138,7 @@ void ACraftingObject::SetMaterials(UMaterialInstance* NewMaterial) const
 
 bool ACraftingObject::IsLandScape(AActor* Actor) const
 {
-	return Actor->GetClass() == ALandscape::StaticClass() || Actor->ActorHasTag(TEXT("Landscape"));
+	return Actor->GetClass() == ALandscape::StaticClass() || Actor->ActorHasTag(FName("Landscape"));
 }
 
 void ACraftingObject::MulticastConfirmPlacement_Implementation() const

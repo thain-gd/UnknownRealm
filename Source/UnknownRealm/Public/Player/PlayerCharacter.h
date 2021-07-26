@@ -45,6 +45,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void UpdateTarget();
+	void TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const;
+	
 	void SetupWeapon();
 	void SetupWeaponInputs();
 
@@ -96,10 +99,7 @@ private:
 	UFUNCTION(Reliable, Server)
 	void ServerOnChargingStart();
 
-	UFUNCTION(Reliable, Server)
-	void ServerOnChargingEnd();
-
-	FVector CalculateTargetLocation() const;
+	void OnChargingEnd();
 
 	void Interact();
 
@@ -169,4 +169,7 @@ private:
 	float AimingMovingSpeed;
 	float DefaultMovingSpeed;
 	uint32 AttackCount;
+
+	FVector TargetLocation;
+	float TargetRange;
 };

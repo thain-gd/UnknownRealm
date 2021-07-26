@@ -26,6 +26,9 @@ public:
 	void ShowIndicator();
 	void HideIndicator() const;
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange);
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void BeginCharge();
 	
@@ -34,6 +37,7 @@ public:
 	
 	void Fire(const FVector& TargetLocation);
 
+	float GetDamage() const;
 	float GetChargeAmount() const { return ChargeAmount; }
 
 protected:
@@ -41,6 +45,9 @@ protected:
 	virtual void OnRepSetMesh() override;
 
 private:
+	UFUNCTION(Server, Reliable)
+	void ServerOnFired(const FVector& TargetLocation, const float Damage);
+	
 	UFUNCTION(BlueprintCallable)
 	bool TryReload();
 	void Reload();
@@ -61,9 +68,28 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> BowWidgetClass;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UUserWidget* BowWidget;
 
 	UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float ChargeAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float OptimalRangeUpperBound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float OptimalRangeLowerBound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float MaxRange;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float RangeMultiplier;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float TimingMultiplier;
+
+	const float OptimalRangeMultiplier = 1.0f;
+	const float AcceptableRangeMultiplier = 0.7f;
+	const float DefaultTimingMultiplier = 1.0f;
 };

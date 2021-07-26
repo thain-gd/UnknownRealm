@@ -16,6 +16,8 @@ ARangeWeapon::ARangeWeapon()
 	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComp"));
 	SkeletalMeshComp->SetIsReplicated(true);
 	RootComponent = SkeletalMeshComp;
+
+	TimingMultiplier = DefaultTimingMultiplier;
 }
 
 void ARangeWeapon::Init(FEquipmentInfo* InEquipInfo)
@@ -84,7 +86,36 @@ void ARangeWeapon::HideIndicator() const
 	}
 }
 
+void ARangeWeapon::UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange)
+{
+	// Cancel out by default and change only if the target is an enemy and within range
+	RangeMultiplier = 0.0f;
+	if (bIsTargetEnemy)
+	{
+		if (OptimalRangeLowerBound <= CurrentRange && CurrentRange <= OptimalRangeUpperBound)
+		{
+			RangeMultiplier = OptimalRangeMultiplier;
+		}
+		else if (CurrentRange < OptimalRangeLowerBound || CurrentRange > OptimalRangeUpperBound && CurrentRange <= MaxRange)
+		{
+			RangeMultiplier = AcceptableRangeMultiplier;
+		}
+	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("Range = %f, RangeMultiplier = %f"), CurrentRange, RangeMultiplier);
+}
+
 void ARangeWeapon::Fire(const FVector& TargetLocation)
+{
+	ServerOnFired(TargetLocation, GetDamage());
+}
+
+float ARangeWeapon::GetDamage() const
+{
+	return FMath::RoundToFloat(BaseDmg * RangeMultiplier * TimingMultiplier);
+}
+
+void ARangeWeapon::ServerOnFired_Implementation(const FVector& TargetLocation, const float Damage)
 {
 	if (!IsValid(Arrow))
 		return;
@@ -94,9 +125,9 @@ void ARangeWeapon::Fire(const FVector& TargetLocation)
 	{
 		GameState->GetInventory()->RemoveItem(TEXT("NormalArrow"));
 	}
-	
+
 	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	Arrow->OnFired(TargetLocation, BaseDmg * 1.5f);
+	Arrow->OnFired(TargetLocation, Damage);
 	Arrow = nullptr;
 	StopCharge();
 }

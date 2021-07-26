@@ -42,7 +42,7 @@ void AProjectile::BeginPlay()
 void AProjectile::OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (bHit || OtherActor->ActorHasTag(TEXT("Player")) || OtherActor->IsA(StaticClass()))
+	if (bHit || OtherActor->ActorHasTag(FName("Player")) || OtherActor->IsA(StaticClass()))
 		return;
 
 	// TODO: Play hit SFX

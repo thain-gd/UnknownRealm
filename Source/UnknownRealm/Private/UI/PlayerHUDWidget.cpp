@@ -6,6 +6,7 @@
 #include "Components/HealthComponent.h"
 #include "Core/MPGameState.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/PlayerCharacter.h"
 
 FText UPlayerHUDWidget::GetPreparingTimeText() const
 {
@@ -30,6 +31,17 @@ ESlateVisibility UPlayerHUDWidget::GetPreparingTimeVisibility() const
 	}
 	
 	return ESlateVisibility::Hidden;
+}
+
+float UPlayerHUDWidget::GetStaminaBarPercent() const
+{
+	APlayerCharacter* PlayerChar = GetWorld()->GetFirstPlayerController()->GetPawn<APlayerCharacter>();
+	if (PlayerChar)
+	{
+		return PlayerChar->GetStaminaPercent();
+	}
+	
+	return 1.0f;
 }
 
 float UPlayerHUDWidget::GetVillageHealthBarPercent() const

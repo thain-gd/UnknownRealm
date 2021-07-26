@@ -21,6 +21,9 @@ private:
 
 	UFUNCTION(BlueprintPure)
 	ESlateVisibility GetPreparingTimeVisibility() const;
+
+	UFUNCTION(BlueprintPure)
+	float GetStaminaBarPercent() const;
 	
 	UFUNCTION(BlueprintPure)
 	float GetVillageHealthBarPercent() const;

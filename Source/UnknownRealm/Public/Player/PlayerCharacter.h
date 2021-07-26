@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+class UStaminaComponent;
 class AWeapon;
 struct FInventoryItem;
 class UCraftingComponent;
@@ -37,6 +38,8 @@ public:
 
 	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
 
+	float GetStaminaPercent() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -62,6 +65,9 @@ private:
 	
 	void MoveVertical(float AxisValue);
 	void MoveHorizontal(float AxisValue);
+
+	void StartSprinting();
+	void StopSprinting();
 
 	UFUNCTION(Reliable, Server)
 	void ServerDoNormalAttack();
@@ -119,6 +125,9 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	UHealthComponent* HealthComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UStaminaComponent* StaminaComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	UCraftingComponent* CraftingComp;

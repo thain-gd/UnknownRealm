@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/CraftingComponent.h"
 #include "Components/HealthComponent.h"
+#include "Components/StaminaComponent.h"
 #include "Core/MPGameInstance.h"
 #include "Core/MPPlayerController.h"
 #include "Equips/Equipment.h"
@@ -55,9 +56,17 @@ APlayerCharacter::APlayerCharacter()
 	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComp"));
 	AddOwnedComponent(HealthComp);
 
+	StaminaComp = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComp"));
+	AddOwnedComponent(StaminaComp);
+
 	CraftingComp = CreateDefaultSubobject<UCraftingComponent>(TEXT("CraftingComp"));
 	CraftingComp->SetIsReplicated(true);
 	AddOwnedComponent(CraftingComp);
+}
+
+float APlayerCharacter::GetStaminaPercent() const
+{
+	return StaminaComp->GetCurrentStaminaPercent();
 }
 
 // Called when the game starts or when spawned
@@ -218,6 +227,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAxis("LookUp/Down", this, &APawn::AddControllerPitchInput);
 	InputComponent->BindAxis("Scroll", this, &APlayerCharacter::OnWheelAxisChanged);
 
+	InputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::StartSprinting);
+	InputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprinting);
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
 
@@ -259,7 +270,15 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 	AddMovementInput(Direction, AxisValue);
 }
 
+void APlayerCharacter::StartSprinting()
+{
+	UE_LOG(LogTemp, Warning, TEXT("StartSprinting"));
+	StaminaComp->DecreaseStamina(60.0f);
+}
 
+void APlayerCharacter::StopSprinting()
+{
+}
 
 void APlayerCharacter::ServerDoNormalAttack_Implementation()
 {

@@ -88,21 +88,24 @@ void ARangeWeapon::HideIndicator() const
 
 void ARangeWeapon::UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange)
 {
-	// Cancel out by default and change only if the target is an enemy and within range
+	// Out of range state by default and change only if the target is an enemy and within range
 	RangeMultiplier = 0.0f;
+	ERangeState RangeState = ERangeState::OutOfRange;
 	if (bIsTargetEnemy)
 	{
 		if (OptimalRangeLowerBound <= CurrentRange && CurrentRange <= OptimalRangeUpperBound)
 		{
+			RangeState = ERangeState::Optimal;
 			RangeMultiplier = OptimalRangeMultiplier;
 		}
 		else if (CurrentRange < OptimalRangeLowerBound || CurrentRange > OptimalRangeUpperBound && CurrentRange <= MaxRange)
 		{
+			RangeState = ERangeState::Normal;
 			RangeMultiplier = AcceptableRangeMultiplier;
 		}
 	}
 
-	//UE_LOG(LogTemp, Warning, TEXT("Range = %f, RangeMultiplier = %f"), CurrentRange, RangeMultiplier);
+	UpdateBowWidget(RangeState);
 }
 
 void ARangeWeapon::Fire(const FVector& TargetLocation)

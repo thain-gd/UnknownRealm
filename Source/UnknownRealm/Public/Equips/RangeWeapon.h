@@ -6,6 +6,14 @@
 #include "Equips/Weapon.h"
 #include "RangeWeapon.generated.h"
 
+UENUM(BlueprintType)
+enum class ERangeState : uint8
+{
+	OutOfRange,
+	Normal,
+	Optimal
+};
+
 class AProjectile;
 /**
  * 
@@ -43,6 +51,9 @@ public:
 protected:
 	UFUNCTION()
 	virtual void OnRepSetMesh() override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateBowWidget(ERangeState RangeState);
 
 private:
 	UFUNCTION(Server, Reliable)
@@ -84,11 +95,10 @@ private:
 	float MaxRange;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float RangeMultiplier;
-
-	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float TimingMultiplier;
 
+	float RangeMultiplier;
+	
 	const float OptimalRangeMultiplier = 1.0f;
 	const float AcceptableRangeMultiplier = 0.7f;
 	const float DefaultTimingMultiplier = 1.0f;

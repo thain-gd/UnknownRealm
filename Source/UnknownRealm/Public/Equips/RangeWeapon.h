@@ -112,6 +112,8 @@ private:
 	float TimingMultiplier;
 
 	float RangeMultiplier;
+
+	FName CurrentArrowID = FName("NormalArrow"); // TODO: Update dynamically later when add more arrow types
 	
 	const float OptimalRangeMultiplier		= 1.0f;
 	const float AcceptableRangeMultiplier	= 0.7f;

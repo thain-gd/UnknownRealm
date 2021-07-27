@@ -46,7 +46,7 @@ bool ARangeWeapon::StartAiming()
 bool ARangeWeapon::TryReload()
 {
 	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
-	if (true)//GameState && GameState->GetInventory()->AreItemsAvailable({{ TEXT("NormalArrow"), 1 }}))
+	if (GameState && GameState->GetInventory()->AreItemsAvailable({{ CurrentArrowID, 1 }}))
 	{
 		Reload();
 		return true;
@@ -160,7 +160,7 @@ void ARangeWeapon::ServerOnFired_Implementation(const FVector& TargetLocation, c
 	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
 	if (GameState)
 	{
-		GameState->GetInventory()->RemoveItem(TEXT("NormalArrow"));
+		GameState->GetInventory()->RemoveItem(CurrentArrowID);
 	}
 
 	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);

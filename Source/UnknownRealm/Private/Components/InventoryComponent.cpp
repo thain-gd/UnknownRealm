@@ -89,11 +89,6 @@ void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
 			AddItemToNewSlot(CollectedItem);
 		}
 
-		for (const FInventoryItem& Item : Items)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("You have %i %s"), Item.Count, *Item.ID.ToString());
-		}
-
 		MulticastUpdateWidget(Items);
 	}
 }

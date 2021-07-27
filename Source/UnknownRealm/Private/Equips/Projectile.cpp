@@ -5,6 +5,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "Core/MPGameInstance.h"
+#include "Core/MPGameState.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -43,12 +44,22 @@ void AProjectile::OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AAct
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (bHit || OtherActor->ActorHasTag(FName("Player")) || OtherActor->IsA(StaticClass()))
+	{
+		if (bHit && OtherActor == GetOwner())
+		{
+			AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
+			if (GameState)
+			{
+				GameState->GetInventory()->AddItem(ID);
+			}
+
+			Destroy();
+		}
+		
 		return;
+	}
 
 	// TODO: Play hit SFX
-	
-	if (!HasAuthority())
-		return;
 
 	UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *OtherActor->GetName());
 	

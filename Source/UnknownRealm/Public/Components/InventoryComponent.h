@@ -66,7 +66,7 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 
-	void AddItem(const FName& ItemID, const int32 Amount);
+	void AddItem(const FName& ItemID, const int32 Amount = 1);
 	bool RemoveItems(TMap<FName, int32>& ToRemoveItems);
 	bool RemoveItem(const FName& ItemID, const int32 Amount = 1);
 

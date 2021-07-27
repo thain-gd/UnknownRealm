@@ -18,6 +18,8 @@ public:
 
 	void OnFired(const FVector& TargetLocation, float InTotalDamage);
 
+	const FName& GetID() const { return ID; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -36,6 +38,9 @@ private:
 private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	FName ID;
 
 	UPROPERTY(EditAnywhere)
 	float FlyingSpeed;

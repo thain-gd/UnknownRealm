@@ -46,7 +46,7 @@ bool ARangeWeapon::StartAiming()
 bool ARangeWeapon::TryReload()
 {
 	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
-	if (GameState && GameState->GetInventory()->AreItemsAvailable({{ TEXT("NormalArrow"), 1 }}))
+	if (true)//GameState && GameState->GetInventory()->AreItemsAvailable({{ TEXT("NormalArrow"), 1 }}))
 	{
 		Reload();
 		return true;
@@ -106,6 +106,40 @@ void ARangeWeapon::UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRang
 	}
 
 	UpdateBowWidget(RangeState);
+}
+
+void ARangeWeapon::UpdateTimingMultiplierByChargeAmount()
+{
+	if (ChargeAmount == 1.0f)
+	{
+		UpdateTimingMultiplier(ETimingState::Perfect);
+	}
+	else if (ChargeAmount >= 0.85f)
+	{
+		UpdateTimingMultiplier(ETimingState::Good);
+	}
+	else
+	{
+		UpdateTimingMultiplier(ETimingState::Default);
+	}
+}
+
+void ARangeWeapon::UpdateTimingMultiplier(ETimingState TimingState)
+{
+	switch (TimingState)
+	{
+	case ETimingState::Default:
+		TimingMultiplier = DefaultTimingMultiplier;
+		break;
+
+	case ETimingState::Good:
+		TimingMultiplier = GoodTimingMultiplier;
+		break;
+
+	case ETimingState::Perfect:
+		TimingMultiplier = PerfectTimingMultiplier;
+		break;
+	}
 }
 
 void ARangeWeapon::Fire(const FVector& TargetLocation)

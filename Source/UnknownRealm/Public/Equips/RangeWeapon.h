@@ -14,6 +14,14 @@ enum class ERangeState : uint8
 	Optimal
 };
 
+UENUM(BlueprintType)
+enum class ETimingState : uint8
+{
+	Default,
+	Good,
+	Perfect
+};
+
 class AProjectile;
 /**
  * 
@@ -36,6 +44,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange);
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateTimingMultiplierByChargeAmount();
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateTimingMultiplier(ETimingState TimingState);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BeginCharge();
@@ -99,7 +113,9 @@ private:
 
 	float RangeMultiplier;
 	
-	const float OptimalRangeMultiplier = 1.0f;
-	const float AcceptableRangeMultiplier = 0.7f;
-	const float DefaultTimingMultiplier = 1.0f;
+	const float OptimalRangeMultiplier		= 1.0f;
+	const float AcceptableRangeMultiplier	= 0.7f;
+	const float DefaultTimingMultiplier		= 1.0f;
+	const float GoodTimingMultiplier		= 1.2f;
+	const float PerfectTimingMultiplier		= 1.6f;
 };

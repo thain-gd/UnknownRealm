@@ -73,7 +73,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AProjectile> ArrowClass;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AProjectile* Arrow;
 
 	UPROPERTY(EditDefaultsOnly)

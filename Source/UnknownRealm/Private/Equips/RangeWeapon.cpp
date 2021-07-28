@@ -72,7 +72,7 @@ void ARangeWeapon::ShowIndicator()
 {
 	if (!BowWidget)
 	{
-		BowWidget = CreateWidget<UUserWidget>(GetWorld(), BowWidgetClass);
+		BowWidget = CreateWidget<UBowWidget>(GetWorld(), BowWidgetClass);
 	}
 
 	BowWidget->AddToViewport();
@@ -105,7 +105,7 @@ void ARangeWeapon::UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRang
 		}
 	}
 
-	UpdateBowWidget(RangeState);
+	BowWidget->UpdateCrosshair(RangeState);
 }
 
 void ARangeWeapon::UpdateTimingMultiplierByChargeAmount()

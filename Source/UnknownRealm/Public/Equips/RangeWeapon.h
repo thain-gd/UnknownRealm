@@ -6,6 +6,7 @@
 #include "Equips/Weapon.h"
 #include "RangeWeapon.generated.h"
 
+class UBowWidget;
 UENUM(BlueprintType)
 enum class ERangeState : uint8
 {
@@ -66,9 +67,6 @@ protected:
 	UFUNCTION()
 	virtual void OnRepSetMesh() override;
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateBowWidget(ERangeState RangeState);
-
 private:
 	UFUNCTION(Server, Reliable)
 	void ServerOnFired(const FVector& TargetLocation, const float Damage);
@@ -94,7 +92,7 @@ private:
 	TSubclassOf<UUserWidget> BowWidgetClass;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UUserWidget* BowWidget;
+	UBowWidget* BowWidget;
 
 	UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float ChargeAmount;

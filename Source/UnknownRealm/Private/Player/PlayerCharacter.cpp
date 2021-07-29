@@ -76,10 +76,13 @@ void APlayerCharacter::BeginPlay()
 
 	if (HasAuthority())
 	{
-		SetupWeapon();
-		
 		AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
 		AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
+	}
+
+	if (IsLocallyControlled())
+	{
+		ServerSetupWeapon(this);
 	}
 
 	DefaultFOV = CameraComp->FieldOfView;
@@ -92,16 +95,16 @@ void APlayerCharacter::BeginPlay()
 	CraftingComp->Init(CameraComp);
 }
 
-void APlayerCharacter::SetupWeapon()
+void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
 {
 	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(WeaponID, TEXT("APlayerCharacter::SetupWeapon"));
 	Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponInfo->Class);
 	if (!Weapon)
 		return;
-	
+
+	Weapon->SetOwner(WeaponOwner);
 	Weapon->Init(WeaponInfo);
 	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
-	Weapon->SetOwner(this);
 
 	if (IsLocallyControlled())
 	{
@@ -111,6 +114,8 @@ void APlayerCharacter::SetupWeapon()
 
 void APlayerCharacter::SetupWeaponInputs()
 {
+	Weapon->SetOwner(this);
+
 	if (InputComponent)
 	{
 		// Binding actions by weapon type
@@ -118,7 +123,7 @@ void APlayerCharacter::SetupWeaponInputs()
 		{
 			InputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacter::ServerOnAimingPressed);
 			InputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacter::ServerOnAimingReleased);
-			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::ServerOnChargingStart);
+			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::OnChargingStart);
 			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::OnChargingEnd);
 		}
 		else
@@ -417,7 +422,7 @@ void APlayerCharacter::OnAimingEnd()
 	}
 }
 
-void APlayerCharacter::ServerOnChargingStart_Implementation()
+void APlayerCharacter::OnChargingStart()
 {
 	if (!bUsingWeapon)
 	{
@@ -428,7 +433,7 @@ void APlayerCharacter::ServerOnChargingStart_Implementation()
 	if (!bIsAiming)
 		return;
 	
-	Cast<ARangeWeapon>(Weapon)->BeginCharge();
+	Cast<ARangeWeapon>(Weapon)->OnChargingStart();
 }
 
 void APlayerCharacter::OnChargingEnd()

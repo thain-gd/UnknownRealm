@@ -47,8 +47,9 @@ protected:
 private:
 	void UpdateTarget();
 	void TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const;
-	
-	void SetupWeapon();
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetupWeapon(AActor* WeaponOwner);
 	void SetupWeaponInputs();
 
 	UFUNCTION()
@@ -96,8 +97,7 @@ private:
 	void OnAimingStart();
 	void OnAimingEnd();
 
-	UFUNCTION(Reliable, Server)
-	void ServerOnChargingStart();
+	void OnChargingStart();
 
 	void OnChargingEnd();
 

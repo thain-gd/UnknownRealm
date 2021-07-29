@@ -4,9 +4,11 @@
 #include "Equips/RangeWeapon.h"
 
 #include "Blueprint/UserWidget.h"
+#include "Components/TimelineComponent.h"
 #include "Core/MPGameState.h"
 #include "Equips/Projectile.h"
 #include "Net/UnrealNetwork.h"
+#include "UI/BowWidget.h"
 
 
 ARangeWeapon::ARangeWeapon()
@@ -17,16 +19,40 @@ ARangeWeapon::ARangeWeapon()
 	SkeletalMeshComp->SetIsReplicated(true);
 	RootComponent = SkeletalMeshComp;
 
+	ChargeTimelineComp = CreateDefaultSubobject<UTimelineComponent>(TEXT("ChargeTimelineComp"));
+
 	TimingMultiplier = DefaultTimingMultiplier;
 }
 
 void ARangeWeapon::Init(FEquipmentInfo* InEquipInfo)
 {
 	Super::Init(InEquipInfo);
-
+	
 	SkeletalMesh = InEquipInfo->SkeletalMesh;
 	OnRepSetMesh();
+
+	ClientSetupChargeTimeline();
 }
+
+void ARangeWeapon::ClientSetupChargeTimeline_Implementation() const
+{
+	// Add update function
+	FOnTimelineFloat TimelineProgress;
+	TimelineProgress.BindDynamic(this, &ARangeWeapon::UpdateChargeTimelineComp);
+	ChargeTimelineComp->AddInterpFloat(ChargeAmountFloatCurve, TimelineProgress);
+
+	// Add finished function
+	FOnTimelineEvent ChargingFinishedEvent;
+	ChargingFinishedEvent.BindDynamic(this, &ARangeWeapon::OnChargingFinish);
+	ChargeTimelineComp->SetTimelineFinishedFunc(ChargingFinishedEvent);
+}
+
+void ARangeWeapon::UpdateChargeTimelineComp(float NewChargeAmount)
+{
+	ChargeAmount = NewChargeAmount;
+	UpdateTimingMultiplierByChargeAmount();
+}
+
 
 void ARangeWeapon::OnRepSetMesh()
 {
@@ -110,7 +136,7 @@ void ARangeWeapon::UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRang
 
 void ARangeWeapon::UpdateTimingMultiplierByChargeAmount()
 {
-	if (ChargeAmount == 1.0f)
+	if (ChargeAmount >= 0.999f)
 	{
 		UpdateTimingMultiplier(ETimingState::Perfect);
 	}
@@ -142,9 +168,32 @@ void ARangeWeapon::UpdateTimingMultiplier(ETimingState TimingState)
 	}
 }
 
+void ARangeWeapon::OnChargingStart() const
+{
+	if (!IsValid(Arrow))
+		return;
+
+	ChargeTimelineComp->Play();
+	BowWidget->StartCharging();
+}
+
 void ARangeWeapon::Fire(const FVector& TargetLocation)
 {
+	if (!IsValid(Arrow))
+		return;
+	
+	BowWidget->StopCharging();
+	
 	ServerOnFired(TargetLocation, GetDamage());
+
+	StopCharge();
+}
+
+void ARangeWeapon::StopCharge() const
+{
+	const float ReversePlaybackTime = 0.1f;
+	ChargeTimelineComp->SetNewTime(ReversePlaybackTime);
+	ChargeTimelineComp->Reverse();
 }
 
 float ARangeWeapon::GetDamage() const
@@ -154,9 +203,6 @@ float ARangeWeapon::GetDamage() const
 
 void ARangeWeapon::ServerOnFired_Implementation(const FVector& TargetLocation, const float Damage)
 {
-	if (!IsValid(Arrow))
-		return;
-
 	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
 	if (GameState)
 	{
@@ -166,7 +212,6 @@ void ARangeWeapon::ServerOnFired_Implementation(const FVector& TargetLocation, c
 	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Arrow->OnFired(TargetLocation, Damage);
 	Arrow = nullptr;
-	StopCharge();
 }
 
 void ARangeWeapon::Reload()
@@ -181,5 +226,6 @@ void ARangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ARangeWeapon, SkeletalMesh);
+	DOREPLIFETIME(ARangeWeapon, Arrow);
 	DOREPLIFETIME(ARangeWeapon, ChargeAmount);
 }

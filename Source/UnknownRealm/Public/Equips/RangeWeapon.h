@@ -6,6 +6,7 @@
 #include "Equips/Weapon.h"
 #include "RangeWeapon.generated.h"
 
+class UTimelineComponent;
 class UBowWidget;
 UENUM(BlueprintType)
 enum class ERangeState : uint8
@@ -37,6 +38,9 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
+	UFUNCTION()
+	void UpdateChargeTimelineComp(float NewChargeAmount);
+
 	bool StartAiming();
 	void StopAiming();
 
@@ -52,11 +56,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateTimingMultiplier(ETimingState TimingState);
 
+	void OnChargingStart() const;
+
 	UFUNCTION(BlueprintImplementableEvent)
-	void BeginCharge();
-	
+	void OnChargingFinish();
+
 	UFUNCTION(BlueprintImplementableEvent)
-	void StopCharge();
+	void StartCharge();
 	
 	void Fire(const FVector& TargetLocation);
 
@@ -64,13 +70,19 @@ public:
 	float GetChargeAmount() const { return ChargeAmount; }
 
 protected:
+	
 	UFUNCTION()
 	virtual void OnRepSetMesh() override;
 
 private:
+	UFUNCTION(Client, Reliable)
+	void ClientSetupChargeTimeline() const;
+	
+	void StopCharge() const;
+	
 	UFUNCTION(Server, Reliable)
 	void ServerOnFired(const FVector& TargetLocation, const float Damage);
-	
+
 	UFUNCTION(BlueprintCallable)
 	bool TryReload();
 	void Reload();
@@ -85,7 +97,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AProjectile> ArrowClass;
 	
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AProjectile* Arrow;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -93,6 +105,12 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UBowWidget* BowWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UTimelineComponent* ChargeTimelineComp;
+
+	UPROPERTY(EditDefaultsOnly)
+	UCurveFloat* ChargeAmountFloatCurve;
 
 	UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float ChargeAmount;

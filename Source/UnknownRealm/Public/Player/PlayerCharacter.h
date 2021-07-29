@@ -45,6 +45,11 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	void UpdateCameraFOV(float DeltaSeconds);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerUpdateAimingRotation(const FRotator& NewRotation);
+	
 	void UpdateTarget();
 	void TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const;
 
@@ -64,8 +69,6 @@ private:
 
 	UFUNCTION()
 	void HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	void UpdateCameraFOV(float DeltaTime);
 	
 	void MoveVertical(float AxisValue);
 	void MoveHorizontal(float AxisValue);

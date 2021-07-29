@@ -204,12 +204,30 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 
 	if (!bIsAiming)
 		return;
-	
-	const FRotator TargetRotation(GetActorRotation().Pitch, GetControlRotation().Yaw + 20.0f, GetActorRotation().Roll);
-	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, AimingInterpSpeed);
+
+	const float InterpSpeed = 50.0f;
+	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
+	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, InterpSpeed);
 	SetActorRotation(NewRotation);
+	ServerUpdateAimingRotation(NewRotation);
 
 	UpdateTarget();
+}
+
+void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
+{
+	const float TargetFOV = bIsAiming ? AimingFOV : DefaultFOV;
+	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaSeconds, AimingInterpSpeed);
+	CameraComp->SetFieldOfView(NewFOV);
+
+	const float TargetSocketOffsetY = bIsAiming ? 60.0f : 0.0f;
+	const float NewSocketOffsetY = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaSeconds, AimingInterpSpeed);
+	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
+}
+
+void APlayerCharacter::ServerUpdateAimingRotation_Implementation(const FRotator& NewRotation)
+{
+	SetActorRotation(NewRotation);
 }
 
 void APlayerCharacter::UpdateTarget()
@@ -242,17 +260,6 @@ void APlayerCharacter::TraceHitTarget(FHitResult& OutHitResult, const FVector& S
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredActor(this);
 	GetWorld()->LineTraceSingleByChannel(OutHitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
-}
-
-void APlayerCharacter::UpdateCameraFOV(float DeltaTime)
-{
-	const float TargetFOV = bIsAiming ? AimingFOV : DefaultFOV;
-	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaTime, AimingInterpSpeed);
-	CameraComp->SetFieldOfView(NewFOV);
-
-	const float TargetSocketOffsetY = bIsAiming ? 60.0f : 0.0f;
-	const float NewSocketOffsetY = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaTime, AimingInterpSpeed);
-	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
 }
 
 // Called to bind functionality to input

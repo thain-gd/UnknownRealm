@@ -38,7 +38,7 @@ void ARangeWeapon::ClientSetupChargeTimeline_Implementation() const
 {
 	// Add update function
 	FOnTimelineFloat TimelineProgress;
-	TimelineProgress.BindDynamic(this, &ARangeWeapon::UpdateChargeTimelineComp);
+	TimelineProgress.BindDynamic(this, &ARangeWeapon::ServerUpdateChargeTimelineComp);
 	ChargeTimelineComp->AddInterpFloat(ChargeAmountFloatCurve, TimelineProgress);
 
 	// Add finished function
@@ -47,10 +47,10 @@ void ARangeWeapon::ClientSetupChargeTimeline_Implementation() const
 	ChargeTimelineComp->SetTimelineFinishedFunc(ChargingFinishedEvent);
 }
 
-void ARangeWeapon::UpdateChargeTimelineComp(float NewChargeAmount)
+void ARangeWeapon::ServerUpdateChargeTimelineComp_Implementation(float NewChargeAmount)
 {
 	ChargeAmount = NewChargeAmount;
-	UpdateTimingMultiplierByChargeAmount();
+	OnRepUpdateTimingMultiplierByChargeAmount();
 }
 
 
@@ -72,7 +72,7 @@ bool ARangeWeapon::StartAiming()
 bool ARangeWeapon::TryReload()
 {
 	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
-	if (GameState && GameState->GetInventory()->AreItemsAvailable({{ CurrentArrowID, 1 }}))
+	if (true)//GameState && GameState->GetInventory()->AreItemsAvailable({{ CurrentArrowID, 1 }}))
 	{
 		Reload();
 		return true;
@@ -134,7 +134,7 @@ void ARangeWeapon::UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRang
 	BowWidget->UpdateCrosshair(RangeState);
 }
 
-void ARangeWeapon::UpdateTimingMultiplierByChargeAmount()
+void ARangeWeapon::OnRepUpdateTimingMultiplierByChargeAmount()
 {
 	if (ChargeAmount >= 0.999f)
 	{

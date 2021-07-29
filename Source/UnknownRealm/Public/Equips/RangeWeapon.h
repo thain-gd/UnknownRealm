@@ -38,8 +38,8 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	UFUNCTION()
-	void UpdateChargeTimelineComp(float NewChargeAmount);
+	UFUNCTION(Server, Unreliable)
+	void ServerUpdateChargeTimelineComp(float NewChargeAmount);
 
 	bool StartAiming();
 	void StopAiming();
@@ -50,8 +50,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange);
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateTimingMultiplierByChargeAmount();
+	UFUNCTION()
+	void OnRepUpdateTimingMultiplierByChargeAmount();
 	
 	UFUNCTION(BlueprintCallable)
 	void UpdateTimingMultiplier(ETimingState TimingState);
@@ -112,7 +112,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	UCurveFloat* ChargeAmountFloatCurve;
 
-	UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(ReplicatedUsing = OnRepUpdateTimingMultiplierByChargeAmount, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float ChargeAmount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))

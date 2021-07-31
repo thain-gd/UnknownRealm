@@ -69,11 +69,6 @@ public:
 	float GetDamage() const;
 	float GetChargeAmount() const { return ChargeAmount; }
 
-protected:
-	
-	UFUNCTION()
-	virtual void OnRepSetMesh() override;
-
 private:
 	UFUNCTION(Client, Reliable)
 	void ClientSetupChargeTimeline() const;
@@ -88,12 +83,6 @@ private:
 	void Reload();
 
 private:
-	UPROPERTY(VisibleAnywhere)
-	USkeletalMeshComponent* SkeletalMeshComp;
-
-	UPROPERTY(ReplicatedUsing = OnRepSetMesh)
-	USkeletalMesh* SkeletalMesh;
-
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AProjectile> ArrowClass;
 	

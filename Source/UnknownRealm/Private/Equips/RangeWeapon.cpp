@@ -15,10 +15,6 @@ ARangeWeapon::ARangeWeapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComp"));
-	SkeletalMeshComp->SetIsReplicated(true);
-	RootComponent = SkeletalMeshComp;
-
 	ChargeTimelineComp = CreateDefaultSubobject<UTimelineComponent>(TEXT("ChargeTimelineComp"));
 
 	TimingMultiplier = DefaultTimingMultiplier;
@@ -27,9 +23,6 @@ ARangeWeapon::ARangeWeapon()
 void ARangeWeapon::Init(FEquipmentInfo* InEquipInfo)
 {
 	Super::Init(InEquipInfo);
-	
-	SkeletalMesh = InEquipInfo->SkeletalMesh;
-	OnRepSetMesh();
 
 	ClientSetupChargeTimeline();
 }
@@ -51,12 +44,6 @@ void ARangeWeapon::ServerUpdateChargeTimelineComp_Implementation(float NewCharge
 {
 	ChargeAmount = NewChargeAmount;
 	OnRepUpdateTimingMultiplierByChargeAmount();
-}
-
-
-void ARangeWeapon::OnRepSetMesh()
-{
-	SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
 }
 
 bool ARangeWeapon::StartAiming()
@@ -224,8 +211,7 @@ void ARangeWeapon::Reload()
 void ARangeWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ARangeWeapon, SkeletalMesh);
+	
 	DOREPLIFETIME(ARangeWeapon, Arrow);
 	DOREPLIFETIME(ARangeWeapon, ChargeAmount);
 }

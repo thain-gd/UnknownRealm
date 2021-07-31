@@ -19,6 +19,8 @@ class UBoxComponent;
 class UHealthComponent;
 class ACollectibleItem;
 
+enum class EWeaponType : uint8;
+
 UCLASS()
 class UNKNOWNREALM_API APlayerCharacter : public ACharacter
 {
@@ -38,6 +40,9 @@ public:
 
 	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
 
+	UFUNCTION(BlueprintCallable)
+	EWeaponType GetEquippedWeaponType() const;
+	
 	float GetStaminaPercent() const;
 
 protected:

@@ -56,13 +56,31 @@ public:
 	
 	virtual void Init(FEquipmentInfo* InEquipInfo);
 	
-	virtual FName GetAttachPoint() const;
+	FName GetAttachPoint() const { return AttachPoint; };
 
-protected:
-	// Children should handle implementation themselves
-	virtual void OnRepSetMesh() {};
+private:
+	UFUNCTION()
+	void OR_SetStaticMesh() const;
+
+	UFUNCTION()
+	void OR_SetSkeletalMesh() const;
 	
 
 protected:
+	UPROPERTY(VisibleAnywhere)
+	UStaticMeshComponent* MeshComp;
+
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* SkeletalMeshComp;
+
+	UPROPERTY(ReplicatedUsing = OR_SetStaticMesh)
+	UStaticMesh* StaticMesh;
+
+	UPROPERTY(ReplicatedUsing = OR_SetSkeletalMesh)
+	USkeletalMesh* SkeletalMesh;
+	
+	UPROPERTY(EditDefaultsOnly)
+	FName AttachPoint;
+	
 	FEquipmentInfo* EquipInfo;
 };

@@ -64,6 +64,14 @@ APlayerCharacter::APlayerCharacter()
 	AddOwnedComponent(CraftingComp);
 }
 
+EWeaponType APlayerCharacter::GetEquippedWeaponType() const
+{
+	if (!bUsingWeapon)
+		return EWeaponType::None;
+	
+	return Weapon->GetWeaponType();
+}
+
 float APlayerCharacter::GetStaminaPercent() const
 {
 	return StaminaComp->GetCurrentStaminaPercent();

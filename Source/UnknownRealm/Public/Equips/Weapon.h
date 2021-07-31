@@ -10,6 +10,7 @@
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
+	None,
 	Sword,
 	Spear,
 	Bow,
@@ -34,18 +35,9 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	virtual FName GetAttachPoint() const override;
-
 	EWeaponType GetWeaponType() const { return WeaponType; }
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
 private:
 	void OnNormalAttackPressed();
@@ -56,9 +48,6 @@ protected:
 	int32 BaseDmg;
 	
 private:
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* MeshComp;
-
 	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
 };

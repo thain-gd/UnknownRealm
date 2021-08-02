@@ -3,7 +3,10 @@
 
 #include "Equips/Weapon.h"
 
+#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
+
+const FName AWeapon::InactiveSocketName = FName("InactiveWeaponSocket");
 
 // Sets default values
 AWeapon::AWeapon()
@@ -16,8 +19,30 @@ void AWeapon::Init(FEquipmentInfo* InEquipInfo)
 {
 	Super::Init(InEquipInfo);
 
+	AttachToComponent(GetOwner<ACharacter>()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveSocketName);
+	
 	FWeaponInfo* WeaponInfo = StaticCast<FWeaponInfo*>(InEquipInfo);
 	BaseDmg = WeaponInfo->BaseDmg;
+}
+
+void AWeapon::SR_SetIsWeaponActive_Implementation(bool bInIsWeaponActive)
+{
+	SetIsWeaponActive(bInIsWeaponActive);
+}
+
+void AWeapon::SetIsWeaponActive(bool bInIsWeaponActive)
+{
+	// TODO: Switch to using weapon animation
+	if (bInIsWeaponActive)
+	{
+		AttachToComponent(GetOwner<ACharacter>()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, ActiveSocketName);
+	}
+	else
+	{
+		AttachToComponent(GetOwner<ACharacter>()->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveSocketName);
+	}
+
+	bIsWeaponActive = bInIsWeaponActive;
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -25,4 +50,5 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, BaseDmg);
+	DOREPLIFETIME(AWeapon, bIsWeaponActive);
 }

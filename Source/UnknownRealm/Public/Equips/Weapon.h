@@ -26,7 +26,7 @@ struct FWeaponInfo : public FEquipmentInfo
 	int32 BaseDmg;
 };
 
-UCLASS()
+UCLASS(Abstract)
 class UNKNOWNREALM_API AWeapon : public AEquipment
 {
 	GENERATED_BODY()
@@ -37,17 +37,35 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
+	virtual void SetupInputs(UInputComponent* ControllerInputComp) {};
+
+	bool IsWeaponActive() const { return bIsWeaponActive; }
+	
+	UFUNCTION(Server, Reliable)
+	void SR_SetIsWeaponActive(bool bInIsWeaponActive);
+	
+	void SetIsWeaponActive(bool bInIsWeaponActive);
+
+	bool IsAiming() const { return bIsAiming; }
+
 	EWeaponType GetWeaponType() const { return WeaponType; }
 
-private:
-	void OnNormalAttackPressed();
-	void OnHeavyAttackPressed();
 	
 protected:
 	UPROPERTY(Replicated, EditInstanceOnly)
 	int32 BaseDmg;
-	
+
+	UPROPERTY(Replicated)
+	bool bIsWeaponActive;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsAiming;
+
+	bool bIsLocallyControlled;
+
 private:
+	static const FName InactiveSocketName;
+	
 	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
 };

@@ -25,8 +25,6 @@
 #include "Net/UnrealNetwork.h"
 #include "UI/InteractionWidget.h"
 
-const FName APlayerCharacter::InactiveWeaponSocketName = FName("InactiveWeaponSocket");
-
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 	: AimingFOV(50.0f), AimingInterpSpeed(20.0f)
@@ -66,7 +64,7 @@ APlayerCharacter::APlayerCharacter()
 
 EWeaponType APlayerCharacter::GetEquippedWeaponType() const
 {
-	if (!bUsingWeapon)
+	if (!IsValid(Weapon) || !Weapon->IsWeaponActive())
 		return EWeaponType::None;
 	
 	return Weapon->GetWeaponType();
@@ -112,32 +110,10 @@ void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
 
 	Weapon->SetOwner(WeaponOwner);
 	Weapon->Init(WeaponInfo);
-	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
-
+	
 	if (IsLocallyControlled())
 	{
-		SetupWeaponInputs();
-	}
-}
-
-void APlayerCharacter::SetupWeaponInputs()
-{
-	Weapon->SetOwner(this);
-
-	if (InputComponent)
-	{
-		// Binding actions by weapon type
-		if (Weapon->GetWeaponType() == EWeaponType::Bow)
-		{
-			InputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacter::ServerOnAimingPressed);
-			InputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacter::ServerOnAimingReleased);
-			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::OnChargingStart);
-			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::OnChargingEnd);
-		}
-		else
-		{
-			InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerDoNormalAttack);
-		}
+		Weapon->SetupInputs(InputComponent);
 	}
 }
 
@@ -205,25 +181,25 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (!IsLocallyControlled())
+	if (!IsLocallyControlled() || !IsValid(Weapon))
 		return;
 	
 	UpdateCameraFOV(DeltaSeconds);
 
-	if (!bIsAiming)
+	if (!Weapon->IsAiming())
 		return;
 
-	const float InterpSpeed = 50.0f;
+	/*const float InterpSpeed = 50.0f;
 	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, InterpSpeed);
 	SetActorRotation(NewRotation);
-	ServerUpdateAimingRotation(NewRotation);
-
-	UpdateTarget();
+	ServerUpdateAimingRotation(NewRotation);*/
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
 {
+	const bool bIsAiming = Weapon->IsAiming();
+	
 	const float TargetFOV = bIsAiming ? AimingFOV : DefaultFOV;
 	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaSeconds, AimingInterpSpeed);
 	CameraComp->SetFieldOfView(NewFOV);
@@ -236,38 +212,6 @@ void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
 void APlayerCharacter::ServerUpdateAimingRotation_Implementation(const FRotator& NewRotation)
 {
 	SetActorRotation(NewRotation);
-}
-
-void APlayerCharacter::UpdateTarget()
-{
-	const float MaxTargetRange = 10000.0f;
-	const FVector StartLocation = CameraComp->GetComponentLocation();
-	const FVector EndLocation = StartLocation + CameraComp->GetForwardVector() * MaxTargetRange;
-
-	FHitResult OutHit;
-	TraceHitTarget(OutHit, StartLocation, EndLocation);
-
-	bool bIsTargetEnemy = false;
-	if (OutHit.bBlockingHit)
-	{
-		TargetLocation = OutHit.Location;
-		TargetRange = FVector::Distance(StartLocation, TargetLocation);
-		bIsTargetEnemy = OutHit.Actor->ActorHasTag(FName("AI"));
-	}
-	else
-	{
-		TargetLocation = EndLocation;
-		TargetRange = MaxTargetRange;
-	}
-
-	Cast<ARangeWeapon>(Weapon)->UpdateIndicatorByRange(bIsTargetEnemy, TargetRange);
-}
-
-void APlayerCharacter::TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const
-{
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(this);
-	GetWorld()->LineTraceSingleByChannel(OutHitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
 }
 
 // Called to bind functionality to input
@@ -288,10 +232,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	// Combat
 	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
-
-	if (Weapon)
+	if (IsValid(Weapon))
 	{
-		SetupWeaponInputs();
+		Weapon->SetupInputs(InputComponent);
 	}
 }
 
@@ -336,12 +279,6 @@ void APlayerCharacter::StopSprinting()
 
 void APlayerCharacter::ServerDoNormalAttack_Implementation()
 {
-	if (!bUsingWeapon)
-	{
-		ServerGetWeapon();
-		return;
-	}
-
 	if (AttackableEnemies.Num() == 0)
 		return;
 
@@ -351,112 +288,24 @@ void APlayerCharacter::ServerDoNormalAttack_Implementation()
 	}
 }
 
-void APlayerCharacter::ServerGetWeapon_Implementation()
-{
-	// TODO: Switch to using weapon animation
-	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, Weapon->GetAttachPoint());
-
-	bUsingWeapon = true;
-}
-
-void APlayerCharacter::ServerDoHeavyAttack_Implementation()
-{
-	if (!bUsingWeapon)
-		return;
-
-	UE_LOG(LogTemp, Warning, TEXT("DoHeavyAttack"));
-}
-
 void APlayerCharacter::ServerPutWeaponAway_Implementation()
 {
-	if (!bUsingWeapon)
+	if (!Weapon->IsWeaponActive())
 		return;
 	
-	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
-	bUsingWeapon = false;
+	Weapon->SetIsWeaponActive(false);
 }
 
-void APlayerCharacter::ServerOnAimingPressed_Implementation()
-{
-	if (!bUsingWeapon)
-		return;
-
-	if (Cast<ARangeWeapon>(Weapon)->StartAiming())
-	{
-		bIsAiming = true;
-		OnAimingStart();
-	}
-	else
-	{
-		// TODO: Notify no arrow left
-	}
-}
-
-void APlayerCharacter::ServerOnAimingReleased_Implementation()
-{
-	if (!bUsingWeapon)
-		return;
-
-	bIsAiming = false;
-	Cast<ARangeWeapon>(Weapon)->StopAiming();
-	OnAimingEnd();
-}
-
-void APlayerCharacter::OnRepAimingStatusChanged()
-{
-	if (bIsAiming)
-	{
-		OnAimingStart();
-	}
-	else
-	{
-		OnAimingEnd();
-	}
-}
-
-void APlayerCharacter::OnAimingStart()
+void APlayerCharacter::SetMovementForAiming() const
 {
 	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-
-	if (IsLocallyControlled())
-	{
-		Cast<ARangeWeapon>(Weapon)->ShowIndicator();
-	}
 }
 
-void APlayerCharacter::OnAimingEnd()
+void APlayerCharacter::ResetMovement() const
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	bUseControllerRotationYaw = false;
-
-	if (IsLocallyControlled())
-	{
-		Cast<ARangeWeapon>(Weapon)->HideIndicator();
-	}
-}
-
-void APlayerCharacter::OnChargingStart()
-{
-	if (!bUsingWeapon)
-	{
-		ServerGetWeapon();
-		return;
-	}
-
-	if (!bIsAiming)
-		return;
-	
-	Cast<ARangeWeapon>(Weapon)->OnChargingStart();
-}
-
-void APlayerCharacter::OnChargingEnd()
-{
-	if (!bUsingWeapon || !bIsAiming)
-		return;
-	
-	Cast<ARangeWeapon>(Weapon)->Fire(TargetLocation);
 }
 
 void APlayerCharacter::Interact()
@@ -527,6 +376,4 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APlayerCharacter, Weapon);
-	DOREPLIFETIME(APlayerCharacter, bUsingWeapon);
-	DOREPLIFETIME(APlayerCharacter, bIsAiming);
 }

@@ -45,7 +45,7 @@ struct FEquipmentInfo : public FTableRowBase
 	TMap<FName, int32> Requirements;
 };
 
-UCLASS()
+UCLASS(Abstract)
 class UNKNOWNREALM_API AEquipment : public AActor
 {
 	GENERATED_BODY()
@@ -56,14 +56,14 @@ public:
 	
 	virtual void Init(FEquipmentInfo* InEquipInfo);
 	
-	FName GetAttachPoint() const { return AttachPoint; };
+	FName GetAttachPoint() const { return ActiveSocketName; };
 
 private:
 	UFUNCTION()
-	void OR_SetStaticMesh() const;
+	void OR_SetStaticMesh();
 
 	UFUNCTION()
-	void OR_SetSkeletalMesh() const;
+	void OR_SetSkeletalMesh();
 	
 
 protected:
@@ -80,7 +80,7 @@ protected:
 	USkeletalMesh* SkeletalMesh;
 	
 	UPROPERTY(EditDefaultsOnly)
-	FName AttachPoint;
+	FName ActiveSocketName;
 	
 	FEquipmentInfo* EquipInfo;
 };

@@ -20,6 +20,19 @@ public:
 private:
 	UFUNCTION(Server, Reliable)
 	void SR_TriggerLightAttack();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_TriggerLightAttack();
 	
 	void TriggerHeavyAttack();
+
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	UAnimMontage* ComboMontage;
+	
+private:
+	static const int32 MaxComboCount = 3;
+	
+	int32 ComboCount;
 };

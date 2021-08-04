@@ -22,17 +22,23 @@ private:
 	void SR_TriggerLightAttack();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MC_TriggerLightAttack();
+	void MC_StartLightAttack();
 	
 	void TriggerHeavyAttack();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_StartHeavyAttack();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_SetNextComboAttack(const FName& NextAttackName);
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* ComboMontage;
 	
 private:
-	static const int32 MaxComboCount = 3;
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxComboCount = 3;
 	
 	int32 ComboCount;
 };

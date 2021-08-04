@@ -189,11 +189,11 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	if (!Weapon->IsAiming())
 		return;
 
-	/*const float InterpSpeed = 50.0f;
+	const float InterpSpeed = 50.0f;
 	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, InterpSpeed);
 	SetActorRotation(NewRotation);
-	ServerUpdateAimingRotation(NewRotation);*/
+	ServerUpdateAimingRotation(NewRotation);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
@@ -271,6 +271,8 @@ void APlayerCharacter::StartSprinting()
 {
 	UE_LOG(LogTemp, Warning, TEXT("StartSprinting"));
 	StaminaComp->DecreaseStamina(60.0f);
+	
+	ServerPutWeaponAway();
 }
 
 void APlayerCharacter::StopSprinting()

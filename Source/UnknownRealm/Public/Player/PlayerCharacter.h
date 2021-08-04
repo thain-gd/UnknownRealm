@@ -47,6 +47,8 @@ public:
 	EWeaponType GetEquippedWeaponType() const;
 
 	UCameraComponent* GetCameraComp() const { return CameraComp; }
+
+	UAnimInstance* GetAnimInstance() const { return GetMesh()->GetAnimInstance(); }
 	
 	float GetStaminaPercent() const;
 

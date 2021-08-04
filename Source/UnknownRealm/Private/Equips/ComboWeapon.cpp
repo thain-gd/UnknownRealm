@@ -4,6 +4,7 @@
 #include "Equips/ComboWeapon.h"
 
 #include "GameFramework/Character.h"
+#include "Player/PlayerCharacter.h"
 
 void AComboWeapon::SetupInputs(UInputComponent* ControllerInputComp)
 {
@@ -17,21 +18,46 @@ void AComboWeapon::SR_TriggerLightAttack_Implementation()
 		SetIsWeaponActive(true);
 		return;
 	}
+
+	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
+	if (!PlayerAnimInstance)
+		return;
 	
-	MC_TriggerLightAttack();
+	if (!PlayerAnimInstance->IsAnyMontagePlaying())
+	{
+		ComboCount = 1;
+
+		MC_StartLightAttack();
+	}
+	else if (ComboCount < MaxComboCount)
+	{
+		const FString CurrentSectionName = PlayerAnimInstance->Montage_GetCurrentSection().ToString();
+		if (CurrentSectionName.Contains(TEXT("ComboWindow")) && CurrentSectionName.Contains(FString::FromInt(ComboCount)))
+		{
+			++ComboCount;
+
+			const FString NextAttackStr = FString::Printf(TEXT("LightAttack%d"), ComboCount);
+			MC_SetNextComboAttack(*NextAttackStr);
+		}
+	}
 }
 
-void AComboWeapon::MC_TriggerLightAttack_Implementation()
+void AComboWeapon::MC_StartLightAttack_Implementation()
 {
-	if (ComboCount >= MaxComboCount)
-		return;
-
-	++ComboCount;
-	const FString AttackSectionName = FString::Printf(TEXT("LightAttack%d"), ComboCount);
-	UE_LOG(LogTemp, Warning, TEXT("Trigger %s"), *AttackSectionName);
-	GetOwner<ACharacter>()->PlayAnimMontage(ComboMontage, 1.0f, *AttackSectionName);
+	GetOwner<APlayerCharacter>()->PlayAnimMontage(ComboMontage, 1.0f, NAME_None);
 }
 
 void AComboWeapon::TriggerHeavyAttack()
 {
+}
+
+void AComboWeapon::MC_StartHeavyAttack_Implementation()
+{
+	GetOwner<APlayerCharacter>()->PlayAnimMontage(ComboMontage, 1.0f, FName("HeavyAttack1"));
+}
+
+void AComboWeapon::MC_SetNextComboAttack_Implementation(const FName& NextAttackName)
+{
+	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
+	PlayerAnimInstance->Montage_SetNextSection(PlayerAnimInstance->Montage_GetCurrentSection(), NextAttackName);
 }

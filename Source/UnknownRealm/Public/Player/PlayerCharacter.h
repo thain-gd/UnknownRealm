@@ -48,7 +48,7 @@ public:
 
 	UCameraComponent* GetCameraComp() const { return CameraComp; }
 
-	UAnimInstance* GetAnimInstance() const { return GetMesh()->GetAnimInstance(); }
+	UAnimInstance* GetAnimInstance() const;
 	
 	float GetStaminaPercent() const;
 

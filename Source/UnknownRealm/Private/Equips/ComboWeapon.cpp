@@ -1,63 +1,85 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Equips/ComboWeapon.h"
 
+#include "Components/ComboComponent.h"
 #include "GameFramework/Character.h"
+#include "Net/UnrealNetwork.h"
 #include "Player/PlayerCharacter.h"
 
 void AComboWeapon::SetupInputs(UInputComponent* ControllerInputComp)
 {
 	ControllerInputComp->BindAction("LightAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerLightAttack);
+	ControllerInputComp->BindAction("HeavyAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerHeavyAttack);
 }
 
 void AComboWeapon::SR_TriggerLightAttack_Implementation()
 {
+	checkf(ComboComp != nullptr, TEXT("Combo Component hasn't added to this actor yet"));
+	
 	if (!bIsWeaponActive)
 	{
 		SetIsWeaponActive(true);
 		return;
 	}
 
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	if (!PlayerAnimInstance)
+	// Ignore if there is a waiting attack montage to be played next
+	if (NextAttackMontage)
 		return;
-	
+
+	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
 	if (!PlayerAnimInstance->IsAnyMontagePlaying())
 	{
-		ComboCount = 1;
-
-		MC_StartLightAttack();
+		NextAttackMontage = ComboComp->GetNextLightAttackMontage();
+		MC_TriggerAttack(NextAttackMontage);
+		NextAttackMontage = nullptr;
 	}
-	else if (ComboCount < MaxComboCount)
+	else if (PlayerAnimInstance->Montage_GetCurrentSection() == FName("ComboWindow"))
 	{
-		const FString CurrentSectionName = PlayerAnimInstance->Montage_GetCurrentSection().ToString();
-		if (CurrentSectionName.Contains(TEXT("ComboWindow")) && CurrentSectionName.Contains(FString::FromInt(ComboCount)))
-		{
-			++ComboCount;
-
-			const FString NextAttackStr = FString::Printf(TEXT("LightAttack%d"), ComboCount);
-			MC_SetNextComboAttack(*NextAttackStr);
-		}
+		NextAttackMontage = ComboComp->GetNextLightAttackMontage();
 	}
 }
 
-void AComboWeapon::MC_StartLightAttack_Implementation()
+void AComboWeapon::SR_TriggerHeavyAttack_Implementation()
 {
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(ComboMontage, 1.0f, NAME_None);
-}
+	checkf(ComboComp != nullptr, TEXT("Combo Component hasn't added to this actor yet"));
 
-void AComboWeapon::TriggerHeavyAttack()
-{
-}
+	if (!bIsWeaponActive)
+		return;
 
-void AComboWeapon::MC_StartHeavyAttack_Implementation()
-{
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(ComboMontage, 1.0f, FName("HeavyAttack1"));
-}
-
-void AComboWeapon::MC_SetNextComboAttack_Implementation(const FName& NextAttackName)
-{
+	// Ignore if there is a waiting attack montage to be played next
+	if (NextAttackMontage)
+		return;
+	
 	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	PlayerAnimInstance->Montage_SetNextSection(PlayerAnimInstance->Montage_GetCurrentSection(), NextAttackName);
+	if (!PlayerAnimInstance->IsAnyMontagePlaying())
+	{
+		NextAttackMontage = ComboComp->GetNextHeavyAttackMontage();
+		
+	}
+	else if (PlayerAnimInstance->Montage_GetCurrentSection() == FName("ComboWindow"))
+	{
+		NextAttackMontage = ComboComp->GetNextHeavyAttackMontage();
+	};
+}
+
+void AComboWeapon::TriggerNextAttack()
+{
+	if (HasAuthority() && NextAttackMontage)
+	{
+		MC_TriggerAttack(NextAttackMontage);
+		NextAttackMontage = nullptr;
+	}
+}
+
+void AComboWeapon::MC_TriggerAttack_Implementation(UAnimMontage* AttackMontage)
+{
+	GetOwner<APlayerCharacter>()->PlayAnimMontage(AttackMontage);
+}
+
+void AComboWeapon::ResetCombo()
+{
+	if (HasAuthority())
+	{
+		NextAttackMontage = nullptr;
+		ComboComp->Reset();
+	}
 }

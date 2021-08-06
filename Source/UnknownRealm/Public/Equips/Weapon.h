@@ -63,6 +63,9 @@ protected:
 
 	bool bIsLocallyControlled;
 
+	UPROPERTY(BlueprintReadWrite)
+	float CurrentMotionValue = 1.0f;
+
 private:
 	static const FName InactiveSocketName;
 	

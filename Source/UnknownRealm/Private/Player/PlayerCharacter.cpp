@@ -70,6 +70,11 @@ EWeaponType APlayerCharacter::GetEquippedWeaponType() const
 	return Weapon->GetWeaponType();
 }
 
+UAnimInstance* APlayerCharacter::GetAnimInstance() const
+{
+	return GetMesh()->GetAnimInstance();
+}
+
 float APlayerCharacter::GetStaminaPercent() const
 {
 	return StaminaComp->GetCurrentStaminaPercent();

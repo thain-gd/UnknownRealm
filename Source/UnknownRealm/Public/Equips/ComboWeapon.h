@@ -6,7 +6,10 @@
 #include "Equips/Weapon.h"
 #include "ComboWeapon.generated.h"
 
+class UComboComponent;
 /**
+ * This class is used for weapons with any combo pattern b/w
+ * light and heavy attacks.
  * 
  */
 UCLASS()
@@ -18,27 +21,30 @@ public:
 	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
 	
 private:
+	UFUNCTION(BlueprintCallable)
+	void SetComboComp(UComboComponent* InCompoComp) { ComboComp = InCompoComp; }
+	
 	UFUNCTION(Server, Reliable)
 	void SR_TriggerLightAttack();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_StartLightAttack();
+	UFUNCTION(Server, Reliable)
+	void SR_TriggerHeavyAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void TriggerNextAttack();
 	
-	void TriggerHeavyAttack();
-
 	UFUNCTION(NetMulticast, Reliable)
-	void MC_StartHeavyAttack();
+	void MC_TriggerAttack(UAnimMontage* AttackMontage);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_SetNextComboAttack(const FName& NextAttackName);
+	UFUNCTION(BlueprintCallable)
+	void ResetCombo();
+
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
-	UAnimMontage* ComboMontage;
+	UPROPERTY()
+	UComboComponent* ComboComp;
 	
 private:
-	UPROPERTY(EditDefaultsOnly)
-	int32 MaxComboCount = 3;
-	
-	int32 ComboCount;
+	UPROPERTY()
+	UAnimMontage* NextAttackMontage;
 };

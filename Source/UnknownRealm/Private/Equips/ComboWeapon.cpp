@@ -29,8 +29,7 @@ void AComboWeapon::SR_TriggerLightAttack_Implementation()
 	if (!PlayerAnimInstance->IsAnyMontagePlaying())
 	{
 		NextAttackMontage = ComboComp->GetNextLightAttackMontage();
-		MC_TriggerAttack(NextAttackMontage);
-		NextAttackMontage = nullptr;
+		TriggerNextAttack();
 	}
 	else if (PlayerAnimInstance->Montage_GetCurrentSection() == FName("ComboWindow"))
 	{
@@ -48,12 +47,12 @@ void AComboWeapon::SR_TriggerHeavyAttack_Implementation()
 	// Ignore if there is a waiting attack montage to be played next
 	if (NextAttackMontage)
 		return;
-	
+
 	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
 	if (!PlayerAnimInstance->IsAnyMontagePlaying())
 	{
 		NextAttackMontage = ComboComp->GetNextHeavyAttackMontage();
-		
+		TriggerNextAttack();
 	}
 	else if (PlayerAnimInstance->Montage_GetCurrentSection() == FName("ComboWindow"))
 	{

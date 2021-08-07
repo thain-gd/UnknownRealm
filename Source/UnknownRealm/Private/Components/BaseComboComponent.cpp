@@ -17,7 +17,7 @@ UAnimMontage* UBaseComboComponent::GetNextLightAttackMontage()
 	case EComboState::LightAttack:
 		++LightAttackMontageIndex;
 		// Prevent light attack to continue after reached the final light attack
-		if (LightAttackMontageIndex == LightAttackMontages.Num())
+		if (LightAttackMontageIndex >= LightAttackMontages.Num())
 			return nullptr;
 		
 		break;

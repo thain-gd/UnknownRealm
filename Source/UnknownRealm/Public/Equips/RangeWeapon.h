@@ -102,6 +102,10 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange);
 
+protected:
+	virtual int32 GetTotalDmg() const override { return LastTotalDmg; }
+	
+
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AProjectile> ArrowClass;
@@ -144,6 +148,8 @@ private:
 	FVector TargetLocation;
 
 	FName CurrentArrowID = FName("NormalArrow"); // TODO: Update dynamically later when add more arrow types
+
+	int32 LastTotalDmg;
 	
 	const float OptimalRangeMultiplier		= 1.0f;
 	const float AcceptableRangeMultiplier	= 0.7f;

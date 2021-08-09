@@ -1,7 +1,9 @@
 #include "Equips/ComboWeapon.h"
 
 #include "Components/ComboComponent.h"
+#include "Core/MPGameInstance.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/PlayerCharacter.h"
 
@@ -79,6 +81,36 @@ void AComboWeapon::ResetCombo()
 	if (HasAuthority())
 	{
 		NextAttackMontage = nullptr;
+		DisableAttackCheck();
 		ComboComp->Reset();
 	}
+}
+
+void AComboWeapon::EnableAttackCheck()
+{
+	MeshComp->SetCollisionProfileName(TEXT("OverlapWeapon"));
+}
+
+void AComboWeapon::DisableAttackCheck()
+{
+	MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
+}
+
+void AComboWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HasAuthority())
+	{
+		MeshComp->OnComponentBeginOverlap.AddDynamic(this, &AComboWeapon::OnWeaponHit);
+	}
+}
+
+void AComboWeapon::OnWeaponHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor->ActorHasTag(FName("AI")))
+		return;
+
+	OnEnemyHit(OtherActor);
 }

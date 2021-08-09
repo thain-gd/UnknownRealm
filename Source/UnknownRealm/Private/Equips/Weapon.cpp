@@ -3,7 +3,9 @@
 
 #include "Equips/Weapon.h"
 
+#include "Core/MPGameInstance.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 const FName AWeapon::InactiveSocketName = FName("InactiveWeaponSocket");
@@ -44,6 +46,39 @@ void AWeapon::SetIsWeaponActive(bool bInIsWeaponActive)
 
 	bIsWeaponActive = bInIsWeaponActive;
 }
+
+void AWeapon::SetMotionValue(float InMotionValue)
+{
+	CurrentMotionValue = InMotionValue;
+}
+
+void AWeapon::OnEnemyHit(AActor* Enemy)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *Enemy->GetName());
+
+	const int32 TotalDmg = GetTotalDmg();
+	UGameplayStatics::ApplyDamage(Enemy, TotalDmg, nullptr, this, UDamageType::StaticClass());
+	
+	if (GetOwner<APawn>()->GetController()->IsLocalPlayerController())
+	{
+		GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDmg);
+	}
+	else
+	{
+		CL_ShowDmgDealt(TotalDmg);
+	}
+}
+
+int32 AWeapon::GetTotalDmg() const
+{
+	return FMath::RoundToInt(BaseDmg * CurrentMotionValue);
+}
+
+void AWeapon::CL_ShowDmgDealt_Implementation(int32 TotalDmg)
+{
+	GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDmg);
+}
+
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

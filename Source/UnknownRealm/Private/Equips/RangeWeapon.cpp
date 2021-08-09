@@ -146,6 +146,7 @@ bool ARangeWeapon::TryReload()
 void ARangeWeapon::Reload()
 {
 	Arrow = GetWorld()->SpawnActor<AProjectile>(ArrowClass);
+	Arrow->OnProjectileHitEnemy.BindDynamic(this, &AWeapon::OnEnemyHit);
 	Arrow->SetOwner(GetOwner());
 	Arrow->AttachToComponent(SkeletalMeshComp, FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("ArrowSocket"));
 }
@@ -251,6 +252,8 @@ void ARangeWeapon::SR_OnFired_Implementation(const FVector& InTargetLocation, co
 		GameState->GetInventory()->RemoveItem(CurrentArrowID);
 	}
 
+	LastTotalDmg = Damage; // cache to use when an arrow fires the registered OnEnemyHit event
+	
 	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Arrow->OnFired(InTargetLocation, Damage);
 	Arrow = nullptr;

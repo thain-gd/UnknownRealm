@@ -46,9 +46,22 @@ public:
 	
 	void SetIsWeaponActive(bool bInIsWeaponActive);
 
+	UFUNCTION(BlueprintCallable)
+	void SetMotionValue(float InMotionValue);
+
 	bool IsAiming() const { return bIsAiming; }
 
 	EWeaponType GetWeaponType() const { return WeaponType; }
+
+	UFUNCTION()
+	virtual void OnEnemyHit(AActor* Enemy);
+	
+protected:
+	virtual int32 GetTotalDmg() const;
+
+private:
+	UFUNCTION(Client, Reliable)
+	void CL_ShowDmgDealt(int32 TotalDmg);
 
 	
 protected:

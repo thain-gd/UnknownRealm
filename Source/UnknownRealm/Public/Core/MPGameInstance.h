@@ -52,7 +52,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool TransitionToState(EGameplayState NewState);
 
-	void ShowDamage(int32 Damage, bool bIsCrit) const;
+	void ShowDamage(int32 Damage, bool bIsCrit = false) const;
 
 	FCraftingItem* GetCraftingDataRow(const FName& ID) const;
 	UDataTable* GetInventoryItemData() const { return InventoryItemData; }

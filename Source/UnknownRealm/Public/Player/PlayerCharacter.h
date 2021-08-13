@@ -57,6 +57,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
+	void OnHealthChanged();
+	
 	void UpdateCameraFOV(float DeltaSeconds);
 
 	UFUNCTION(Server, Unreliable)
@@ -97,6 +100,12 @@ private:
 
 	void OnWheelAxisChanged(float AxisValue);
 
+	UFUNCTION(BlueprintCallable)
+	void DisablePlayerCollision();
+
+	UFUNCTION(BlueprintCallable)
+	void EnablePlayerCollision();
+	
 	UFUNCTION(BlueprintCallable)
 	float GetChargeAmount() const;
 	

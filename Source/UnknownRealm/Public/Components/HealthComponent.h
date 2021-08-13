@@ -19,6 +19,7 @@ public:
 
 	bool IsAlive() const { return CurrentHealth > 0; }
 
+	float GetRemainingHealth() const { return CurrentHealth; }
 	float GetRemainingHealthPercent() const { return CurrentHealth / MaxHealth; }
 	
 protected:

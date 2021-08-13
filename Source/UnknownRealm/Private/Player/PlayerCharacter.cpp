@@ -24,6 +24,8 @@
 #include "Net/UnrealNetwork.h"
 #include "UI/InteractionWidget.h"
 
+#define COLLISION_ENEMY ECC_GameTraceChannel1
+
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 	: AimingFOV(50.0f), AimingInterpSpeed(20.0f)
@@ -84,6 +86,11 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (HasAuthority())
+	{
+		HealthComp->OnHealthChanged.BindDynamic(this, &APlayerCharacter::OnHealthChanged);
+	}
+
 	if (IsLocallyControlled())
 	{
 		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
@@ -97,6 +104,19 @@ void APlayerCharacter::BeginPlay()
 	AimingMovingSpeed = DefaultMovingSpeed * 0.45f;
 	
 	CraftingComp->Init(CameraComp);
+}
+
+void APlayerCharacter::OnHealthChanged()
+{
+	if (HealthComp->IsAlive())
+	{
+		// TODO: Play damaged animation + SFX
+		UE_LOG(LogTemp, Warning, TEXT("Player Damaged. Remaining: %f"), HealthComp->GetRemainingHealth());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Died"));
+	}
 }
 
 void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
@@ -376,6 +396,16 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 	{
 		CraftingComp->ServerRotateCraftingObject(AxisValue);
 	}
+}
+
+void APlayerCharacter::DisablePlayerCollision()
+{
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Ignore);
+}
+
+void APlayerCharacter::EnablePlayerCollision()
+{
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
 }
 
 float APlayerCharacter::GetChargeAmount() const

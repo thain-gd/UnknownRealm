@@ -19,7 +19,8 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	bool DecreaseStamina(float UsedStamina);
+	bool DecreaseStaminaByPercentage(float StaminaPercentage);
+	bool DecreaseStaminaByPoint(float StaminaCost);
 	float GetCurrentStaminaPercent() const { return CurrentStamina / MaxStamina; }
 
 protected:

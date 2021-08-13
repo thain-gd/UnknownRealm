@@ -66,13 +66,6 @@ private:
 	void ServerSetupWeapon(AActor* WeaponOwner);
 
 	UFUNCTION()
-	void SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-							bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void ResetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
 	void ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
@@ -84,11 +77,19 @@ private:
 	void StartSprinting();
 	void StopSprinting();
 
-	UFUNCTION(Reliable, Server)
-	void ServerDoNormalAttack();
+	void OnSpaceActionsPressed();
+
+	UFUNCTION(Server, Reliable)
+	void SR_DodgeRoll();
+
+	UFUNCTION(Server, Reliable)
+	void SR_DoSideStep(bool bIsLeft);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_PlayAnimMontage(UAnimMontage* MontageToPlay);
 	
-	UFUNCTION(Reliable, Server)
-	void ServerPutWeaponAway();
+	UFUNCTION(Server, Reliable)
+	void SR_PutWeaponAway();
 
 	void Interact();
 
@@ -128,8 +129,17 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	FName WeaponID;
 
-	UPROPERTY()
-	TArray<AActor*> AttackableEnemies;
+	UPROPERTY(EditAnywhere, Category = "Animation | Dodge")
+	UAnimMontage* DodgeRollMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Animation | Dodge")
+	float DodgeStaminaPercent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
+	UAnimMontage* LeftSideStepMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
+	UAnimMontage* RightSideStepMontage;
 	
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;

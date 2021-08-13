@@ -53,6 +53,10 @@ public:
 
 	EWeaponType GetWeaponType() const { return WeaponType; }
 
+	bool IsAttacking() const { return bIsAiming || bIsAttacking; }
+
+	float GetSideStepStaminaPercent() const { return SideStepStaminaPercent; }
+
 	UFUNCTION()
 	virtual void OnEnemyHit(AActor* Enemy);
 	
@@ -71,6 +75,9 @@ protected:
 	UPROPERTY(Replicated)
 	bool bIsWeaponActive;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsAttacking;
+
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsAiming;
 
@@ -78,6 +85,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	float CurrentMotionValue = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SideStepStaminaPercent = 0.3f;
 
 private:
 	static const FName InactiveSocketName;

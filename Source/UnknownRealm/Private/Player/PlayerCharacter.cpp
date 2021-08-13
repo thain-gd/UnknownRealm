@@ -4,7 +4,6 @@
 #include "Player/PlayerCharacter.h"
 
 #include "DrawDebugHelpers.h"
-#include "AIs/AIChar.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
@@ -85,14 +84,11 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority())
-	{
-		AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
-		AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
-	}
-
 	if (IsLocallyControlled())
 	{
+		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
+		GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
+		
 		ServerSetupWeapon(this);
 	}
 
@@ -100,9 +96,6 @@ void APlayerCharacter::BeginPlay()
 	DefaultMovingSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	AimingMovingSpeed = DefaultMovingSpeed * 0.45f;
 	
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
-	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
-
 	CraftingComp->Init(CameraComp);
 }
 
@@ -122,28 +115,9 @@ void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
 	}
 }
 
-void APlayerCharacter::SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor->ActorHasTag(FName("AI")))
-	{
-		AttackableEnemies.Add(OtherActor);
-	}
-}
-
-void APlayerCharacter::ResetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor->ActorHasTag(FName("AI")))
-	{
-		AttackableEnemies.Remove(OtherActor);
-	}
-}
-
 void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!IsLocallyControlled())
-		return;
-	
 	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
 	if (Item)
 	{
@@ -166,9 +140,6 @@ void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponen
 void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (!IsLocallyControlled())
-		return;
-	
 	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
 	if (Item && Item == CollectibleItem)
 	{
@@ -232,11 +203,14 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	InputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::StartSprinting);
 	InputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprinting);
+	//InputComponent->BindAction("DodgeRoll", IE_Pressed, this, &APlayerCharacter::SR_DodgeRoll);
+	InputComponent->BindAction("SpaceActions", IE_Pressed, this, &APlayerCharacter::OnSpaceActionsPressed);
+	
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
 
 	// Combat
-	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
+	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::SR_PutWeaponAway);
 	if (IsValid(Weapon))
 	{
 		Weapon->SetupInputs(InputComponent);
@@ -275,27 +249,63 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 void APlayerCharacter::StartSprinting()
 {
 	UE_LOG(LogTemp, Warning, TEXT("StartSprinting"));
-	StaminaComp->DecreaseStamina(60.0f);
+	StaminaComp->DecreaseStaminaByPoint(60.0f);
 	
-	ServerPutWeaponAway();
+	SR_PutWeaponAway();
 }
 
 void APlayerCharacter::StopSprinting()
 {
 }
 
-void APlayerCharacter::ServerDoNormalAttack_Implementation()
+void APlayerCharacter::OnSpaceActionsPressed()
 {
-	if (AttackableEnemies.Num() == 0)
+	// Ignore if pressed when stand still
+	if (GetCharacterMovement()->GetLastInputVector() == FVector::ZeroVector)
 		return;
 
-	for (auto AttackableEnemy : AttackableEnemies)
+	// While attacking, cannot do dodge roll and possible to do side step
+	if (Weapon->IsAttacking())
 	{
-		UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
+		const float InputAndActorDirDot = FVector::DotProduct(GetCharacterMovement()->GetLastInputVector(), GetActorForwardVector());
+		if (FMath::RoundToInt(InputAndActorDirDot) != 0)
+			return;
+		
+		const bool bIsLeft = InputAndActorDirDot > 0;
+		if (StaminaComp->DecreaseStaminaByPercentage(Weapon->GetSideStepStaminaPercent()))
+		{
+			SR_DoSideStep(bIsLeft);
+		}
+	}
+	else
+	{
+		if (StaminaComp->DecreaseStaminaByPercentage(DodgeStaminaPercent))
+		{
+			SR_DodgeRoll();
+		}
 	}
 }
 
-void APlayerCharacter::ServerPutWeaponAway_Implementation()
+void APlayerCharacter::SR_DodgeRoll_Implementation()
+{
+	const bool bIsPlayingDodgeRoll = GetAnimInstance()->Montage_IsPlaying(DodgeRollMontage);
+	if (bIsPlayingDodgeRoll)
+		return;
+
+	MC_PlayAnimMontage(DodgeRollMontage);
+}
+
+void APlayerCharacter::SR_DoSideStep_Implementation(bool bIsLeft)
+{
+	MC_PlayAnimMontage(bIsLeft ? LeftSideStepMontage : RightSideStepMontage);
+}
+
+void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)
+{
+	PlayAnimMontage(MontageToPlay);
+}
+
+void APlayerCharacter::SR_PutWeaponAway_Implementation()
 {
 	if (!Weapon->IsWeaponActive())
 		return;

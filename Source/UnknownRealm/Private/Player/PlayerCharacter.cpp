@@ -76,6 +76,11 @@ UAnimInstance* APlayerCharacter::GetAnimInstance() const
 	return GetMesh()->GetAnimInstance();
 }
 
+float APlayerCharacter::GetHealthPercent() const
+{
+	return HealthComp->GetRemainingHealthPercent();
+}
+
 float APlayerCharacter::GetStaminaPercent() const
 {
 	return StaminaComp->GetCurrentStaminaPercent();

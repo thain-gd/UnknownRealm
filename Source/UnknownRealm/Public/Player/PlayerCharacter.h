@@ -49,7 +49,8 @@ public:
 	UCameraComponent* GetCameraComp() const { return CameraComp; }
 
 	UAnimInstance* GetAnimInstance() const;
-	
+
+	float GetHealthPercent() const;
 	float GetStaminaPercent() const;
 
 protected:

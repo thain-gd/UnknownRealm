@@ -59,6 +59,9 @@ public:
 
 	UFUNCTION()
 	virtual void OnEnemyHit(AActor* Enemy);
+
+	UAnimMontage* GetLeftSideStepMontage() const { return LeftSideStepMontage; }
+	UAnimMontage* GetRightSideStepMontage() const { return RightSideStepMontage; }
 	
 protected:
 	virtual int32 GetTotalDmg() const;
@@ -71,6 +74,12 @@ private:
 protected:
 	UPROPERTY(Replicated, EditInstanceOnly)
 	int32 BaseDmg;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
+	UAnimMontage* LeftSideStepMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
+	UAnimMontage* RightSideStepMontage;
 
 	UPROPERTY(Replicated)
 	bool bIsWeaponActive;

@@ -235,7 +235,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
 
 	// Combat
-	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::SR_PutWeaponAway);
+	//InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::SR_PutWeaponAway);
 	if (IsValid(Weapon))
 	{
 		Weapon->SetupInputs(InputComponent);
@@ -288,17 +288,22 @@ void APlayerCharacter::OnSpaceActionsPressed()
 	// Ignore if pressed when stand still
 	if (GetCharacterMovement()->GetLastInputVector() == FVector::ZeroVector)
 		return;
-
+	
 	// While attacking, cannot do dodge roll and possible to do side step
 	if (Weapon->IsAttacking())
 	{
-		const float InputAndActorDirDot = FVector::DotProduct(GetCharacterMovement()->GetLastInputVector(), GetActorForwardVector());
-		if (FMath::RoundToInt(InputAndActorDirDot) != 0)
+		// Using dot products to detection direction b/w inputs and the character to
+		// trigger side steps properly for different camera orientation
+		const FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		const float InputAndActorForwardDot = FVector::DotProduct(LastInputVector, GetActorForwardVector());
+		const float InputAndActorRightDot = FVector::DotProduct(LastInputVector, GetActorRightVector());
+		const bool bIsForwardOrBackwardInput = FMath::Abs(InputAndActorForwardDot) > FMath::Abs(InputAndActorRightDot);
+		if (bIsForwardOrBackwardInput)
 			return;
 		
-		const bool bIsLeft = InputAndActorDirDot > 0;
 		if (StaminaComp->DecreaseStaminaByPercentage(Weapon->GetSideStepStaminaPercent()))
 		{
+			const bool bIsLeft = InputAndActorRightDot < 0;
 			SR_DoSideStep(bIsLeft);
 		}
 	}
@@ -322,7 +327,7 @@ void APlayerCharacter::SR_DodgeRoll_Implementation()
 
 void APlayerCharacter::SR_DoSideStep_Implementation(bool bIsLeft)
 {
-	MC_PlayAnimMontage(bIsLeft ? LeftSideStepMontage : RightSideStepMontage);
+	MC_PlayAnimMontage(bIsLeft ? Weapon->GetLeftSideStepMontage() : Weapon->GetRightSideStepMontage());
 }
 
 void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)

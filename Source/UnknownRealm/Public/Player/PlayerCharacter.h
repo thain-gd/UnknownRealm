@@ -144,12 +144,6 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Animation | Dodge")
 	float DodgeStaminaPercent;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
-	UAnimMontage* LeftSideStepMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
-	UAnimMontage* RightSideStepMontage;
 	
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;

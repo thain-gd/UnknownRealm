@@ -228,7 +228,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	InputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::StartSprinting);
 	InputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprinting);
-	//InputComponent->BindAction("DodgeRoll", IE_Pressed, this, &APlayerCharacter::SR_DodgeRoll);
 	InputComponent->BindAction("SpaceActions", IE_Pressed, this, &APlayerCharacter::OnSpaceActionsPressed);
 	
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);

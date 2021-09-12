@@ -292,7 +292,10 @@ void APlayerCharacter::OnSpaceActionsPressed()
 	// While attacking, cannot do dodge roll and possible to do side step
 	if (Weapon->IsAttacking())
 	{
-		// Using dot products to detection direction b/w inputs and the character to
+		if (!bCanSideStep)
+			return;
+		
+		// Detect direction b/w inputs and the character to
 		// trigger side steps properly for different camera orientation
 		const FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
 		const float InputAndActorForwardDot = FVector::DotProduct(LastInputVector, GetActorForwardVector());
@@ -303,6 +306,7 @@ void APlayerCharacter::OnSpaceActionsPressed()
 		
 		if (StaminaComp->DecreaseStaminaByPercentage(Weapon->GetSideStepStaminaPercent()))
 		{
+			bCanSideStep = false; // prevent continuous sidesteps
 			const bool bIsLeft = InputAndActorRightDot < 0;
 			SR_DoSideStep(bIsLeft);
 		}

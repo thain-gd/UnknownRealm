@@ -161,6 +161,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float AimingInterpSpeed;
 
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bCanSideStep;
+
 	float DefaultFOV;
 	float AimingMovingSpeed;
 	float DefaultMovingSpeed;

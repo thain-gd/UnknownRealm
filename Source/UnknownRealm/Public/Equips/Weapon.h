@@ -10,6 +10,7 @@
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
+	None,
 	Sword,
 	Spear,
 	Bow,
@@ -25,7 +26,7 @@ struct FWeaponInfo : public FEquipmentInfo
 	int32 BaseDmg;
 };
 
-UCLASS()
+UCLASS(Abstract)
 class UNKNOWNREALM_API AWeapon : public AEquipment
 {
 	GENERATED_BODY()
@@ -34,31 +35,72 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	virtual FName GetAttachPoint() const override;
+	virtual void SetupInputs(UInputComponent* ControllerInputComp) {};
+
+	bool IsWeaponActive() const { return bIsWeaponActive; }
+	
+	UFUNCTION(Server, Reliable)
+	void SR_SetIsWeaponActive(bool bInIsWeaponActive);
+	
+	void SetIsWeaponActive(bool bInIsWeaponActive);
+
+	UFUNCTION(BlueprintCallable)
+	void SetMotionValue(float InMotionValue);
+
+	bool IsAiming() const { return bIsAiming; }
 
 	EWeaponType GetWeaponType() const { return WeaponType; }
 
+	bool IsAttacking() const { return bIsAiming || bIsAttacking; }
+
+	float GetSideStepStaminaPercent() const { return SideStepStaminaPercent; }
+
+	UFUNCTION()
+	virtual void OnEnemyHit(AActor* Enemy);
+
+	UAnimMontage* GetLeftSideStepMontage() const { return LeftSideStepMontage; }
+	UAnimMontage* GetRightSideStepMontage() const { return RightSideStepMontage; }
+	
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual int32 GetTotalDmg() const;
 
 private:
-	void OnNormalAttackPressed();
-	void OnHeavyAttackPressed();
+	UFUNCTION(Client, Reliable)
+	void CL_ShowDmgDealt(int32 TotalDmg);
+
 	
 protected:
 	UPROPERTY(Replicated, EditInstanceOnly)
 	int32 BaseDmg;
-	
-private:
-	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* MeshComp;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
+	UAnimMontage* LeftSideStepMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation | Side Step")
+	UAnimMontage* RightSideStepMontage;
+
+	UPROPERTY(Replicated)
+	bool bIsWeaponActive;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsAttacking;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsAiming;
+
+	bool bIsLocallyControlled;
+
+	UPROPERTY(BlueprintReadWrite)
+	float CurrentMotionValue = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SideStepStaminaPercent = 0.3f;
+
+private:
+	static const FName InactiveSocketName;
+	
 	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
 };

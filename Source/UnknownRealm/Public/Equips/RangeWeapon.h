@@ -6,6 +6,8 @@
 #include "Equips/Weapon.h"
 #include "RangeWeapon.generated.h"
 
+class APlayerCharacter;
+class UCameraComponent;
 class UTimelineComponent;
 class UBowWidget;
 UENUM(BlueprintType)
@@ -38,62 +40,73 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	UFUNCTION(Server, Unreliable)
-	void ServerUpdateChargeTimelineComp(float NewChargeAmount);
+	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
 
-	bool StartAiming();
-	void StopAiming();
+	virtual void Tick(float DeltaSeconds) override;
 
-	void ShowIndicator();
-	void HideIndicator() const;
-
-	UFUNCTION(BlueprintCallable)
-	void UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange);
-
-	UFUNCTION()
-	void OnRepUpdateTimingMultiplierByChargeAmount();
-	
-	UFUNCTION(BlueprintCallable)
-	void UpdateTimingMultiplier(ETimingState TimingState);
-
-	void OnChargingStart() const;
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnChargingFinish();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void StartCharge();
-	
-	void Fire(const FVector& TargetLocation);
-
-	float GetDamage() const;
 	float GetChargeAmount() const { return ChargeAmount; }
 
 protected:
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnChargingFinish();
 	
-	UFUNCTION()
-	virtual void OnRepSetMesh() override;
-
 private:
 	UFUNCTION(Client, Reliable)
-	void ClientSetupChargeTimeline() const;
-	
-	void StopCharge() const;
+	void CL_SetupComponents(APlayerCharacter* PlayerChar);
+
+	void SetupComponents(APlayerCharacter* PlayerChar);
+
+	void SetupChargeTimeline();
+
+	UFUNCTION(Server, Unreliable)
+	void SR_UpdateChargeTimelineComp(float NewChargeAmount);
+
+	UFUNCTION()
+	void OR_UpdateTimingMultiplierByChargeAmount();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateTimingMultiplier(ETimingState TimingState);
 	
 	UFUNCTION(Server, Reliable)
-	void ServerOnFired(const FVector& TargetLocation, const float Damage);
+	void SR_OnAimingStarted();
 
 	UFUNCTION(BlueprintCallable)
 	bool TryReload();
 	void Reload();
 
+	UFUNCTION(Server, Reliable)
+	void SR_OnAimingEnded();
+
+	void ResetArrow();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_UpdateIsAiming(bool bInIsAiming);
+
+	void ShowIndicator();
+	void HideIndicator() const;
+
+	void OnChargingStart();
+
+	void Fire();
+
+	float CalculateDamage() const;
+
+	UFUNCTION(Server, Reliable)
+	void SR_OnFired(const FVector& InTargetLocation, const float Damage);
+	
+	void StopCharge() const;
+
+	void UpdateTarget();
+	void TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange);
+
+protected:
+	virtual int32 GetTotalDmg() const override { return LastTotalDmg; }
+	
+
 private:
-	UPROPERTY(VisibleAnywhere)
-	USkeletalMeshComponent* SkeletalMeshComp;
-
-	UPROPERTY(ReplicatedUsing = OnRepSetMesh)
-	USkeletalMesh* SkeletalMesh;
-
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AProjectile> ArrowClass;
 	
@@ -112,7 +125,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	UCurveFloat* ChargeAmountFloatCurve;
 
-	UPROPERTY(ReplicatedUsing = OnRepUpdateTimingMultiplierByChargeAmount, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(ReplicatedUsing = OR_UpdateTimingMultiplierByChargeAmount, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float ChargeAmount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -129,7 +142,14 @@ private:
 
 	float RangeMultiplier;
 
+	UPROPERTY()
+	UCameraComponent* PlayerCharCameraComp;
+
+	FVector TargetLocation;
+
 	FName CurrentArrowID = FName("NormalArrow"); // TODO: Update dynamically later when add more arrow types
+
+	int32 LastTotalDmg;
 	
 	const float OptimalRangeMultiplier		= 1.0f;
 	const float AcceptableRangeMultiplier	= 0.7f;

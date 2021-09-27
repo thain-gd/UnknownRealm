@@ -1,8 +1,19 @@
 #include "Equips/Equipment.h"
 
+#include "GameFramework/Character.h"
+#include "Net/UnrealNetwork.h"
+
 AEquipment::AEquipment()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
+	
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	MeshComp->SetupAttachment(RootComponent);
+
+	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComp"));
+	SkeletalMeshComp->SetupAttachment(RootComponent);
 
 	bReplicates = true;
 }
@@ -10,26 +21,36 @@ AEquipment::AEquipment()
 void AEquipment::Init(FEquipmentInfo* InEquipInfo)
 {
 	EquipInfo = InEquipInfo;
+	if (EquipInfo->StaticMesh)
+	{
+		StaticMesh = EquipInfo->StaticMesh;
+		OR_SetStaticMesh();
+	}
+	else
+	{
+		SkeletalMesh = EquipInfo->SkeletalMesh;
+		OR_SetSkeletalMesh();
+	}
 }
 
-FName AEquipment::GetAttachPoint() const
+void AEquipment::OR_SetStaticMesh()
 {
-	switch (EquipInfo->Category)
-	{
-	case EEquipmentCategory::Helm:
-		return TEXT("HelmSocket");
+	MeshComp->SetStaticMesh(StaticMesh);
+	
+	SkeletalMeshComp->DestroyComponent();
+}
 
-	case EEquipmentCategory::Chest:
-		return TEXT("ChestSocket");
+void AEquipment::OR_SetSkeletalMesh()
+{
+	SkeletalMeshComp->SetSkeletalMesh(SkeletalMesh);
 
-	case EEquipmentCategory::Gloves:
-		return TEXT("GlovesSocket");
+	MeshComp->DestroyComponent();
+}
 
-	case EEquipmentCategory::Leggings:
-		return TEXT("LeggingsSocket");
+void AEquipment::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// Weapon category will override its own GetAttachPoint
-	default:
-		return TEXT("None");
-	}
+	DOREPLIFETIME(AEquipment, SkeletalMesh);
+	DOREPLIFETIME(AEquipment, StaticMesh);
 }

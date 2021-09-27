@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnProjectileHitEnemy, AActor*, Enemy);
+
 class UProjectileMovementComponent;
 UCLASS()
 class UNKNOWNREALM_API AProjectile : public AActor
@@ -26,15 +28,13 @@ protected:
 private:
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	void OnEnemyHit(AActor* Enemy);
-
-	UFUNCTION(Client, Reliable)
-	void ClientShowEnemyDamageTaken(int32 Damage, bool bIsCrit);
 	
 	void AddProjectileMovementComponent(const FVector& TargetLocation);
 
 
+public:
+	FOnProjectileHitEnemy OnProjectileHitEnemy;
+	
 private:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComp;

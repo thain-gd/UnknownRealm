@@ -4,7 +4,6 @@
 #include "Player/PlayerCharacter.h"
 
 #include "DrawDebugHelpers.h"
-#include "AIs/AIChar.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
@@ -25,7 +24,7 @@
 #include "Net/UnrealNetwork.h"
 #include "UI/InteractionWidget.h"
 
-const FName APlayerCharacter::InactiveWeaponSocketName = FName("InactiveWeaponSocket");
+#define COLLISION_ENEMY ECC_GameTraceChannel1
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -64,6 +63,24 @@ APlayerCharacter::APlayerCharacter()
 	AddOwnedComponent(CraftingComp);
 }
 
+EWeaponType APlayerCharacter::GetEquippedWeaponType() const
+{
+	if (!IsValid(Weapon) || !Weapon->IsWeaponActive())
+		return EWeaponType::None;
+	
+	return Weapon->GetWeaponType();
+}
+
+UAnimInstance* APlayerCharacter::GetAnimInstance() const
+{
+	return GetMesh()->GetAnimInstance();
+}
+
+float APlayerCharacter::GetHealthPercent() const
+{
+	return HealthComp->GetRemainingHealthPercent();
+}
+
 float APlayerCharacter::GetStaminaPercent() const
 {
 	return StaminaComp->GetCurrentStaminaPercent();
@@ -76,12 +93,14 @@ void APlayerCharacter::BeginPlay()
 
 	if (HasAuthority())
 	{
-		AttackBox->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::SetAttackableEnemy);
-		AttackBox->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::ResetAttackableEnemy);
+		HealthComp->OnHealthChanged.BindDynamic(this, &APlayerCharacter::OnHealthChanged);
 	}
 
 	if (IsLocallyControlled())
 	{
+		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
+		GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
+		
 		ServerSetupWeapon(this);
 	}
 
@@ -89,10 +108,20 @@ void APlayerCharacter::BeginPlay()
 	DefaultMovingSpeed = GetCharacterMovement()->MaxWalkSpeed;
 	AimingMovingSpeed = DefaultMovingSpeed * 0.45f;
 	
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
-	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
-
 	CraftingComp->Init(CameraComp);
+}
+
+void APlayerCharacter::OnHealthChanged()
+{
+	if (HealthComp->IsAlive())
+	{
+		// TODO: Play damaged animation + SFX
+		UE_LOG(LogTemp, Warning, TEXT("Player Damaged. Remaining: %f"), HealthComp->GetRemainingHealth());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Died"));
+	}
 }
 
 void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
@@ -104,57 +133,16 @@ void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
 
 	Weapon->SetOwner(WeaponOwner);
 	Weapon->Init(WeaponInfo);
-	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
-
+	
 	if (IsLocallyControlled())
 	{
-		SetupWeaponInputs();
-	}
-}
-
-void APlayerCharacter::SetupWeaponInputs()
-{
-	Weapon->SetOwner(this);
-
-	if (InputComponent)
-	{
-		// Binding actions by weapon type
-		if (Weapon->GetWeaponType() == EWeaponType::Bow)
-		{
-			InputComponent->BindAction("Aim", IE_Pressed, this, &APlayerCharacter::ServerOnAimingPressed);
-			InputComponent->BindAction("Aim", IE_Released, this, &APlayerCharacter::ServerOnAimingReleased);
-			InputComponent->BindAction("Charge", IE_Pressed, this, &APlayerCharacter::OnChargingStart);
-			InputComponent->BindAction("Charge", IE_Released, this, &APlayerCharacter::OnChargingEnd);
-		}
-		else
-		{
-			InputComponent->BindAction("NormalAttack", IE_Pressed, this, &APlayerCharacter::ServerDoNormalAttack);
-		}
-	}
-}
-
-void APlayerCharacter::SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor->ActorHasTag(FName("AI")))
-	{
-		AttackableEnemies.Add(OtherActor);
-	}
-}
-
-void APlayerCharacter::ResetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (OtherActor->ActorHasTag(FName("AI")))
-	{
-		AttackableEnemies.Remove(OtherActor);
+		Weapon->SetupInputs(InputComponent);
 	}
 }
 
 void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!IsLocallyControlled())
-		return;
-	
 	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
 	if (Item)
 	{
@@ -177,9 +165,6 @@ void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponen
 void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (!IsLocallyControlled())
-		return;
-	
 	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
 	if (Item && Item == CollectibleItem)
 	{
@@ -197,12 +182,12 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (!IsLocallyControlled())
+	if (!IsLocallyControlled() || !IsValid(Weapon))
 		return;
 	
 	UpdateCameraFOV(DeltaSeconds);
 
-	if (!bIsAiming)
+	if (!Weapon->IsAiming())
 		return;
 
 	const float InterpSpeed = 50.0f;
@@ -210,12 +195,12 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, InterpSpeed);
 	SetActorRotation(NewRotation);
 	ServerUpdateAimingRotation(NewRotation);
-
-	UpdateTarget();
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
 {
+	const bool bIsAiming = Weapon->IsAiming();
+	
 	const float TargetFOV = bIsAiming ? AimingFOV : DefaultFOV;
 	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaSeconds, AimingInterpSpeed);
 	CameraComp->SetFieldOfView(NewFOV);
@@ -228,38 +213,6 @@ void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
 void APlayerCharacter::ServerUpdateAimingRotation_Implementation(const FRotator& NewRotation)
 {
 	SetActorRotation(NewRotation);
-}
-
-void APlayerCharacter::UpdateTarget()
-{
-	const float MaxTargetRange = 10000.0f;
-	const FVector StartLocation = CameraComp->GetComponentLocation();
-	const FVector EndLocation = StartLocation + CameraComp->GetForwardVector() * MaxTargetRange;
-
-	FHitResult OutHit;
-	TraceHitTarget(OutHit, StartLocation, EndLocation);
-
-	bool bIsTargetEnemy = false;
-	if (OutHit.bBlockingHit)
-	{
-		TargetLocation = OutHit.Location;
-		TargetRange = FVector::Distance(StartLocation, TargetLocation);
-		bIsTargetEnemy = OutHit.Actor->ActorHasTag(FName("AI"));
-	}
-	else
-	{
-		TargetLocation = EndLocation;
-		TargetRange = MaxTargetRange;
-	}
-
-	Cast<ARangeWeapon>(Weapon)->UpdateIndicatorByRange(bIsTargetEnemy, TargetRange);
-}
-
-void APlayerCharacter::TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const
-{
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(this);
-	GetWorld()->LineTraceSingleByChannel(OutHitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
 }
 
 // Called to bind functionality to input
@@ -275,15 +228,16 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	InputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerCharacter::StartSprinting);
 	InputComponent->BindAction("Sprint", IE_Released, this, &APlayerCharacter::StopSprinting);
+	InputComponent->BindAction("SpaceActions", IE_Pressed, this, &APlayerCharacter::OnSpaceActionsPressed);
+	
 	InputComponent->BindAction("Interact", IE_Pressed, this, &APlayerCharacter::Interact);
 	InputComponent->BindAction("Craft", IE_Pressed, this, &APlayerCharacter::ToggleCraftMenu);
 
 	// Combat
-	InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::ServerPutWeaponAway);
-
-	if (Weapon)
+	//InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::SR_PutWeaponAway);
+	if (IsValid(Weapon))
 	{
-		SetupWeaponInputs();
+		Weapon->SetupInputs(InputComponent);
 	}
 }
 
@@ -319,136 +273,89 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 void APlayerCharacter::StartSprinting()
 {
 	UE_LOG(LogTemp, Warning, TEXT("StartSprinting"));
-	StaminaComp->DecreaseStamina(60.0f);
+	StaminaComp->DecreaseStaminaByPoint(60.0f);
+	
+	SR_PutWeaponAway();
 }
 
 void APlayerCharacter::StopSprinting()
 {
 }
 
-void APlayerCharacter::ServerDoNormalAttack_Implementation()
+void APlayerCharacter::OnSpaceActionsPressed()
 {
-	if (!bUsingWeapon)
-	{
-		ServerGetWeapon();
-		return;
-	}
-
-	if (AttackableEnemies.Num() == 0)
-		return;
-
-	for (auto AttackableEnemy : AttackableEnemies)
-	{
-		UGameplayStatics::ApplyDamage(AttackableEnemy, 35, nullptr, this, UDamageType::StaticClass());
-	}
-}
-
-void APlayerCharacter::ServerGetWeapon_Implementation()
-{
-	// TODO: Switch to using weapon animation
-	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, Weapon->GetAttachPoint());
-
-	bUsingWeapon = true;
-}
-
-void APlayerCharacter::ServerDoHeavyAttack_Implementation()
-{
-	if (!bUsingWeapon)
-		return;
-
-	UE_LOG(LogTemp, Warning, TEXT("DoHeavyAttack"));
-}
-
-void APlayerCharacter::ServerPutWeaponAway_Implementation()
-{
-	if (!bUsingWeapon)
+	// Ignore if pressed when stand still
+	if (GetCharacterMovement()->GetLastInputVector() == FVector::ZeroVector)
 		return;
 	
-	Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, InactiveWeaponSocketName);
-	bUsingWeapon = false;
-}
-
-void APlayerCharacter::ServerOnAimingPressed_Implementation()
-{
-	if (!bUsingWeapon)
-		return;
-
-	if (Cast<ARangeWeapon>(Weapon)->StartAiming())
+	// While attacking, cannot do dodge roll and possible to do side step
+	if (Weapon->IsAttacking())
 	{
-		bIsAiming = true;
-		OnAimingStart();
+		if (!bCanSideStep)
+			return;
+		
+		// Detect direction b/w inputs and the character to
+		// trigger side steps properly for different camera orientation
+		const FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		const float InputAndActorForwardDot = FVector::DotProduct(LastInputVector, GetActorForwardVector());
+		const float InputAndActorRightDot = FVector::DotProduct(LastInputVector, GetActorRightVector());
+		const bool bIsForwardOrBackwardInput = FMath::Abs(InputAndActorForwardDot) > FMath::Abs(InputAndActorRightDot);
+		if (bIsForwardOrBackwardInput)
+			return;
+		
+		if (StaminaComp->DecreaseStaminaByPercentage(Weapon->GetSideStepStaminaPercent()))
+		{
+			bCanSideStep = false; // prevent continuous sidesteps
+			const bool bIsLeft = InputAndActorRightDot < 0;
+			SR_DoSideStep(bIsLeft);
+		}
 	}
 	else
 	{
-		// TODO: Notify no arrow left
+		if (StaminaComp->DecreaseStaminaByPercentage(DodgeStaminaPercent))
+		{
+			SR_DodgeRoll();
+		}
 	}
 }
 
-void APlayerCharacter::ServerOnAimingReleased_Implementation()
+void APlayerCharacter::SR_DodgeRoll_Implementation()
 {
-	if (!bUsingWeapon)
+	const bool bIsPlayingDodgeRoll = GetAnimInstance()->Montage_IsPlaying(DodgeRollMontage);
+	if (bIsPlayingDodgeRoll)
 		return;
 
-	bIsAiming = false;
-	Cast<ARangeWeapon>(Weapon)->StopAiming();
-	OnAimingEnd();
+	MC_PlayAnimMontage(DodgeRollMontage);
 }
 
-void APlayerCharacter::OnRepAimingStatusChanged()
+void APlayerCharacter::SR_DoSideStep_Implementation(bool bIsLeft)
 {
-	if (bIsAiming)
-	{
-		OnAimingStart();
-	}
-	else
-	{
-		OnAimingEnd();
-	}
+	MC_PlayAnimMontage(bIsLeft ? Weapon->GetLeftSideStepMontage() : Weapon->GetRightSideStepMontage());
 }
 
-void APlayerCharacter::OnAimingStart()
+void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)
+{
+	PlayAnimMontage(MontageToPlay);
+}
+
+void APlayerCharacter::SR_PutWeaponAway_Implementation()
+{
+	if (!Weapon->IsWeaponActive())
+		return;
+	
+	Weapon->SetIsWeaponActive(false);
+}
+
+void APlayerCharacter::SetMovementForAiming() const
 {
 	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-
-	if (IsLocallyControlled())
-	{
-		Cast<ARangeWeapon>(Weapon)->ShowIndicator();
-	}
 }
 
-void APlayerCharacter::OnAimingEnd()
+void APlayerCharacter::ResetMovement() const
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	bUseControllerRotationYaw = false;
-
-	if (IsLocallyControlled())
-	{
-		Cast<ARangeWeapon>(Weapon)->HideIndicator();
-	}
-}
-
-void APlayerCharacter::OnChargingStart()
-{
-	if (!bUsingWeapon)
-	{
-		ServerGetWeapon();
-		return;
-	}
-
-	if (!bIsAiming)
-		return;
-	
-	Cast<ARangeWeapon>(Weapon)->OnChargingStart();
-}
-
-void APlayerCharacter::OnChargingEnd()
-{
-	if (!bUsingWeapon || !bIsAiming)
-		return;
-	
-	Cast<ARangeWeapon>(Weapon)->Fire(TargetLocation);
 }
 
 void APlayerCharacter::Interact()
@@ -504,6 +411,16 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 	}
 }
 
+void APlayerCharacter::DisablePlayerCollision()
+{
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Ignore);
+}
+
+void APlayerCharacter::EnablePlayerCollision()
+{
+	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
+}
+
 float APlayerCharacter::GetChargeAmount() const
 {
 	return Cast<ARangeWeapon>(Weapon)->GetChargeAmount();
@@ -519,6 +436,4 @@ void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APlayerCharacter, Weapon);
-	DOREPLIFETIME(APlayerCharacter, bUsingWeapon);
-	DOREPLIFETIME(APlayerCharacter, bIsAiming);
 }

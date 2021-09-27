@@ -19,6 +19,8 @@ class UBoxComponent;
 class UHealthComponent;
 class ACollectibleItem;
 
+enum class EWeaponType : uint8;
+
 UCLASS()
 class UNKNOWNREALM_API APlayerCharacter : public ACharacter
 {
@@ -31,13 +33,24 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void Tick(float DeltaSeconds) override;
+	virtual void Tick(float DeltaSeconds) override;
+
+	void SetMovementForAiming() const;
+	void ResetMovement() const;
 
 	UFUNCTION(Reliable, Server)
 	void ServerFinishCollecting(ACollectibleItem* CollectedItem);
 
 	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
 
+	UFUNCTION(BlueprintCallable)
+	EWeaponType GetEquippedWeaponType() const;
+
+	UCameraComponent* GetCameraComp() const { return CameraComp; }
+
+	UAnimInstance* GetAnimInstance() const;
+
+	float GetHealthPercent() const;
 	float GetStaminaPercent() const;
 
 protected:
@@ -45,24 +58,16 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UFUNCTION()
+	void OnHealthChanged();
+	
 	void UpdateCameraFOV(float DeltaSeconds);
 
 	UFUNCTION(Server, Unreliable)
 	void ServerUpdateAimingRotation(const FRotator& NewRotation);
-	
-	void UpdateTarget();
-	void TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const;
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetupWeapon(AActor* WeaponOwner);
-	void SetupWeaponInputs();
-
-	UFUNCTION()
-	void SetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-							bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	void ResetAttackableEnemy(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION()
 	void ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -76,33 +81,19 @@ private:
 	void StartSprinting();
 	void StopSprinting();
 
-	UFUNCTION(Reliable, Server)
-	void ServerDoNormalAttack();
+	void OnSpaceActionsPressed();
 
-	UFUNCTION(Reliable, Server)
-	void ServerDoHeavyAttack();
+	UFUNCTION(Server, Reliable)
+	void SR_DodgeRoll();
 
-	UFUNCTION(Reliable, Server)
-	void ServerGetWeapon();
+	UFUNCTION(Server, Reliable)
+	void SR_DoSideStep(bool bIsLeft);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_PlayAnimMontage(UAnimMontage* MontageToPlay);
 	
-	UFUNCTION(Reliable, Server)
-	void ServerPutWeaponAway();
-
-	UFUNCTION(Reliable, Server)
-	void ServerOnAimingPressed();
-
-	UFUNCTION(Reliable, Server)
-	void ServerOnAimingReleased();
-
-	UFUNCTION()
-	void OnRepAimingStatusChanged();
-
-	void OnAimingStart();
-	void OnAimingEnd();
-
-	void OnChargingStart();
-
-	void OnChargingEnd();
+	UFUNCTION(Server, Reliable)
+	void SR_PutWeaponAway();
 
 	void Interact();
 
@@ -111,12 +102,16 @@ private:
 	void OnWheelAxisChanged(float AxisValue);
 
 	UFUNCTION(BlueprintCallable)
+	void DisablePlayerCollision();
+
+	UFUNCTION(BlueprintCallable)
+	void EnablePlayerCollision();
+	
+	UFUNCTION(BlueprintCallable)
 	float GetChargeAmount() const;
 	
 	
 private:
-	static const FName InactiveWeaponSocketName;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArmComp;
 	
@@ -144,13 +139,16 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	FName WeaponID;
 
-	UPROPERTY()
-	TArray<AActor*> AttackableEnemies;
+	UPROPERTY(EditAnywhere, Category = "Animation | Dodge")
+	UAnimMontage* DodgeRollMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Animation | Dodge")
+	float DodgeStaminaPercent;
 	
 	UPROPERTY()
 	UInteractionWidget* InteractionWidget;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	AWeapon* Weapon;
 	
 	bool bInteractable;
@@ -163,16 +161,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = Combat)
 	float AimingInterpSpeed;
 
-	UPROPERTY(Replicated)
-	bool bUsingWeapon;
-	
-	UPROPERTY(ReplicatedUsing=OnRepAimingStatusChanged, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	bool bIsAiming;
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bCanSideStep;
+
 	float DefaultFOV;
 	float AimingMovingSpeed;
 	float DefaultMovingSpeed;
-	uint32 AttackCount;
-
-	FVector TargetLocation;
-	float TargetRange;
 };

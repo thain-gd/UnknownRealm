@@ -61,42 +61,21 @@ void AProjectile::OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AAct
 
 	// TODO: Play hit SFX
 
-	UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *OtherActor->GetName());
-	
 	bHit = true;
 	ProjectileMovement->DestroyComponent();
 
 	if (OtherActor->ActorHasTag(FName("AI")))
 	{
-		OnEnemyHit(OtherActor);
+		MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
+		SetLifeSpan(3.5f);
+		
+		OnProjectileHitEnemy.Execute(OtherActor);
 	}
 	
 	const FVector NewLocation = SweepResult.ImpactPoint - GetActorForwardVector() * 60.0f;
 	SetActorLocation(NewLocation);
 	
 	AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
-}
-
-void AProjectile::OnEnemyHit(AActor* Enemy)
-{
-	MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
-	UGameplayStatics::ApplyDamage(Enemy, TotalDamage, nullptr, this, UDamageType::StaticClass());
-	SetLifeSpan(3.5f);
-
-	bool bIsCrit = false;
-	if (GetOwner<APawn>()->GetController()->IsLocalPlayerController())
-	{
-		GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDamage, bIsCrit);
-	}
-	else
-	{
-		ClientShowEnemyDamageTaken(TotalDamage, bIsCrit);
-	}
-}
-
-void AProjectile::ClientShowEnemyDamageTaken_Implementation(int32 Damage, bool bIsCrit)
-{
-	GetGameInstance<UMPGameInstance>()->ShowDamage(Damage, bIsCrit);
 }
 
 void AProjectile::AddProjectileMovementComponent(const FVector& TargetLocation)

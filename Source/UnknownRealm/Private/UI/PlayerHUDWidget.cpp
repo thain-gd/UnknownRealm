@@ -33,6 +33,17 @@ ESlateVisibility UPlayerHUDWidget::GetPreparingTimeVisibility() const
 	return ESlateVisibility::Hidden;
 }
 
+float UPlayerHUDWidget::GetHealthBarPercent() const
+{
+	APlayerCharacter* PlayerChar = GetWorld()->GetFirstPlayerController()->GetPawn<APlayerCharacter>();
+	if (PlayerChar)
+	{
+		return PlayerChar->GetHealthPercent();
+	}
+
+	return 1.0f;
+}
+
 float UPlayerHUDWidget::GetStaminaBarPercent() const
 {
 	APlayerCharacter* PlayerChar = GetWorld()->GetFirstPlayerController()->GetPawn<APlayerCharacter>();

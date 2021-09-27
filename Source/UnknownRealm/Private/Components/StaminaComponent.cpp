@@ -40,12 +40,18 @@ void UStaminaComponent::RegenStamina(float DeltaTime)
 	// TODO: Cancel warning animation for the stamina bar
 }
 
-bool UStaminaComponent::DecreaseStamina(float UsedStamina)
+bool UStaminaComponent::DecreaseStaminaByPercentage(float StaminaPercentage)
 {
-	if (!IsEnoughStamina(UsedStamina))
+	const float StaminaCost = MaxStamina * StaminaPercentage;
+	return DecreaseStaminaByPoint(StaminaCost);
+}
+
+bool UStaminaComponent::DecreaseStaminaByPoint(float StaminaCost)
+{
+	if (!IsEnoughStamina(StaminaCost))
 		return false;
 
-	CurrentStamina -= UsedStamina;
+	CurrentStamina -= StaminaCost;
 
 	TimeSinceLastStaminaUsed = 0;
 	// TODO: Show warning animation for the stamina bar if lower than 25-30%

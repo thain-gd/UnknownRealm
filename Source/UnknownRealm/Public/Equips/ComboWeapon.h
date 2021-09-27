@@ -54,7 +54,7 @@ private:
 
 protected:
 	UPROPERTY()
-	UComboComponent* ComboComp;
+	UComboComponent* ComboComp; // Will be added from Blueprints for any specific combo component
 	
 private:
 	UPROPERTY()

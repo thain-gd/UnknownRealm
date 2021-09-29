@@ -10,9 +10,11 @@ AEquipment::AEquipment()
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
 	
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	MeshComp->SetupAttachment(RootComponent);
 
 	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComp"));
+	SkeletalMeshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	SkeletalMeshComp->SetupAttachment(RootComponent);
 
 	bReplicates = true;

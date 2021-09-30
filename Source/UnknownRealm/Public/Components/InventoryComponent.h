@@ -91,7 +91,7 @@ private:
 	void AddItemToNewSlot(FInventoryItem& Item);
 
 	UFUNCTION(Reliable, NetMulticast)
-	void MulticastUpdateWidget(const TArray<FInventoryItem>& ItemList);
+	void MC_UpdateWidget(const TArray<FInventoryItem>& ItemList);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))

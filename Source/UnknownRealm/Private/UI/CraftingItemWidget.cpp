@@ -117,7 +117,7 @@ void UCraftingItemWidget::StartCraftingItem()
 	else 
 	{
 		CraftingComp->ToggleCraftingWidget();
-		CraftingComp->ServerCraftUseables(CraftingItemID, FCString::Atoi(*DefaultAmount->GetText().ToString()), CraftTime);
+		CraftingComp->SR_CraftUseables(CraftingItemID, FCString::Atoi(*DefaultAmount->GetText().ToString()), CraftTime);
 	}
 }
 

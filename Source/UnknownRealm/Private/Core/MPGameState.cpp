@@ -15,7 +15,7 @@ void AMPGameState::SetWaveStatus(bool Won)
 {
 	bIsWon = Won;
 
-	MulticastOnWaveStatusChanged();
+	MC_OnWaveStatusChanged();
 }
 
 void AMPGameState::AddToInventory(const FName& ItemID, const int32 Amount)
@@ -33,7 +33,7 @@ void AMPGameState::CloseInventory() const
 	InventoryComp->HideWidget();
 }
 
-void AMPGameState::MulticastOnWaveStatusChanged_Implementation() const
+void AMPGameState::MC_OnWaveStatusChanged_Implementation() const
 {
 	UE_LOG(LogTemp, Warning, TEXT("MulticastOnWaveStatusChanged"));
 	

@@ -39,7 +39,7 @@ public:
 	void ResetMovement() const;
 
 	UFUNCTION(Reliable, Server)
-	void ServerFinishCollecting(ACollectibleItem* CollectedItem);
+	void SR_FinishCollecting(ACollectibleItem* CollectedItem);
 
 	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
 
@@ -64,10 +64,10 @@ private:
 	void UpdateCameraFOV(float DeltaSeconds);
 
 	UFUNCTION(Server, Unreliable)
-	void ServerUpdateAimingRotation(const FRotator& NewRotation);
+	void SR_UpdateAimingRotation(const FRotator& NewRotation);
 
 	UFUNCTION(Server, Reliable)
-	void ServerSetupWeapon(AActor* WeaponOwner);
+	void SR_SetupWeapon(AActor* WeaponOwner);
 
 	UFUNCTION()
 	void ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

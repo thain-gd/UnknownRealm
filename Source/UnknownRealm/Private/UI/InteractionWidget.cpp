@@ -48,7 +48,7 @@ void UInteractionWidget::OnFinishCollecting()
 		}
 		else
 		{
-			PlayerChar->ServerFinishCollecting(CollectibleActor);
+			PlayerChar->SR_FinishCollecting(CollectibleActor);
 		}
 	}
 }

@@ -101,7 +101,7 @@ void APlayerCharacter::BeginPlay()
 		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
 		GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
 		
-		ServerSetupWeapon(this);
+		SR_SetupWeapon(this);
 	}
 
 	DefaultFOV = CameraComp->FieldOfView;
@@ -124,7 +124,7 @@ void APlayerCharacter::OnHealthChanged()
 	}
 }
 
-void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
+void APlayerCharacter::SR_SetupWeapon_Implementation(AActor* WeaponOwner)
 {
 	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(WeaponID, TEXT("APlayerCharacter::SetupWeapon"));
 	Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponInfo->Class);
@@ -194,7 +194,7 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, InterpSpeed);
 	SetActorRotation(NewRotation);
-	ServerUpdateAimingRotation(NewRotation);
+	SR_UpdateAimingRotation(NewRotation);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
@@ -210,7 +210,7 @@ void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
 	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
 }
 
-void APlayerCharacter::ServerUpdateAimingRotation_Implementation(const FRotator& NewRotation)
+void APlayerCharacter::SR_UpdateAimingRotation_Implementation(const FRotator& NewRotation)
 {
 	SetActorRotation(NewRotation);
 }
@@ -392,7 +392,7 @@ void APlayerCharacter::Interact()
 			}
 			else
 			{
-				ServerFinishCollecting(CollectibleItem);
+				SR_FinishCollecting(CollectibleItem);
 			}
 		}
 	}
@@ -407,7 +407,7 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 {
 	if (AxisValue != 0 && CraftingComp->IsCrafting())
 	{
-		CraftingComp->ServerRotateCraftingObject(AxisValue);
+		CraftingComp->SR_RotateCraftingObject(AxisValue);
 	}
 }
 
@@ -426,7 +426,7 @@ float APlayerCharacter::GetChargeAmount() const
 	return Cast<ARangeWeapon>(Weapon)->GetChargeAmount();
 }
 
-void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)
+void APlayerCharacter::SR_FinishCollecting_Implementation(ACollectibleItem* CollectedItem)
 {
 	CollectedItem->OnFinishedCollecting();
 }

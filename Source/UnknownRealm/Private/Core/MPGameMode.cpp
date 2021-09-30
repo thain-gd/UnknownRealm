@@ -24,8 +24,8 @@ void AMPGameMode::PostLogin(APlayerController* NewPlayer)
 	if (!PlayerController)
 		return;
 	
-	ClientRespawnPlayer(PlayerController);
-	PlayerController->ClientPostLogin();
+	CL_RespawnPlayer(PlayerController);
+	PlayerController->CL_PostLogin();
 }
 
 void AMPGameMode::BeginPlay()
@@ -95,7 +95,7 @@ void AMPGameMode::StartWave()
 	}
 }
 
-void AMPGameMode::ClientRespawnPlayer_Implementation(APlayerController* PlayerController)
+void AMPGameMode::CL_RespawnPlayer_Implementation(APlayerController* PlayerController)
 {
 	APlayerState* PlayerState = PlayerController->PlayerState;
 	APawn* ControlledPawn = PlayerController->GetPawn();

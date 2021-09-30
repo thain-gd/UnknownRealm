@@ -114,16 +114,16 @@ void ACraftingObject::Tick(float DeltaTime)
 
 void ACraftingObject::Init(UMaterialInstance* NewMaterial)
 {
-	MulticastSetMaterials(NewMaterial);
+	MC_SetMaterials(NewMaterial);
 }
 
 void ACraftingObject::SetBuildability(bool bInIsBuidable, UMaterialInstance* NewMaterial)
 {
 	bIsBuildable = bInIsBuidable;
-	MulticastSetMaterials(NewMaterial);
+	MC_SetMaterials(NewMaterial);
 }
 
-void ACraftingObject::MulticastSetMaterials_Implementation(UMaterialInstance* NewMaterial) const
+void ACraftingObject::MC_SetMaterials_Implementation(UMaterialInstance* NewMaterial) const
 {
 	SetMaterials(NewMaterial);
 }
@@ -141,7 +141,7 @@ bool ACraftingObject::IsLandScape(AActor* Actor) const
 	return Actor->GetClass() == ALandscape::StaticClass() || Actor->ActorHasTag(FName("Landscape"));
 }
 
-void ACraftingObject::MulticastConfirmPlacement_Implementation() const
+void ACraftingObject::MC_ConfirmPlacement_Implementation() const
 {
 	MeshComp->SetCollisionResponseToAllChannels(ECR_Block);
 

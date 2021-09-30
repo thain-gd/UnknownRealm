@@ -63,16 +63,16 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 		if (Hit.bBlockingHit)
 		{
-			ServerUpdateCraftingObjectLocation(Hit.Location, true);
+			SR_UpdateCraftingObjectLocation(Hit.Location, true);
 		}
 		else
 		{
-			ServerUpdateCraftingObjectLocation(EndPoint, false);
+			SR_UpdateCraftingObjectLocation(EndPoint, false);
 		}
 	}
 }
 
-void UCraftingComponent::ServerCraftUseables_Implementation(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const
+void UCraftingComponent::SR_CraftUseables_Implementation(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const
 {
 	TMap<FName, int32> Requirements;
 	GetCraftingRequirements(UseableID, Requirements, CraftTime);
@@ -101,7 +101,7 @@ void UCraftingComponent::GetCraftingRequirements(const FName& UseableID, TMap<FN
 	}
 }
 
-void UCraftingComponent::ServerUpdateCraftingObjectLocation_Implementation(const FVector& NewLocation, bool bFoundPlacement)
+void UCraftingComponent::SR_UpdateCraftingObjectLocation_Implementation(const FVector& NewLocation, bool bFoundPlacement)
 {
 	if (CraftingObject)
 	{
@@ -109,11 +109,11 @@ void UCraftingComponent::ServerUpdateCraftingObjectLocation_Implementation(const
 		if (bFoundPlacement)
 		{
 			const bool bBuildable = CraftingObject->CheckBuildStatus();
-			CraftingObject->MulticastSetMaterials(bBuildable ? CanBuildMat : CanNotBuildMat);
+			CraftingObject->MC_SetMaterials(bBuildable ? CanBuildMat : CanNotBuildMat);
 		}
 		else
 		{
-			CraftingObject->MulticastSetMaterials(CanNotBuildMat);
+			CraftingObject->MC_SetMaterials(CanNotBuildMat);
 		}
 	}
 }
@@ -144,7 +144,7 @@ void UCraftingComponent::HideCraftingWidget() const
 
 void UCraftingComponent::CancelCrafting()
 {
-	Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->ServerDestroyActor(CraftingObject);
+	Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->SR_DestroyActor(CraftingObject);
 	CraftingObject = nullptr;
 	Cast<AMPPlayerController>(Cast<APlayerCharacter>(GetOwner())->Controller)->SetInputToGameAndUI();
 	CraftingWidget->HideCraftingGuidelines();
@@ -165,10 +165,10 @@ void UCraftingComponent::StartCrafting(const FName& CraftingItemID, FCraftingIte
 {
 	Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->SetInputToGameOnly();
 	CraftingWidget->ShowCraftingGuidelines();
-	ServerSpawnCraftingObject(CraftingItemID, CraftingItemSettings->Class);
+	SR_SpawnCraftingObject(CraftingItemID, CraftingItemSettings->Class);
 }
 
-void UCraftingComponent::ServerSpawnCraftingObject_Implementation(const FName& InCraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass)
+void UCraftingComponent::SR_SpawnCraftingObject_Implementation(const FName& InCraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass)
 {
 	SelectedCraftingItemID = InCraftingItemID;
 	CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingObjectClass, FVector::ZeroVector, FRotator::ZeroRotator);
@@ -181,17 +181,17 @@ void UCraftingComponent::VerifyPlacement()
 		return;
 
 	HideCraftingWidget();
-	ServerPlaceCraftingObject();
+	SR_PlaceCraftingObject();
 }
 
-void UCraftingComponent::ServerPlaceCraftingObject_Implementation()
+void UCraftingComponent::SR_PlaceCraftingObject_Implementation()
 {
 	TMap<FName, int32> Requirements;
 	GetCraftingRequirements(SelectedCraftingItemID, Requirements);
 	
 	if (GetWorld()->GetGameState<AMPGameState>()->GetInventory()->RemoveItems(Requirements))
 	{
-		CraftingObject->MulticastConfirmPlacement();
+		CraftingObject->MC_ConfirmPlacement();
 	}
 	else
 	{
@@ -202,7 +202,7 @@ void UCraftingComponent::ServerPlaceCraftingObject_Implementation()
 	CraftingObject = nullptr;
 }
 
-void UCraftingComponent::ServerRotateCraftingObject_Implementation(float AxisValue)
+void UCraftingComponent::SR_RotateCraftingObject_Implementation(float AxisValue)
 {
 	CraftingObject->AddActorLocalRotation(FRotator(0.0f, AxisValue * 15.0f, 0.0f));
 }

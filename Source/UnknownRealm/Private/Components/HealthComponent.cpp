@@ -11,7 +11,6 @@ UHealthComponent::UHealthComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
 // Called when the game starts
 void UHealthComponent::BeginPlay()
 {
@@ -28,11 +27,17 @@ void UHealthComponent::BeginPlay()
 
 void UHealthComponent::HandleDamageTaken(AActor* OnTakeAnyDamage, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	if (Damage <= 0.0f || !IsAlive())
+	if (bIsInvincible || Damage <= 0.0f || !IsAlive())
 		return;
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 	OnHealthChanged.Execute();
+}
+
+
+void UHealthComponent::SetInvincibility(bool bInIsInvincible)
+{
+	bIsInvincible = bInIsInvincible;
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

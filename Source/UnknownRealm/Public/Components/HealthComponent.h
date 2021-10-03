@@ -19,6 +19,9 @@ public:
 
 	bool IsAlive() const { return CurrentHealth > 0; }
 
+	bool GetInvincibility() const { return bIsInvincible; }
+	void SetInvincibility(bool bInIsInvincible);
+
 	float GetRemainingHealth() const { return CurrentHealth; }
 	float GetRemainingHealthPercent() const { return CurrentHealth / MaxHealth; }
 	
@@ -40,4 +43,6 @@ private:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float CurrentHealth;
+
+	bool bIsInvincible;
 };

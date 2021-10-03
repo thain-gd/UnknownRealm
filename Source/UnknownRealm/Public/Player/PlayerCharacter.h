@@ -102,11 +102,14 @@ private:
 	void OnWheelAxisChanged(float AxisValue);
 
 	UFUNCTION(BlueprintCallable)
-	void DisablePlayerCollision();
+	void ActivateInvincibility();
 
 	UFUNCTION(BlueprintCallable)
-	void EnablePlayerCollision();
-	
+	void DeactivateInvincibility();
+
+	UFUNCTION(BlueprintCallable)
+	bool GetInvincibility() const;
+
 	UFUNCTION(BlueprintCallable)
 	float GetChargeAmount() const;
 	

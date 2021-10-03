@@ -411,14 +411,25 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 	}
 }
 
-void APlayerCharacter::DisablePlayerCollision()
+void APlayerCharacter::ActivateInvincibility()
 {
-	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Ignore);
+	if (HasAuthority())
+	{
+		HealthComp->SetInvincibility(true);
+	}
 }
 
-void APlayerCharacter::EnablePlayerCollision()
+void APlayerCharacter::DeactivateInvincibility()
 {
-	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
+	if (HasAuthority())
+	{
+		HealthComp->SetInvincibility(false);
+	}
+}
+
+bool APlayerCharacter::GetInvincibility() const
+{
+	return HealthComp->GetInvincibility();
 }
 
 float APlayerCharacter::GetChargeAmount() const

@@ -28,6 +28,7 @@ void AComboWeapon::SR_TriggerLightAttack_Implementation()
 		return;
 
 	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
+	check(PlayerAnimInstance != nullptr);
 	if (!PlayerAnimInstance->IsAnyMontagePlaying())
 	{
 		NextAttackMontage = ComboComp->GetNextLightAttackMontage();

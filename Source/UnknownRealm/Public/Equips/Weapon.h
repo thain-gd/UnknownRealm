@@ -98,9 +98,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	float SideStepStaminaPercent = 0.3f;
 
-private:
-	static const FName InactiveSocketName;
-	
+
+protected:
 	UPROPERTY(EditDefaultsOnly)
 	EWeaponType WeaponType;
+	
+private:
+	static const FName InactiveSocketName;
 };

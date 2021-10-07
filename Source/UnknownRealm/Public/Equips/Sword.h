@@ -19,22 +19,42 @@ public:
 	
 	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
 
+protected:
+	virtual void OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+	
 private:
 	UFUNCTION(Server, Reliable)
 	void SR_TriggerCounterAttack();
 
 	bool IsReadyToDoCounterAttack() const;
+
+	UFUNCTION(BlueprintCallable)
+	void StartCheckingLastHAttackStep();
+
+	UFUNCTION()
+	void PlayLastHAttackStep() const;
+
+	void StopCheckingLastHAttackStep();
+
+	UFUNCTION(BlueprintCallable)
+	void ApplyLastHAttackEffect();
+
 	
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* CounterAttackMontage;
 
-	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bCanDoNextCounterStep;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* LastHAttackMontage;
 
-	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bCanDoNextHeavyAttackStep;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	float TimeBeforeTriggerLastHAttackStep;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanCounterAttack;
+	
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bCanDoNextCounterStep;
+
+	FTimerHandle LastHAttackStepTriggerTimerHandle;
 };

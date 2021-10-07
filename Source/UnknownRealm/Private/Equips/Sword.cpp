@@ -27,16 +27,59 @@ void ASword::SR_TriggerCounterAttack_Implementation()
 		return;
 
 	bCanCounterAttack = false; // Reset to prevent multiple counter attacks
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	check(PlayerAnimInstance != nullptr);
-	if (PlayerAnimInstance)
-	{
-		PlayerAnimInstance->Montage_Play(CounterAttackMontage);
-	}
+	GetOwner<APlayerCharacter>()->PlayAnimMontage(CounterAttackMontage);
 }
 
 bool ASword::IsReadyToDoCounterAttack() const
 {
 	// Can only do counter attack after an attack already starts and currently in recovery frame
 	return IsAttacking() && bCanCounterAttack;
+}
+
+void ASword::OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	Super::OnEndOverlapWeapon(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+
+	if (!FirstHitEnemy)
+	{
+		StopCheckingLastHAttackStep();
+	}
+}
+
+void ASword::StopCheckingLastHAttackStep()
+{
+	GetWorldTimerManager().ClearTimer(LastHAttackStepTriggerTimerHandle);
+	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
+	check(PlayerAnimInstance != nullptr);
+	if (PlayerAnimInstance)
+	{
+		PlayerAnimInstance->Montage_Resume(nullptr);
+	}
+}
+
+void ASword::StartCheckingLastHAttackStep()
+{
+	if (!FirstHitEnemy)
+		return;
+
+	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
+	check(PlayerAnimInstance != nullptr);
+	if (PlayerAnimInstance)
+	{
+		PlayerAnimInstance->Montage_Pause();
+		GetWorldTimerManager().SetTimer(LastHAttackStepTriggerTimerHandle, this, &ASword::PlayLastHAttackStep, TimeBeforeTriggerLastHAttackStep, false);
+	}
+}
+
+void ASword::PlayLastHAttackStep() const
+{
+	GetOwner<APlayerCharacter>()->PlayAnimMontage(LastHAttackMontage);
+}
+
+void ASword::ApplyLastHAttackEffect()
+{
+	OnEnemyHit(FirstHitEnemy);
+	DisableAttackCheck();
+	// TODO: Apply bleeding effect to the enemy
 }

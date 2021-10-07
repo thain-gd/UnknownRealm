@@ -104,6 +104,7 @@ void AComboWeapon::BeginPlay()
 	if (HasAuthority())
 	{
 		MeshComp->OnComponentBeginOverlap.AddDynamic(this, &AComboWeapon::OnWeaponHit);
+		MeshComp->OnComponentEndOverlap.AddDynamic(this, &AComboWeapon::OnEndOverlapWeapon);
 	}
 }
 
@@ -113,5 +114,17 @@ void AComboWeapon::OnWeaponHit(UPrimitiveComponent* OverlappedComponent, AActor*
 	if (!OtherActor->ActorHasTag(FName("AI")))
 		return;
 
-	OnEnemyHit(OtherActor);
+	if (!FirstHitEnemy)
+	{
+		FirstHitEnemy = OtherActor;
+		OnEnemyHit(OtherActor);
+	}
+}
+
+void AComboWeapon::OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!OtherActor->ActorHasTag(FName("AI")) || OtherActor != FirstHitEnemy)
+		return;
+
+	FirstHitEnemy = nullptr;
 }

@@ -63,6 +63,23 @@ APlayerCharacter::APlayerCharacter()
 	AddOwnedComponent(CraftingComp);
 }
 
+void APlayerCharacter::ShowDamageDealt(const float InDealtDamage) const
+{
+	if (GetController()->IsLocalPlayerController())
+	{
+		GetGameInstance<UMPGameInstance>()->ShowDamage(InDealtDamage);
+	}
+	else
+	{
+		CL_ShowDamageDealt(InDealtDamage);
+	}
+}
+
+void APlayerCharacter::CL_ShowDamageDealt_Implementation(const float InDealtDamage) const
+{
+	GetGameInstance<UMPGameInstance>()->ShowDamage(InDealtDamage);
+}
+
 EWeaponType APlayerCharacter::GetEquippedWeaponType() const
 {
 	if (!IsValid(Weapon) || !Weapon->IsWeaponActive())

@@ -1,6 +1,9 @@
 #include "Components/HealthComponent.h"
 
+#include "Combat/BaseDamageType.h"
+#include "Core/MPGameInstance.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/PlayerCharacter.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
@@ -30,14 +33,27 @@ void UHealthComponent::HandleDamageTaken(AActor* OnTakeAnyDamage, float Damage, 
 	if (bIsInvincible || Damage <= 0.0f || !IsAlive())
 		return;
 
-	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
-	OnHealthChanged.Execute();
+	const UBaseDamageType* BaseDamageType = Cast<UBaseDamageType>(DamageType);
+	if (BaseDamageType)
+	{
+		BaseDamageType->HandleDamage(Damage, DamageCauser, GetOwner());
+	}
 }
 
 
-void UHealthComponent::SetInvincibility(bool bInIsInvincible)
+void UHealthComponent::TakeDamage(float Damage, AActor* InCauser, bool bInShowDamage)
 {
-	bIsInvincible = bInIsInvincible;
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
+	OnHealthChanged.Execute();
+
+	if (!bInShowDamage)
+		return;
+
+	const APlayerCharacter* PlayerChar = InCauser->GetOwner<APlayerCharacter>();
+	if (PlayerChar)
+	{
+		PlayerChar->ShowDamageDealt(Damage);
+	}
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

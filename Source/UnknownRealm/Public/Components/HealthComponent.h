@@ -17,10 +17,12 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
+	void TakeDamage(float Damage, AActor* InCauser, bool bInShowDamage = false);
+
 	bool IsAlive() const { return CurrentHealth > 0; }
 
 	bool GetInvincibility() const { return bIsInvincible; }
-	void SetInvincibility(bool bInIsInvincible);
+	void SetInvincibility(bool bInIsInvincible) { bIsInvincible = bInIsInvincible; }
 
 	float GetRemainingHealth() const { return CurrentHealth; }
 	float GetRemainingHealthPercent() const { return CurrentHealth / MaxHealth; }

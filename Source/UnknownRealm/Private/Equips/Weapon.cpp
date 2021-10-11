@@ -3,6 +3,7 @@
 
 #include "Equips/Weapon.h"
 
+#include "Combat/BaseDamageType.h"
 #include "Core/MPGameInstance.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
@@ -57,16 +58,7 @@ void AWeapon::OnEnemyHit(AActor* Enemy)
 	UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *Enemy->GetName());
 
 	const int32 TotalDmg = GetTotalDmg();
-	UGameplayStatics::ApplyDamage(Enemy, TotalDmg, nullptr, this, UDamageType::StaticClass());
-	
-	if (GetOwner<APawn>()->GetController()->IsLocalPlayerController())
-	{
-		GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDmg);
-	}
-	else
-	{
-		CL_ShowDmgDealt(TotalDmg);
-	}
+	UGameplayStatics::ApplyDamage(Enemy, TotalDmg, nullptr, this, UBaseDamageType::StaticClass());
 }
 
 int32 AWeapon::GetTotalDmg() const
@@ -78,7 +70,6 @@ void AWeapon::CL_ShowDmgDealt_Implementation(int32 TotalDmg)
 {
 	GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDmg);
 }
-
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {

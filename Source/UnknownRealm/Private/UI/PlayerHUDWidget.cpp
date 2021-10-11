@@ -60,7 +60,7 @@ float UPlayerHUDWidget::GetVillageHealthBarPercent() const
 	AActor* Village = UGameplayStatics::GetActorOfClass(GetWorld(), VillageClass);
 	if (IsValid(Village))
 	{
-		UHealthComponent* HealthComp = Cast<UHealthComponent>(Village->GetComponentByClass(UHealthComponent::StaticClass()));
+		UHealthComponent* HealthComp = Village->FindComponentByClass<UHealthComponent>();
 		if (HealthComp)
 		{
 			return HealthComp->GetRemainingHealthPercent();

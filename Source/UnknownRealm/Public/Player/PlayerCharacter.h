@@ -38,10 +38,15 @@ public:
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
-	UFUNCTION(Reliable, Server)
+	UFUNCTION(Server, Reliable)
 	void SR_FinishCollecting(ACollectibleItem* CollectedItem);
 
 	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
+
+	void ShowDamageDealt(const float InDealtDamage) const;
+
+	UFUNCTION(Client, Reliable)
+	void CL_ShowDamageDealt(const float InDealtDamage) const;
 
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetEquippedWeaponType() const;

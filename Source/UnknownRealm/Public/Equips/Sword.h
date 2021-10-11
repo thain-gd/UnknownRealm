@@ -39,6 +39,8 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void ApplyLastHAttackEffect();
 
+	void ApplyBleedingEffect(AActor* InDamageReceiver) const;
+
 	
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
@@ -55,6 +57,15 @@ private:
 	
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanDoNextCounterStep;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	float BleedingDamageModifier = 0.05f;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	float BleedingDuration = 10.0f;
+
+	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
+	float BleedingTriggerRate = 1.0f;
 
 	FTimerHandle LastHAttackStepTriggerTimerHandle;
 };

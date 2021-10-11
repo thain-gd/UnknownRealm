@@ -4,6 +4,8 @@
 #include "Equips/Sword.h"
 
 #include "Components/BaseComboComponent.h"
+#include "Components/OvertimeDamageComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
 
 ASword::ASword()
@@ -79,7 +81,24 @@ void ASword::PlayLastHAttackStep() const
 
 void ASword::ApplyLastHAttackEffect()
 {
-	OnEnemyHit(FirstHitEnemy);
+	AActor* DamageReceiver = FirstHitEnemy;
 	DisableAttackCheck();
-	// TODO: Apply bleeding effect to the enemy
+	OnEnemyHit(DamageReceiver);
+	ApplyBleedingEffect(DamageReceiver);
+	
+	// TODO: SFX + Slashing effect when pulling the sword out
+}
+
+void ASword::ApplyBleedingEffect(AActor* InDamageReceiver) const
+{
+	UOvertimeDamageComponent* OvertimeDamageComp = InDamageReceiver->FindComponentByClass<UOvertimeDamageComponent>();
+	if (!OvertimeDamageComp)
+	{
+		OvertimeDamageComp = NewObject<UOvertimeDamageComponent>(InDamageReceiver, UOvertimeDamageComponent::StaticClass());
+		check(OvertimeDamageComp != nullptr);
+		OvertimeDamageComp->RegisterComponent();
+		InDamageReceiver->AddOwnedComponent(OvertimeDamageComp);
+	}
+
+	OvertimeDamageComp->Init(GetOwner(), BaseDmg * BleedingDamageModifier, BleedingDuration, BleedingTriggerRate);
 }

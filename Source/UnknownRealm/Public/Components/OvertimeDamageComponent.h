@@ -7,6 +7,16 @@
 #include "OvertimeDamageComponent.generated.h"
 
 
+USTRUCT()
+struct FOvertimeDamageInfo
+{
+	GENERATED_BODY()
+	
+	float MyDamage;
+	int32 MyTriggerTimes;
+	FTimerHandle MyApplyDamageTimerHandle;
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UNKNOWNREALM_API UOvertimeDamageComponent : public UActorComponent
 {
@@ -19,14 +29,14 @@ public:
 	void Init(AActor* InDamageCauser, float InDamage, float InDuration, float InTriggerRate);
 
 private:
-	void ApplyDamage();
+	UFUNCTION()
+	void ApplyDamage(AActor* InDamageCauser);
 
 
 private:
 	UPROPERTY()
 	AActor* MyDamageCauser;
 	
-	float MyDamage;
-	int32 MyTriggerTimes;
-	FTimerHandle MyApplyDamageTimerHandle;
+	UPROPERTY()
+	TMap<AActor*, FOvertimeDamageInfo> MyOvertimeDamageInfoByActorMap;
 };

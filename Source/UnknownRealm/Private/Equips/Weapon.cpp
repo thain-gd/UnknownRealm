@@ -55,8 +55,6 @@ void AWeapon::SetMotionValue(float InMotionValue)
 
 void AWeapon::OnEnemyHit(AActor* Enemy)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Hit %s"), *Enemy->GetName());
-
 	const int32 TotalDmg = GetTotalDmg();
 	UGameplayStatics::ApplyDamage(Enemy, TotalDmg, nullptr, this, UBaseDamageType::StaticClass());
 }

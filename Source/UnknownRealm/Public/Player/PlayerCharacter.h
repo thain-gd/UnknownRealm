@@ -55,7 +55,9 @@ public:
 
 	UAnimInstance* GetAnimInstance() const;
 
+	UFUNCTION(BlueprintPure)
 	float GetHealthPercent() const;
+	
 	float GetStaminaPercent() const;
 
 protected:

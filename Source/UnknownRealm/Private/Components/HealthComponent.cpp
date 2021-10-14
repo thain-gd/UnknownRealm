@@ -46,7 +46,7 @@ void UHealthComponent::TakeDamage(float Damage, AActor* InCauser, bool bInShowDa
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 	OnHealthChanged.Execute();
 
-	if (!bInShowDamage)
+	if (!InCauser || !bInShowDamage)
 		return;
 
 	const APlayerCharacter* PlayerChar = InCauser->GetOwner<APlayerCharacter>();

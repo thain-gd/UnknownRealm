@@ -19,11 +19,15 @@ public:
 
 	void TakeDamage(float Damage, AActor* InCauser, bool bInShowDamage = false);
 
+	UFUNCTION(Server, Reliable)
+	void SR_IncreaseHealth(float Amount);
+
 	bool IsAlive() const { return CurrentHealth > 0; }
 
 	bool GetInvincibility() const { return bIsInvincible; }
 	void SetInvincibility(bool bInIsInvincible) { bIsInvincible = bInIsInvincible; }
 
+	float GetMaxHealth() const { return MaxHealth; }
 	float GetRemainingHealth() const { return CurrentHealth; }
 	float GetRemainingHealthPercent() const { return CurrentHealth / MaxHealth; }
 	

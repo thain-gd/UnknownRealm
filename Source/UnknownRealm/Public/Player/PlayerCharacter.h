@@ -55,10 +55,25 @@ public:
 
 	UAnimInstance* GetAnimInstance() const;
 
+	float GetHealth() const;
+	
 	UFUNCTION(BlueprintPure)
 	float GetHealthPercent() const;
 	
 	float GetStaminaPercent() const;
+
+	bool GetIsInCounterFrame() const { return bMyIsInCounterFrame; }
+
+	float GetCounterReduction() const { return MyCounterReduction; }
+
+	UFUNCTION(Client, Reliable)
+	void CL_StopRecoverHealth();
+
+	UFUNCTION(Client, Reliable)
+	void CL_SetRecoverableHealth(float InRecoverableHealth);
+
+	UFUNCTION(BlueprintCallable)
+	float GetRecoverableHealthPercent() const;
 
 protected:
 	// Called when the game starts or when spawned
@@ -119,6 +134,12 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	float GetChargeAmount() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckCounterAttack();
+
+	UFUNCTION()
+	void RecoverHealth();
 	
 	
 private:
@@ -173,6 +194,16 @@ private:
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanSideStep;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bMyIsInCounterFrame;
+
+	UPROPERTY(EditAnywhere)
+	float MyCounterReduction;
+
+	float MyRecoverableHealth;
+	FTimerHandle MyHealthRecoveryTimerHandle;
+	float MyHealthRecoveryAmount;
 
 	float DefaultFOV;
 	float AimingMovingSpeed;

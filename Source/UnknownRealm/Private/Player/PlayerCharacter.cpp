@@ -15,6 +15,7 @@
 #include "Core/MPPlayerController.h"
 #include "Equips/Equipment.h"
 #include "Equips/RangeWeapon.h"
+#include "Equips/Sword.h"
 #include "Equips/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -28,7 +29,7 @@
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
-	: AimingFOV(50.0f), AimingInterpSpeed(20.0f)
+	: AimingFOV(50.0f), AimingInterpSpeed(20.0f), MyCounterReduction(0.8f)
 {
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -93,6 +94,11 @@ UAnimInstance* APlayerCharacter::GetAnimInstance() const
 	return GetMesh()->GetAnimInstance();
 }
 
+float APlayerCharacter::GetHealth() const
+{
+	return HealthComp->GetRemainingHealth();
+}
+
 float APlayerCharacter::GetHealthPercent() const
 {
 	return HealthComp->GetRemainingHealthPercent();
@@ -101,6 +107,18 @@ float APlayerCharacter::GetHealthPercent() const
 float APlayerCharacter::GetStaminaPercent() const
 {
 	return StaminaComp->GetCurrentStaminaPercent();
+}
+
+void APlayerCharacter::CL_SetRecoverableHealth_Implementation(float InRecoverableHealth)
+{
+	MyRecoverableHealth += InRecoverableHealth;
+	MyHealthRecoveryAmount = MyRecoverableHealth * 0.1f;
+	bMyCanStartRecoveryHealth = true;
+}
+
+float APlayerCharacter::GetRecoverableHealthPercent() const
+{
+	return MyRecoverableHealth / HealthComp->GetMaxHealth();
 }
 
 // Called when the game starts or when spawned
@@ -452,6 +470,42 @@ bool APlayerCharacter::GetInvincibility() const
 float APlayerCharacter::GetChargeAmount() const
 {
 	return Cast<ARangeWeapon>(Weapon)->GetChargeAmount();
+}
+
+bool APlayerCharacter::CheckCounterAttack()
+{
+	if (!bMyIsInCounterFrame)
+		return false;
+
+	ASword* Sword = Cast<ASword>(Weapon);
+	check(Sword != nullptr);
+	Sword->AllowNextCounterStep();
+	return true;
+}
+
+void APlayerCharacter::StartRecoverHealth()
+{
+	if (bMyCanStartRecoveryHealth && IsLocallyControlled())
+	{
+		bMyCanStartRecoveryHealth = false;
+		GetWorldTimerManager().SetTimer(MyHealthRecoveryTimerHandle, this, &APlayerCharacter::RecoverHealth, 1.0f, true, 0.0f);
+	}
+}
+
+void APlayerCharacter::RecoverHealth()
+{
+	MyRecoverableHealth -= MyHealthRecoveryAmount;
+	HealthComp->SR_IncreaseHealth(MyHealthRecoveryAmount);
+	if (MyRecoverableHealth <= 0)
+	{
+		CL_StopRecoverHealth();
+	}
+}
+
+void APlayerCharacter::CL_StopRecoverHealth_Implementation()
+{
+	MyRecoverableHealth = 0;
+	GetWorldTimerManager().ClearTimer(MyHealthRecoveryTimerHandle);
 }
 
 void APlayerCharacter::SR_FinishCollecting_Implementation(ACollectibleItem* CollectedItem)

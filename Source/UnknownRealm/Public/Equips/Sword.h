@@ -19,6 +19,8 @@ public:
 	
 	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
 
+	void AllowNextCounterStep() { bCanDoNextCounterStep = true; }
+
 protected:
 	virtual void OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 	

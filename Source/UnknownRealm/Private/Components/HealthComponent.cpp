@@ -56,6 +56,11 @@ void UHealthComponent::TakeDamage(float Damage, AActor* InCauser, bool bInShowDa
 	}
 }
 
+void UHealthComponent::SR_IncreaseHealth_Implementation(float Amount)
+{
+	CurrentHealth += Amount;
+}
+
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

@@ -138,6 +138,9 @@ private:
 	UFUNCTION(BlueprintCallable)
 	bool CheckCounterAttack();
 
+	UFUNCTION(BlueprintCallable)
+	void StartRecoverHealth();
+
 	UFUNCTION()
 	void RecoverHealth();
 	
@@ -202,8 +205,9 @@ private:
 	float MyCounterReduction;
 
 	float MyRecoverableHealth;
-	FTimerHandle MyHealthRecoveryTimerHandle;
 	float MyHealthRecoveryAmount;
+	bool bMyCanStartRecoveryHealth;
+	FTimerHandle MyHealthRecoveryTimerHandle;
 
 	float DefaultFOV;
 	float AimingMovingSpeed;

@@ -27,7 +27,7 @@ protected:
 
 private:
 	UFUNCTION(Client, Reliable)
-	void ClientRespawnPlayer(APlayerController* PlayerController);
+	void CL_RespawnPlayer(APlayerController* PlayerController);
 
 	void InitEnemySpawnLocations();
 	void InitPlayerSpawnLocations();

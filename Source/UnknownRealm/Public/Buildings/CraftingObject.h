@@ -26,10 +26,10 @@ public:
 	bool IsBuildable() const { return bIsBuildable; }
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastSetMaterials(UMaterialInstance* NewMaterial) const;
+	void MC_SetMaterials(UMaterialInstance* NewMaterial) const;
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastConfirmPlacement() const;
+	void MC_ConfirmPlacement() const;
 
 	bool CheckBuildStatus();
 

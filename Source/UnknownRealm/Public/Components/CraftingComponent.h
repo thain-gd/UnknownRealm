@@ -66,10 +66,10 @@ public:
 	bool IsCrafting() const { return CraftingObject != nullptr; }
 
 	UFUNCTION(Server, Reliable)
-	void ServerRotateCraftingObject(float AxisValue);
+	void SR_RotateCraftingObject(float AxisValue);
 
 	UFUNCTION(Server, Reliable)
-	void ServerCraftUseables(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const;
+	void SR_CraftUseables(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const;
 
 protected:
 	// Called when the game starts
@@ -79,15 +79,15 @@ private:
 	void GetCraftingRequirements(const FName& UseableID, TMap<FName, int32>& OutRequirements, const int32 CraftTime = 1) const;
 	
 	UFUNCTION(Server, Reliable)
-	void ServerSpawnCraftingObject(const FName& CraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass);
+	void SR_SpawnCraftingObject(const FName& CraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass);
 
 	UFUNCTION(Server, Reliable)
-	void ServerUpdateCraftingObjectLocation(const FVector& NewLocation, bool bFoundPlacement);
+	void SR_UpdateCraftingObjectLocation(const FVector& NewLocation, bool bFoundPlacement);
 
 	void CancelCrafting();
 
 	UFUNCTION(Server, Reliable)
-	void ServerPlaceCraftingObject();
+	void SR_PlaceCraftingObject();
 
 	void ShowCraftingWidget() const;
 	void HideCraftingWidget() const;

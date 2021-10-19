@@ -44,7 +44,7 @@ void ACollectibleItem::OnFinishedCollecting()
 		AMPPlayerController* PlayerController = Cast<AMPPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 		if (PlayerController)
 		{
-			PlayerController->ServerDestroyActor(this);
+			PlayerController->SR_DestroyActor(this);
 		}
 	}
 }

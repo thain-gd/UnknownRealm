@@ -89,7 +89,7 @@ void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
 			AddItemToNewSlot(CollectedItem);
 		}
 
-		MulticastUpdateWidget(Items);
+		MC_UpdateWidget(Items);
 	}
 }
 
@@ -159,7 +159,7 @@ bool UInventoryComponent::RemoveItems(TMap<FName, int32>& ToRemoveItems)
 		}
 	}
 
-	MulticastUpdateWidget(Items);
+	MC_UpdateWidget(Items);
 	return true;
 }
 
@@ -200,7 +200,7 @@ bool UInventoryComponent::RemoveItem(const FName& ItemID, const int32 Amount)
 		}
 	}
 
-	MulticastUpdateWidget(Items);
+	MC_UpdateWidget(Items);
 	return true;
 }
 
@@ -220,7 +220,7 @@ bool UInventoryComponent::AreItemsAvailable(const TMap<FName, int32>& ItemPairs)
 	return true;
 }
 
-void UInventoryComponent::MulticastUpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
+void UInventoryComponent::MC_UpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
 {
 	Items = ItemList;
 	

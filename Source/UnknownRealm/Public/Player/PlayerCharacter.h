@@ -38,10 +38,15 @@ public:
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
-	UFUNCTION(Reliable, Server)
-	void ServerFinishCollecting(ACollectibleItem* CollectedItem);
+	UFUNCTION(Server, Reliable)
+	void SR_FinishCollecting(ACollectibleItem* CollectedItem);
 
 	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
+
+	void ShowDamageDealt(const float InDealtDamage) const;
+
+	UFUNCTION(Client, Reliable)
+	void CL_ShowDamageDealt(const float InDealtDamage) const;
 
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetEquippedWeaponType() const;
@@ -50,8 +55,25 @@ public:
 
 	UAnimInstance* GetAnimInstance() const;
 
+	float GetHealth() const;
+	
+	UFUNCTION(BlueprintPure)
 	float GetHealthPercent() const;
+	
 	float GetStaminaPercent() const;
+
+	bool GetIsInCounterFrame() const { return bMyIsInCounterFrame; }
+
+	float GetCounterReduction() const { return MyCounterReduction; }
+
+	UFUNCTION(Client, Reliable)
+	void CL_StopRecoverHealth();
+
+	UFUNCTION(Client, Reliable)
+	void CL_SetRecoverableHealth(float InRecoverableHealth);
+
+	UFUNCTION(BlueprintCallable)
+	float GetRecoverableHealthPercent() const;
 
 protected:
 	// Called when the game starts or when spawned
@@ -64,10 +86,10 @@ private:
 	void UpdateCameraFOV(float DeltaSeconds);
 
 	UFUNCTION(Server, Unreliable)
-	void ServerUpdateAimingRotation(const FRotator& NewRotation);
+	void SR_UpdateAimingRotation(const FRotator& NewRotation);
 
 	UFUNCTION(Server, Reliable)
-	void ServerSetupWeapon(AActor* WeaponOwner);
+	void SR_SetupWeapon(AActor* WeaponOwner);
 
 	UFUNCTION()
 	void ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -102,13 +124,25 @@ private:
 	void OnWheelAxisChanged(float AxisValue);
 
 	UFUNCTION(BlueprintCallable)
-	void DisablePlayerCollision();
+	void ActivateInvincibility();
 
 	UFUNCTION(BlueprintCallable)
-	void EnablePlayerCollision();
-	
+	void DeactivateInvincibility();
+
+	UFUNCTION(BlueprintCallable)
+	bool GetInvincibility() const;
+
 	UFUNCTION(BlueprintCallable)
 	float GetChargeAmount() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckCounterAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void StartRecoverHealth();
+
+	UFUNCTION()
+	void RecoverHealth();
 	
 	
 private:
@@ -163,6 +197,17 @@ private:
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanSideStep;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bMyIsInCounterFrame;
+
+	UPROPERTY(EditAnywhere)
+	float MyCounterReduction;
+
+	float MyRecoverableHealth;
+	float MyHealthRecoveryAmount;
+	bool bMyCanStartRecoveryHealth;
+	FTimerHandle MyHealthRecoveryTimerHandle;
 
 	float DefaultFOV;
 	float AimingMovingSpeed;

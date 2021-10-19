@@ -33,17 +33,6 @@ ESlateVisibility UPlayerHUDWidget::GetPreparingTimeVisibility() const
 	return ESlateVisibility::Hidden;
 }
 
-float UPlayerHUDWidget::GetHealthBarPercent() const
-{
-	APlayerCharacter* PlayerChar = GetWorld()->GetFirstPlayerController()->GetPawn<APlayerCharacter>();
-	if (PlayerChar)
-	{
-		return PlayerChar->GetHealthPercent();
-	}
-
-	return 1.0f;
-}
-
 float UPlayerHUDWidget::GetStaminaBarPercent() const
 {
 	APlayerCharacter* PlayerChar = GetWorld()->GetFirstPlayerController()->GetPawn<APlayerCharacter>();
@@ -60,7 +49,7 @@ float UPlayerHUDWidget::GetVillageHealthBarPercent() const
 	AActor* Village = UGameplayStatics::GetActorOfClass(GetWorld(), VillageClass);
 	if (IsValid(Village))
 	{
-		UHealthComponent* HealthComp = Cast<UHealthComponent>(Village->GetComponentByClass(UHealthComponent::StaticClass()));
+		UHealthComponent* HealthComp = Village->FindComponentByClass<UHealthComponent>();
 		if (HealthComp)
 		{
 			return HealthComp->GetRemainingHealthPercent();

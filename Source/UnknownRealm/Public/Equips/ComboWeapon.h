@@ -28,6 +28,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	virtual void OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
 private:
 	UFUNCTION()
@@ -53,8 +56,11 @@ private:
 
 
 protected:
-	UPROPERTY()
+	UPROPERTY(VisibleDefaultsOnly)
 	UComboComponent* ComboComp; // Will be added from Blueprints for any specific combo component
+
+	UPROPERTY()
+	AActor* FirstHitEnemy;
 	
 private:
 	UPROPERTY()

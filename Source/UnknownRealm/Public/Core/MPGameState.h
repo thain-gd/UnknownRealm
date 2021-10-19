@@ -44,7 +44,7 @@ public:
 
 private:
 	UFUNCTION(Reliable, NetMulticast)
-	void MulticastOnWaveStatusChanged() const;
+	void MC_OnWaveStatusChanged() const;
 
 	
 protected:

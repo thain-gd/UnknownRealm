@@ -8,7 +8,7 @@
 #include "Player/PlayerCharacter.h"
 #include "UI/InventoryWidget.h"
 
-void AMPPlayerController::ClientPostLogin_Implementation()
+void AMPPlayerController::CL_PostLogin_Implementation()
 {
 	SetupUIs();
 }
@@ -37,7 +37,7 @@ void AMPPlayerController::ShowWaveResult()
 	CreateWidget(this, StatusWidgetClass)->AddToViewport();
 }
 
-void AMPPlayerController::ServerDestroyActor_Implementation(AActor* Actor)
+void AMPPlayerController::SR_DestroyActor_Implementation(AActor* Actor)
 {
 	GetWorld()->DestroyActor(Actor);
 }

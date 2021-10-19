@@ -23,9 +23,6 @@ private:
 	ESlateVisibility GetPreparingTimeVisibility() const;
 
 	UFUNCTION(BlueprintPure)
-	float GetHealthBarPercent() const;
-
-	UFUNCTION(BlueprintPure)
 	float GetStaminaBarPercent() const;
 	
 	UFUNCTION(BlueprintPure)
@@ -33,9 +30,6 @@ private:
 
 	
 protected:
-	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	UProgressBar* PlayerHealthBar;
-
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UProgressBar* StaminaBar;
 

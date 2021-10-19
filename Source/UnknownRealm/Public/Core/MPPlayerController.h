@@ -21,12 +21,12 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	UFUNCTION(Client, Reliable)
-	void ClientPostLogin();
+	void CL_PostLogin();
 
 	void ShowWaveResult();
 
 	UFUNCTION(Server, Reliable)
-	void ServerDestroyActor(AActor* Actor);
+	void SR_DestroyActor(AActor* Actor);
 
 	void SetInputToGameAndUI();
 	void SetInputToGameOnly();

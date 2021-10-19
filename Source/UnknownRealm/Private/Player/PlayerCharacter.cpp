@@ -15,6 +15,7 @@
 #include "Core/MPPlayerController.h"
 #include "Equips/Equipment.h"
 #include "Equips/RangeWeapon.h"
+#include "Equips/Sword.h"
 #include "Equips/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -28,7 +29,7 @@
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
-	: AimingFOV(50.0f), AimingInterpSpeed(20.0f)
+	: AimingFOV(50.0f), AimingInterpSpeed(20.0f), MyCounterReduction(0.8f)
 {
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -63,6 +64,23 @@ APlayerCharacter::APlayerCharacter()
 	AddOwnedComponent(CraftingComp);
 }
 
+void APlayerCharacter::ShowDamageDealt(const float InDealtDamage) const
+{
+	if (GetController()->IsLocalPlayerController())
+	{
+		GetGameInstance<UMPGameInstance>()->ShowDamage(InDealtDamage);
+	}
+	else
+	{
+		CL_ShowDamageDealt(InDealtDamage);
+	}
+}
+
+void APlayerCharacter::CL_ShowDamageDealt_Implementation(const float InDealtDamage) const
+{
+	GetGameInstance<UMPGameInstance>()->ShowDamage(InDealtDamage);
+}
+
 EWeaponType APlayerCharacter::GetEquippedWeaponType() const
 {
 	if (!IsValid(Weapon) || !Weapon->IsWeaponActive())
@@ -76,6 +94,11 @@ UAnimInstance* APlayerCharacter::GetAnimInstance() const
 	return GetMesh()->GetAnimInstance();
 }
 
+float APlayerCharacter::GetHealth() const
+{
+	return HealthComp->GetRemainingHealth();
+}
+
 float APlayerCharacter::GetHealthPercent() const
 {
 	return HealthComp->GetRemainingHealthPercent();
@@ -84,6 +107,18 @@ float APlayerCharacter::GetHealthPercent() const
 float APlayerCharacter::GetStaminaPercent() const
 {
 	return StaminaComp->GetCurrentStaminaPercent();
+}
+
+void APlayerCharacter::CL_SetRecoverableHealth_Implementation(float InRecoverableHealth)
+{
+	MyRecoverableHealth += InRecoverableHealth;
+	MyHealthRecoveryAmount = MyRecoverableHealth * 0.1f;
+	bMyCanStartRecoveryHealth = true;
+}
+
+float APlayerCharacter::GetRecoverableHealthPercent() const
+{
+	return MyRecoverableHealth / HealthComp->GetMaxHealth();
 }
 
 // Called when the game starts or when spawned
@@ -101,7 +136,7 @@ void APlayerCharacter::BeginPlay()
 		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
 		GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
 		
-		ServerSetupWeapon(this);
+		SR_SetupWeapon(this);
 	}
 
 	DefaultFOV = CameraComp->FieldOfView;
@@ -124,7 +159,7 @@ void APlayerCharacter::OnHealthChanged()
 	}
 }
 
-void APlayerCharacter::ServerSetupWeapon_Implementation(AActor* WeaponOwner)
+void APlayerCharacter::SR_SetupWeapon_Implementation(AActor* WeaponOwner)
 {
 	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(WeaponID, TEXT("APlayerCharacter::SetupWeapon"));
 	Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponInfo->Class);
@@ -194,7 +229,7 @@ void APlayerCharacter::Tick(float DeltaSeconds)
 	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, InterpSpeed);
 	SetActorRotation(NewRotation);
-	ServerUpdateAimingRotation(NewRotation);
+	SR_UpdateAimingRotation(NewRotation);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
@@ -210,7 +245,7 @@ void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
 	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
 }
 
-void APlayerCharacter::ServerUpdateAimingRotation_Implementation(const FRotator& NewRotation)
+void APlayerCharacter::SR_UpdateAimingRotation_Implementation(const FRotator& NewRotation)
 {
 	SetActorRotation(NewRotation);
 }
@@ -392,7 +427,7 @@ void APlayerCharacter::Interact()
 			}
 			else
 			{
-				ServerFinishCollecting(CollectibleItem);
+				SR_FinishCollecting(CollectibleItem);
 			}
 		}
 	}
@@ -407,18 +442,29 @@ void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
 {
 	if (AxisValue != 0 && CraftingComp->IsCrafting())
 	{
-		CraftingComp->ServerRotateCraftingObject(AxisValue);
+		CraftingComp->SR_RotateCraftingObject(AxisValue);
 	}
 }
 
-void APlayerCharacter::DisablePlayerCollision()
+void APlayerCharacter::ActivateInvincibility()
 {
-	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Ignore);
+	if (HasAuthority())
+	{
+		HealthComp->SetInvincibility(true);
+	}
 }
 
-void APlayerCharacter::EnablePlayerCollision()
+void APlayerCharacter::DeactivateInvincibility()
 {
-	GetCapsuleComponent()->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
+	if (HasAuthority())
+	{
+		HealthComp->SetInvincibility(false);
+	}
+}
+
+bool APlayerCharacter::GetInvincibility() const
+{
+	return HealthComp->GetInvincibility();
 }
 
 float APlayerCharacter::GetChargeAmount() const
@@ -426,7 +472,43 @@ float APlayerCharacter::GetChargeAmount() const
 	return Cast<ARangeWeapon>(Weapon)->GetChargeAmount();
 }
 
-void APlayerCharacter::ServerFinishCollecting_Implementation(ACollectibleItem* CollectedItem)
+bool APlayerCharacter::CheckCounterAttack()
+{
+	if (!bMyIsInCounterFrame)
+		return false;
+
+	ASword* Sword = Cast<ASword>(Weapon);
+	check(Sword != nullptr);
+	Sword->AllowNextCounterStep();
+	return true;
+}
+
+void APlayerCharacter::StartRecoverHealth()
+{
+	if (bMyCanStartRecoveryHealth && IsLocallyControlled())
+	{
+		bMyCanStartRecoveryHealth = false;
+		GetWorldTimerManager().SetTimer(MyHealthRecoveryTimerHandle, this, &APlayerCharacter::RecoverHealth, 1.0f, true, 0.0f);
+	}
+}
+
+void APlayerCharacter::RecoverHealth()
+{
+	MyRecoverableHealth -= MyHealthRecoveryAmount;
+	HealthComp->SR_IncreaseHealth(MyHealthRecoveryAmount);
+	if (MyRecoverableHealth <= 0)
+	{
+		CL_StopRecoverHealth();
+	}
+}
+
+void APlayerCharacter::CL_StopRecoverHealth_Implementation()
+{
+	MyRecoverableHealth = 0;
+	GetWorldTimerManager().ClearTimer(MyHealthRecoveryTimerHandle);
+}
+
+void APlayerCharacter::SR_FinishCollecting_Implementation(ACollectibleItem* CollectedItem)
 {
 	CollectedItem->OnFinishedCollecting();
 }

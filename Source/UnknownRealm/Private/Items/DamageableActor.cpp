@@ -8,6 +8,8 @@
 // Sets default values
 ADamageableActor::ADamageableActor()
 {
+	RootComponent = CreateDefaultSubobject<USceneComponent>("Root");
+	
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	MeshComp->SetupAttachment(RootComponent);
 

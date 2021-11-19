@@ -5,8 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Core/MPPlayerController.h"
 #include "Core/MPGameState.h"
-#include "Core/MPPlayerState.h"
-#include "AIs/AIChar.h"
+#include "AI/AIChar.h"
 
 AMPGameMode::AMPGameMode()
 	: MaxPreparingTime(600)

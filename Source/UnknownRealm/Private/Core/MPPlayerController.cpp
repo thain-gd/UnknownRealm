@@ -6,11 +6,16 @@
 #include "Blueprint/UserWidget.h"
 #include "Core/MPGameState.h"
 #include "Player/PlayerCharacter.h"
-#include "UI/InventoryWidget.h"
+#include "GameTeam.h"
 
 void AMPPlayerController::CL_PostLogin_Implementation()
 {
 	SetupUIs();
+}
+
+AMPPlayerController::AMPPlayerController()
+{
+	MyTeamId = FGenericTeamId(EGameTeam::Player);
 }
 
 void AMPPlayerController::SetupInputComponent()

@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
 #include "AIChar.generated.h"
 

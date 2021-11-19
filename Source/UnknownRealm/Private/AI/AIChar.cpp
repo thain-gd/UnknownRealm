@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AIs/AIChar.h"
+#include "AI/AIChar.h"
 
 #include "GameplayTagContainer.h"
 #include "Components/HealthComponent.h"

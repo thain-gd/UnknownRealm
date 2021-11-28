@@ -88,8 +88,8 @@ private:
 	UFUNCTION(Server, Unreliable)
 	void SR_UpdateAimingRotation(const FRotator& NewRotation);
 
-	UFUNCTION(Server, Reliable)
-	void SR_SetupWeapon(AActor* WeaponOwner);
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void SR_EquipWeapon(AActor* WeaponOwner, const FName& InWeaponID);
 
 	UFUNCTION()
 	void ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -170,7 +170,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> InteractionWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FName WeaponID;
 
 	UPROPERTY(EditAnywhere, Category = "Animation | Dodge")

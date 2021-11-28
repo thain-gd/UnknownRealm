@@ -106,12 +106,17 @@ void ARangeWeapon::UpdateTimingMultiplier(ETimingState TimingState)
 	}
 }
 
-void ARangeWeapon::SetupInputs(UInputComponent* ControllerInputComp)
+void ARangeWeapon::CL_SetupInputs_Implementation()
 {
-	ControllerInputComp->BindAction("Aim", IE_Pressed, this, &ARangeWeapon::SR_OnAimingStarted);
-	ControllerInputComp->BindAction("Aim", IE_Released, this, &ARangeWeapon::SR_OnAimingEnded);
-	ControllerInputComp->BindAction("Charge", IE_Pressed, this, &ARangeWeapon::OnChargingStart);
-	ControllerInputComp->BindAction("Charge", IE_Released, this, &ARangeWeapon::Fire);
+	Super::CL_SetupInputs_Implementation();
+
+	if (InputComponent)
+	{
+		InputComponent->BindAction("Aim", IE_Pressed, this, &ARangeWeapon::SR_OnAimingStarted);
+		InputComponent->BindAction("Aim", IE_Released, this, &ARangeWeapon::SR_OnAimingEnded);
+		InputComponent->BindAction("Charge", IE_Pressed, this, &ARangeWeapon::OnChargingStart);
+		InputComponent->BindAction("Charge", IE_Released, this, &ARangeWeapon::Fire);
+	}
 }
 
 void ARangeWeapon::SR_OnAimingStarted_Implementation()

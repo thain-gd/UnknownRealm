@@ -28,6 +28,16 @@ void AWeapon::Init(FEquipmentInfo* InEquipInfo)
 	BaseDmg = WeaponInfo->BaseDmg;
 }
 
+void AWeapon::CL_SetupInputs_Implementation()
+{
+	InputComponent = NewObject<UInputComponent>(this);
+	InputComponent->RegisterComponent();
+	if (InputComponent)
+	{
+		EnableInput(GetWorld()->GetFirstPlayerController());
+	}
+}
+
 void AWeapon::SR_SetIsWeaponActive_Implementation(bool bInIsWeaponActive)
 {
 	SetIsWeaponActive(bInIsWeaponActive);

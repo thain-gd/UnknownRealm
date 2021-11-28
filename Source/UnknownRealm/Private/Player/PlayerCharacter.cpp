@@ -136,7 +136,7 @@ void APlayerCharacter::BeginPlay()
 		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::ShowInteractingUI);
 		GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &APlayerCharacter::HideInteractingUI);
 		
-		SR_SetupWeapon(this);
+		SR_EquipWeapon(this, WeaponID);
 	}
 
 	DefaultFOV = CameraComp->FieldOfView;
@@ -159,20 +159,24 @@ void APlayerCharacter::OnHealthChanged()
 	}
 }
 
-void APlayerCharacter::SR_SetupWeapon_Implementation(AActor* WeaponOwner)
+void APlayerCharacter::SR_EquipWeapon_Implementation(AActor* WeaponOwner, const FName& InWeaponID)
 {
-	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(WeaponID, TEXT("APlayerCharacter::SetupWeapon"));
+	if (Weapon)
+	{
+		GetWorld()->DestroyActor(Weapon);
+		Weapon = nullptr;
+	}
+	
+	FEquipmentInfo* WeaponInfo = GetGameInstance<UMPGameInstance>()->GetWeaponData()->FindRow<FEquipmentInfo>(InWeaponID, TEXT("APlayerCharacter::SetupWeapon"));
 	Weapon = GetWorld()->SpawnActor<AWeapon>(WeaponInfo->Class);
 	if (!Weapon)
+	{
 		return;
-
+	}
+	
 	Weapon->SetOwner(WeaponOwner);
 	Weapon->Init(WeaponInfo);
-	
-	if (IsLocallyControlled())
-	{
-		Weapon->SetupInputs(InputComponent);
-	}
+	Weapon->CL_SetupInputs();
 }
 
 void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -270,10 +274,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	// Combat
 	//InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::SR_PutWeaponAway);
-	if (IsValid(Weapon))
-	{
-		Weapon->SetupInputs(InputComponent);
-	}
 }
 
 void APlayerCharacter::MoveVertical(float AxisValue)

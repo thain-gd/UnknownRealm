@@ -7,10 +7,15 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/PlayerCharacter.h"
 
-void AComboWeapon::SetupInputs(UInputComponent* ControllerInputComp)
+void AComboWeapon::CL_SetupInputs_Implementation()
 {
-	ControllerInputComp->BindAction("LightAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerLightAttack);
-	ControllerInputComp->BindAction("HeavyAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerHeavyAttack);
+	Super::CL_SetupInputs_Implementation();
+
+	if (InputComponent)
+	{
+		InputComponent->BindAction("LightAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerLightAttack);
+		InputComponent->BindAction("HeavyAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerHeavyAttack);
+	}
 }
 
 void AComboWeapon::SR_TriggerLightAttack_Implementation()

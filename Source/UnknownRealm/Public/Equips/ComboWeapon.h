@@ -18,7 +18,7 @@ class UNKNOWNREALM_API AComboWeapon : public AWeapon
 	GENERATED_BODY()
 
 public:
-	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
+	void CL_SetupInputs_Implementation() override;
 
 	UFUNCTION(BlueprintCallable)
 	void EnableAttackCheck();

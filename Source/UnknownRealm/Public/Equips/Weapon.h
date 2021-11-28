@@ -37,7 +37,8 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	virtual void SetupInputs(UInputComponent* ControllerInputComp) {};
+	UFUNCTION(Client, Reliable)
+	virtual void CL_SetupInputs();
 
 	bool IsWeaponActive() const { return bIsWeaponActive; }
 	

@@ -17,7 +17,7 @@ class UNKNOWNREALM_API ASword : public AComboWeapon
 public:
 	ASword();
 	
-	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
+	void CL_SetupInputs_Implementation() override;
 
 	void AllowNextCounterStep() { bCanDoNextCounterStep = true; }
 

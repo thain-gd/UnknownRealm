@@ -40,7 +40,7 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
+	void CL_SetupInputs_Implementation() override;
 
 	virtual void Tick(float DeltaSeconds) override;
 

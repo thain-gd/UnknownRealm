@@ -16,11 +16,14 @@ ASword::ASword()
 	AddOwnedComponent(ComboComp);
 }
 
-void ASword::SetupInputs(UInputComponent* ControllerInputComp)
+void ASword::CL_SetupInputs_Implementation()
 {
-	Super::SetupInputs(ControllerInputComp);
+	Super::CL_SetupInputs_Implementation();
 
-	ControllerInputComp->BindAction("CounterAttack", IE_Pressed, this, &ASword::SR_TriggerCounterAttack);
+	if (InputComponent)
+	{
+		InputComponent->BindAction("CounterAttack", IE_Pressed, this, &ASword::SR_TriggerCounterAttack);
+	}
 }
 
 void ASword::SR_TriggerCounterAttack_Implementation()

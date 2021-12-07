@@ -393,6 +393,16 @@ void APlayerCharacter::ResetMovement() const
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
+void APlayerCharacter::MC_PauseAnimInstance_Implementation() const
+{
+	GetAnimInstance()->Montage_Pause();
+}
+
+void APlayerCharacter::MC_ResumeAnimInstance_Implementation() const
+{
+	GetAnimInstance()->Montage_Resume(nullptr);
+}
+
 void APlayerCharacter::Interact()
 {
 	if (CraftingComp->IsCrafting())

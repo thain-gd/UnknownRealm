@@ -9,6 +9,7 @@
 #include "Player/PlayerCharacter.h"
 
 ASword::ASword()
+	: MyFinalHeavyAttackTriggerTime(0.7f), BleedingDamageModifier(0.05f), BleedingDuration(10.0f), BleedingTriggerRate(1.0f)
 {
 	WeaponType = EWeaponType::Sword;
 	
@@ -32,6 +33,11 @@ void ASword::SR_TriggerCounterAttack_Implementation()
 		return;
 
 	bCanCounterAttack = false; // Reset to prevent multiple counter attacks
+	MC_PlayCounterAttackMontage();
+}
+
+void ASword::MC_PlayCounterAttackMontage_Implementation() const
+{
 	GetOwner<APlayerCharacter>()->PlayAnimMontage(CounterAttackMontage);
 }
 
@@ -54,36 +60,36 @@ void ASword::OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor
 
 void ASword::StopCheckingLastHAttackStep()
 {
-	GetWorldTimerManager().ClearTimer(LastHAttackStepTriggerTimerHandle);
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	check(PlayerAnimInstance != nullptr);
-	if (PlayerAnimInstance)
+	if (HasAuthority())
 	{
-		PlayerAnimInstance->Montage_Resume(nullptr);
+		GetOwner<APlayerCharacter>()->MC_ResumeAnimInstance();
+		GetWorldTimerManager().ClearTimer(LastHAttackStepTriggerTimerHandle);
 	}
 }
 
-void ASword::StartCheckingLastHAttackStep()
+void ASword::StartCheckingFinalHeavyAttack()
 {
-	if (!FirstHitEnemy)
-		return;
-
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	check(PlayerAnimInstance != nullptr);
-	if (PlayerAnimInstance)
+	if (!HasAuthority() || !FirstHitEnemy)
 	{
-		PlayerAnimInstance->Montage_Pause();
-		GetWorldTimerManager().SetTimer(LastHAttackStepTriggerTimerHandle, this, &ASword::PlayLastHAttackStep, TimeBeforeTriggerLastHAttackStep, false);
+		return;
 	}
+	
+	GetOwner<APlayerCharacter>()->MC_PauseAnimInstance();
+	GetWorldTimerManager().SetTimer(LastHAttackStepTriggerTimerHandle, this, &ASword::MC_PlayLastHAttackStep, MyFinalHeavyAttackTriggerTime, false);
 }
 
-void ASword::PlayLastHAttackStep() const
+void ASword::MC_PlayLastHAttackStep_Implementation() const
 {
 	GetOwner<APlayerCharacter>()->PlayAnimMontage(LastHAttackMontage);
 }
 
-void ASword::ApplyLastHAttackEffect()
+void ASword::ApplyFinalHeavyAttackEffect()
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
 	AActor* DamageReceiver = FirstHitEnemy;
 	DisableAttackCheck();
 	OnEnemyHit(DamageReceiver);

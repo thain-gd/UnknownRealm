@@ -38,6 +38,12 @@ public:
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_PauseAnimInstance() const;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_ResumeAnimInstance() const;
+
 	UFUNCTION(Server, Reliable)
 	void SR_FinishCollecting(ACollectibleItem* CollectedItem);
 

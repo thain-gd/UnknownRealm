@@ -9,7 +9,7 @@
 #include "Player/PlayerCharacter.h"
 
 ASword::ASword()
-	: MyFinalHeavyAttackTriggerTime(0.7f), BleedingDamageModifier(0.05f), BleedingDuration(10.0f), BleedingTriggerRate(1.0f)
+	: FinalHeavyAttackTriggerTime(0.7f), BleedingDamageModifier(0.05f), BleedingDuration(10.0f), BleedingTriggerRate(1.0f)
 {
 	WeaponType = EWeaponType::Sword;
 	
@@ -33,12 +33,7 @@ void ASword::SR_TriggerCounterAttack_Implementation()
 		return;
 
 	bCanCounterAttack = false; // Reset to prevent multiple counter attacks
-	MC_PlayCounterAttackMontage();
-}
-
-void ASword::MC_PlayCounterAttackMontage_Implementation() const
-{
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(CounterAttackMontage);
+	GetOwner<APlayerCharacter>()->MC_PlayAnimMontage(CounterAttackMontage);
 }
 
 bool ASword::IsReadyToDoCounterAttack() const
@@ -54,16 +49,25 @@ void ASword::OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor
 
 	if (!FirstHitEnemy)
 	{
-		StopCheckingLastHAttackStep();
+		StopCheckingFinalHeavyAttack();
 	}
 }
 
-void ASword::StopCheckingLastHAttackStep()
+void ASword::StopCheckingFinalHeavyAttack()
 {
 	if (HasAuthority())
 	{
 		GetOwner<APlayerCharacter>()->MC_ResumeAnimInstance();
-		GetWorldTimerManager().ClearTimer(LastHAttackStepTriggerTimerHandle);
+		GetWorldTimerManager().ClearTimer(FinalHeavyAttackTriggerTimerHandle);
+	}
+}
+
+void ASword::CheckFinalCounterAttack()
+{
+	if (HasAuthority() && bCanDoNextCounterStep)
+	{
+		GetOwner<APlayerCharacter>()->MC_PlayAnimMontage(FinalCounterAttackMontage);
+		bCanDoNextCounterStep = false;
 	}
 }
 
@@ -75,12 +79,10 @@ void ASword::StartCheckingFinalHeavyAttack()
 	}
 	
 	GetOwner<APlayerCharacter>()->MC_PauseAnimInstance();
-	GetWorldTimerManager().SetTimer(LastHAttackStepTriggerTimerHandle, this, &ASword::MC_PlayLastHAttackStep, MyFinalHeavyAttackTriggerTime, false);
-}
-
-void ASword::MC_PlayLastHAttackStep_Implementation() const
-{
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(LastHAttackMontage);
+	
+	FTimerDelegate PlayFinalHeavyAttackDelegate;
+	PlayFinalHeavyAttackDelegate.BindUObject(GetOwner<APlayerCharacter>(), &APlayerCharacter::MC_PlayAnimMontage, FinalHeavyAttackMontage);
+	GetWorldTimerManager().SetTimer(FinalHeavyAttackTriggerTimerHandle, PlayFinalHeavyAttackDelegate, FinalHeavyAttackTriggerTime, false);
 }
 
 void ASword::ApplyFinalHeavyAttackEffect()

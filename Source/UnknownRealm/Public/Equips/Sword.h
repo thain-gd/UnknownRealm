@@ -33,13 +33,10 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void StartCheckingFinalHeavyAttack();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PlayCounterAttackMontage() const;
+	void StopCheckingFinalHeavyAttack();
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PlayLastHAttackStep() const;
-
-	void StopCheckingLastHAttackStep();
+	UFUNCTION(BlueprintCallable)
+	void CheckFinalCounterAttack();
 
 	UFUNCTION(BlueprintCallable)
 	void ApplyFinalHeavyAttackEffect();
@@ -52,10 +49,13 @@ private:
 	UAnimMontage* CounterAttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* LastHAttackMontage;
+	UAnimMontage* FinalCounterAttackMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true", DisplayName = "Final Heavy Attack Trigger Time"))
-	float MyFinalHeavyAttackTriggerTime;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* FinalHeavyAttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	float FinalHeavyAttackTriggerTime;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanCounterAttack;
@@ -72,5 +72,5 @@ private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	float BleedingTriggerRate;
 
-	FTimerHandle LastHAttackStepTriggerTimerHandle;
+	FTimerHandle FinalHeavyAttackTriggerTimerHandle;
 };

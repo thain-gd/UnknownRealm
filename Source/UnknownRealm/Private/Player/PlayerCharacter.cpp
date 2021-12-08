@@ -368,11 +368,6 @@ void APlayerCharacter::SR_DoSideStep_Implementation(bool bIsLeft)
 	MC_PlayAnimMontage(bIsLeft ? Weapon->GetLeftSideStepMontage() : Weapon->GetRightSideStepMontage());
 }
 
-void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)
-{
-	PlayAnimMontage(MontageToPlay);
-}
-
 void APlayerCharacter::SR_PutWeaponAway_Implementation()
 {
 	if (!Weapon->IsWeaponActive())
@@ -391,6 +386,11 @@ void APlayerCharacter::ResetMovement() const
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+}
+
+void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)
+{
+	PlayAnimMontage(MontageToPlay);
 }
 
 void APlayerCharacter::MC_PauseAnimInstance_Implementation() const
@@ -484,7 +484,7 @@ float APlayerCharacter::GetChargeAmount() const
 
 bool APlayerCharacter::CheckCounterAttack()
 {
-	if (!bMyIsInCounterFrame)
+	if (!bIsInCounterFrame)
 		return false;
 
 	ASword* Sword = Cast<ASword>(Weapon);

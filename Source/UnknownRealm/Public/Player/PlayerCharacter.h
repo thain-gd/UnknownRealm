@@ -39,6 +39,9 @@ public:
 	void ResetMovement() const;
 
 	UFUNCTION(NetMulticast, Reliable)
+	void MC_PlayAnimMontage(UAnimMontage* MontageToPlay);
+	
+	UFUNCTION(NetMulticast, Reliable)
 	void MC_PauseAnimInstance() const;
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -68,7 +71,7 @@ public:
 	
 	float GetStaminaPercent() const;
 
-	bool GetIsInCounterFrame() const { return bMyIsInCounterFrame; }
+	bool GetIsInCounterFrame() const { return bIsInCounterFrame; }
 
 	float GetCounterReduction() const { return MyCounterReduction; }
 
@@ -116,9 +119,6 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void SR_DoSideStep(bool bIsLeft);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PlayAnimMontage(UAnimMontage* MontageToPlay);
 	
 	UFUNCTION(Server, Reliable)
 	void SR_PutWeaponAway();
@@ -205,7 +205,7 @@ private:
 	bool bCanSideStep;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bMyIsInCounterFrame;
+	bool bIsInCounterFrame;
 
 	UPROPERTY(EditAnywhere)
 	float MyCounterReduction;

@@ -59,7 +59,7 @@ public:
 	float GetSideStepStaminaPercent() const { return SideStepStaminaPercent; }
 
 	UFUNCTION()
-	virtual void OnEnemyHit(AActor* Enemy);
+	virtual void OnEnemyHit(AActor* InEnemy);
 
 	UAnimMontage* GetLeftSideStepMontage() const { return LeftSideStepMontage; }
 	UAnimMontage* GetRightSideStepMontage() const { return RightSideStepMontage; }
@@ -69,7 +69,7 @@ protected:
 
 private:
 	UFUNCTION(Client, Reliable)
-	void CL_ShowDmgDealt(int32 TotalDmg);
+	void CL_ShowDmgDealt(int32 InTotalDmg);
 
 	
 protected:

@@ -17,10 +17,10 @@ public:
 	UStaminaComponent();
 
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float InDeltaTime, ELevelTick InTickType, FActorComponentTickFunction* InThisTickFunction) override;
 
-	bool DecreaseStaminaByPercentage(float StaminaPercentage);
-	bool DecreaseStaminaByPoint(float StaminaCost);
+	bool DecreaseStaminaByPercentage(float InStaminaPercentage);
+	bool DecreaseStaminaByPoint(float InStaminaCost);
 	float GetCurrentStaminaPercent() const { return CurrentStamina / MaxStamina; }
 
 protected:
@@ -28,9 +28,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	void RegenStamina(float DeltaTime);
+	void RegenStamina(float InDeltaTime);
 	
-	bool IsEnoughStamina(float Stamina) const { return Stamina <= CurrentStamina; }
+	bool IsEnoughStamina(float InStamina) const { return InStamina <= CurrentStamina; }
 	bool IsStaminaFull() const { return CurrentStamina == MaxStamina; }
 
 protected:

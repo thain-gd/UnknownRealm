@@ -66,11 +66,11 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 
-	void AddItem(const FName& ItemID, const int32 Amount = 1);
-	bool RemoveItems(TMap<FName, int32>& ToRemoveItems);
-	bool RemoveItem(const FName& ItemID, const int32 Amount = 1);
+	void AddItem(const FName& InItemID, const int32 InAmount = 1);
+	bool RemoveItems(TMap<FName, int32>& InToRemoveItems);
+	bool RemoveItem(const FName& InItemID, const int32 InAmount = 1);
 
-	bool AreItemsAvailable(const TMap<FName, int32>& ItemPairs);
+	bool AreItemsAvailable(const TMap<FName, int32>& InItemPairs);
 
 	// Accumulate and return all resources that we have
 	void GetAvailableResources(TMap<FName, int32>& OutAvailableResources);
@@ -87,11 +87,11 @@ protected:
 private:
 	void Init();
 
-	void AddStackableItem(FInventoryItem StackableItem);
-	void AddItemToNewSlot(FInventoryItem& Item);
+	void AddStackableItem(FInventoryItem InStackableItem);
+	void AddItemToNewSlot(FInventoryItem& InItem);
 
 	UFUNCTION(Reliable, NetMulticast)
-	void MC_UpdateWidget(const TArray<FInventoryItem>& ItemList);
+	void MC_UpdateWidget(const TArray<FInventoryItem>& InItemList);
 	
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))

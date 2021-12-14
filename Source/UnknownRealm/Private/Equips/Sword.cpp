@@ -42,10 +42,9 @@ bool ASword::IsReadyToDoCounterAttack() const
 	return IsAttacking() && bCanCounterAttack;
 }
 
-void ASword::OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ASword::OnEndOverlapWeapon(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex)
 {
-	Super::OnEndOverlapWeapon(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+	Super::OnEndOverlapWeapon(InOverlappedComponent, InOtherActor, InOtherComp, InOtherBodyIndex);
 
 	if (!FirstHitEnemy)
 	{

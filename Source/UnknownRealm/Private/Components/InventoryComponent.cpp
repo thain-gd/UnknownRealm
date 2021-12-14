@@ -70,16 +70,16 @@ void UInventoryComponent::HideWidget() const
 	InventoryWidget->RemoveFromParent();
 }
 
-void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
+void UInventoryComponent::AddItem(const FName& InItemID, const int32 InAmount)
 {
 	UMPGameInstance* GameInstance = Cast<UMPGameInstance>(GetWorld()->GetGameInstance());
 	if (!GameInstance)
 		return;
 	
-	FInventoryItem& CollectedItem = *GameInstance->GetInventoryItemData()->FindRow<FInventoryItem>(ItemID, TEXT("UInventoryComponent::AddItem"), true);
-	if (CollectedItem.ID == ItemID)
+	FInventoryItem& CollectedItem = *GameInstance->GetInventoryItemData()->FindRow<FInventoryItem>(InItemID, TEXT("UInventoryComponent::AddItem"), true);
+	if (CollectedItem.ID == InItemID)
 	{
-		CollectedItem.Count = Amount;
+		CollectedItem.Count = InAmount;
 		if (CollectedItem.bStackable)
 		{
 			AddStackableItem(CollectedItem);
@@ -93,51 +93,51 @@ void UInventoryComponent::AddItem(const FName& ItemID, const int32 Amount)
 	}
 }
 
-void UInventoryComponent::AddStackableItem(FInventoryItem StackableItem)
+void UInventoryComponent::AddStackableItem(FInventoryItem InStackableItem)
 {
 	for (FInventoryItem& Item : Items)
 	{
-		if (Item.ID == StackableItem.ID)
+		if (Item.ID == InStackableItem.ID)
 		{
-			if (Item.Count + StackableItem.Count <= Item.MaxStackCount)
+			if (Item.Count + InStackableItem.Count <= Item.MaxStackCount)
 			{
-				Item.Count += StackableItem.Count;
+				Item.Count += InStackableItem.Count;
 				return;
 			}
 
-			StackableItem.Count = Item.Count + StackableItem.Count - Item.MaxStackCount;
+			InStackableItem.Count = Item.Count + InStackableItem.Count - Item.MaxStackCount;
 			Item.Count = Item.MaxStackCount;
 		}
 	}
 
-	if (StackableItem.Count > 0 && FreeSlots > 0)
+	if (InStackableItem.Count > 0 && FreeSlots > 0)
 	{
-		AddItemToNewSlot(StackableItem);
+		AddItemToNewSlot(InStackableItem);
 	}
 }
 
-void UInventoryComponent::AddItemToNewSlot(FInventoryItem& Item)
+void UInventoryComponent::AddItemToNewSlot(FInventoryItem& InItem)
 {
 	for (int i = 0; i < Items.Num(); ++i)
 	{
 		if (Items[i].ID == EMPTY_ID)
 		{
-			Items[i] = Item;
+			Items[i] = InItem;
 			--FreeSlots;
 			return;
 		}
 	}
 }
 
-bool UInventoryComponent::RemoveItems(TMap<FName, int32>& ToRemoveItems)
+bool UInventoryComponent::RemoveItems(TMap<FName, int32>& InToRemoveItems)
 {
-	if (!AreItemsAvailable(ToRemoveItems))
+	if (!AreItemsAvailable(InToRemoveItems))
 		return false;
 
 	TArray<int32> ItemIndices;
 	for (int i = 0; i < Items.Num(); ++i)
 	{
-		if (!ToRemoveItems.Contains(Items[i].ID))
+		if (!InToRemoveItems.Contains(Items[i].ID))
 			continue;
 
 		ItemIndices.Add(i);
@@ -145,7 +145,7 @@ bool UInventoryComponent::RemoveItems(TMap<FName, int32>& ToRemoveItems)
 
 	for (int ItemIndex : ItemIndices)
 	{
-		int32* RemainingAmountPtr = &ToRemoveItems[Items[ItemIndex].ID];
+		int32* RemainingAmountPtr = &InToRemoveItems[Items[ItemIndex].ID];
 		if (*RemainingAmountPtr <= 0)
 			continue;
 
@@ -163,13 +163,13 @@ bool UInventoryComponent::RemoveItems(TMap<FName, int32>& ToRemoveItems)
 	return true;
 }
 
-bool UInventoryComponent::RemoveItem(const FName& ItemID, const int32 Amount)
+bool UInventoryComponent::RemoveItem(const FName& InItemID, const int32 InAmount)
 {
-	int32 RemainingAmount = Amount;
+	int32 RemainingAmount = InAmount;
 	TArray<int32> ItemIndices;
 	for (int i = 0; i < Items.Num() && RemainingAmount > 0; ++i)
 	{
-		if (Items[i].ID != ItemID)
+		if (Items[i].ID != InItemID)
 			continue;
 
 		if (Items[i].Count >= RemainingAmount)
@@ -187,7 +187,7 @@ bool UInventoryComponent::RemoveItem(const FName& ItemID, const int32 Amount)
 	if (RemainingAmount != 0)
 		return false;
 
-	RemainingAmount = Amount;
+	RemainingAmount = InAmount;
 	for (int ItemIndex : ItemIndices)
 	{
 		const int32 Available = Items[ItemIndex].Count;
@@ -204,12 +204,12 @@ bool UInventoryComponent::RemoveItem(const FName& ItemID, const int32 Amount)
 	return true;
 }
 
-bool UInventoryComponent::AreItemsAvailable(const TMap<FName, int32>& ItemPairs)
+bool UInventoryComponent::AreItemsAvailable(const TMap<FName, int32>& InItemPairs)
 {
 	TMap<FName, int32> AvailableResources;
 	GetAvailableResources(AvailableResources);
 
-	for (auto& ItemPair : ItemPairs)
+	for (auto& ItemPair : InItemPairs)
 	{
 		if (!AvailableResources.Contains(ItemPair.Key) || AvailableResources[ItemPair.Key] < ItemPair.Value)
 		{
@@ -220,9 +220,9 @@ bool UInventoryComponent::AreItemsAvailable(const TMap<FName, int32>& ItemPairs)
 	return true;
 }
 
-void UInventoryComponent::MC_UpdateWidget_Implementation(const TArray<FInventoryItem>& ItemList)
+void UInventoryComponent::MC_UpdateWidget_Implementation(const TArray<FInventoryItem>& InItemList)
 {
-	Items = ItemList;
+	Items = InItemList;
 	
 	AMPPlayerController* PlayerController = Cast<AMPPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
@@ -234,7 +234,7 @@ void UInventoryComponent::MC_UpdateWidget_Implementation(const TArray<FInventory
 		}
 	}
 	
-	InventoryWidget->Refresh(ItemList);
+	InventoryWidget->Refresh(InItemList);
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

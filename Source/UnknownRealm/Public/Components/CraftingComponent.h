@@ -50,26 +50,26 @@ public:
 	// Sets default values for this component's properties
 	UCraftingComponent();
 
-	void Init(UCameraComponent* FollowCam);
+	void Init(UCameraComponent* InCraftingCam);
 
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void TickComponent(float InDeltaTime, ELevelTick InTickType, FActorComponentTickFunction* InThisTickFunction) override;
 
 	void ToggleCraftingWidget();
 
 	void UpdateCraftingAvailabilities() const;
 
-	void StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings);
+	void StartCrafting(const FName& InCraftingItemID, FCraftingItem* InCraftingItemSettings);
 
 	void VerifyPlacement();
 	
 	bool IsCrafting() const { return CraftingObject != nullptr; }
 
 	UFUNCTION(Server, Reliable)
-	void SR_RotateCraftingObject(float AxisValue);
+	void SR_RotateCraftingObject(float InAxisValue);
 
 	UFUNCTION(Server, Reliable)
-	void SR_CraftUseables(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const;
+	void SR_CraftUseables(const FName& InUseableID, const int32 InDefaultAmount, const int32 InCraftTime) const;
 
 protected:
 	// Called when the game starts
@@ -79,10 +79,10 @@ private:
 	void GetCraftingRequirements(const FName& UseableID, TMap<FName, int32>& OutRequirements, const int32 CraftTime = 1) const;
 	
 	UFUNCTION(Server, Reliable)
-	void SR_SpawnCraftingObject(const FName& CraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass);
+	void SR_SpawnCraftingObject(const FName& InCraftingItemID, TSubclassOf<ACraftingObject> InCraftingObjectClass);
 
 	UFUNCTION(Server, Reliable)
-	void SR_UpdateCraftingObjectLocation(const FVector& NewLocation, bool bFoundPlacement);
+	void SR_UpdateCraftingObjectLocation(const FVector& InNewLocation, bool bInFoundPlacement);
 
 	void CancelCrafting();
 

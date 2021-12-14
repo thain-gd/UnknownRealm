@@ -27,9 +27,9 @@ UCraftingComponent::UCraftingComponent()
 	// ...
 }
 
-void UCraftingComponent::Init(UCameraComponent* FollowCam)
+void UCraftingComponent::Init(UCameraComponent* InCraftingCam)
 {
-	CraftingCam = FollowCam;
+	CraftingCam = InCraftingCam;
 }
 
 // Called when the game starts
@@ -46,14 +46,14 @@ void UCraftingComponent::BeginPlay()
 }
 
 // Called every frame
-void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UCraftingComponent::TickComponent(float InDeltaTime, ELevelTick InTickType, FActorComponentTickFunction* InThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(InDeltaTime, InTickType, InThisTickFunction);
 
 	if (CraftingObject && GetOwner<APawn>()->IsLocallyControlled())
 	{
 		FVector StartPoint = CraftingCam->GetComponentLocation();
-		FVector EndPoint = StartPoint + CraftingCam->GetForwardVector() * 600.0f;
+		FVector EndPoint = StartPoint + CraftingCam->GetForwardVector() * 800.0f;
 		
 		FCollisionQueryParams TraceParams;
 		TraceParams.AddIgnoredActor(GetOwner());
@@ -72,16 +72,16 @@ void UCraftingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 }
 
-void UCraftingComponent::SR_CraftUseables_Implementation(const FName& UseableID, const int32 DefaultAmount, const int32 CraftTime) const
+void UCraftingComponent::SR_CraftUseables_Implementation(const FName& InUseableID, const int32 InDefaultAmount, const int32 InCraftTime) const
 {
 	TMap<FName, int32> Requirements;
-	GetCraftingRequirements(UseableID, Requirements, CraftTime);
+	GetCraftingRequirements(InUseableID, Requirements, InCraftTime);
 	
 	UInventoryComponent* Inventory = GetWorld()->GetGameState<AMPGameState>()->GetInventory();
 	// TODO: Check if slots are enough
 	if (Inventory->RemoveItems(Requirements))
 	{
-		Inventory->AddItem(UseableID, DefaultAmount * CraftTime);
+		Inventory->AddItem(InUseableID, InDefaultAmount * InCraftTime);
 	}
 }
 
@@ -101,12 +101,12 @@ void UCraftingComponent::GetCraftingRequirements(const FName& UseableID, TMap<FN
 	}
 }
 
-void UCraftingComponent::SR_UpdateCraftingObjectLocation_Implementation(const FVector& NewLocation, bool bFoundPlacement)
+void UCraftingComponent::SR_UpdateCraftingObjectLocation_Implementation(const FVector& InNewLocation, bool bInFoundPlacement)
 {
 	if (CraftingObject)
 	{
-		CraftingObject->SetActorLocation(NewLocation);
-		if (bFoundPlacement)
+		CraftingObject->SetActorLocation(InNewLocation);
+		if (bInFoundPlacement)
 		{
 			const bool bBuildable = CraftingObject->CheckBuildStatus();
 			CraftingObject->MC_SetMaterials(bBuildable ? CanBuildMat : CanNotBuildMat);
@@ -161,17 +161,17 @@ void UCraftingComponent::UpdateCraftingAvailabilities() const
 	CraftingWidget->UpdateCraftableWidgets();
 }
 
-void UCraftingComponent::StartCrafting(const FName& CraftingItemID, FCraftingItem* CraftingItemSettings)
+void UCraftingComponent::StartCrafting(const FName& InCraftingItemID, FCraftingItem* InCraftingItemSettings)
 {
 	Cast<AMPPlayerController>(GetOwner<APlayerCharacter>()->Controller)->SetInputToGameOnly();
 	CraftingWidget->ShowCraftingGuidelines();
-	SR_SpawnCraftingObject(CraftingItemID, CraftingItemSettings->Class);
+	SR_SpawnCraftingObject(InCraftingItemID, InCraftingItemSettings->Class);
 }
 
-void UCraftingComponent::SR_SpawnCraftingObject_Implementation(const FName& InCraftingItemID, TSubclassOf<ACraftingObject> CraftingObjectClass)
+void UCraftingComponent::SR_SpawnCraftingObject_Implementation(const FName& InCraftingItemID, TSubclassOf<ACraftingObject> InCraftingObjectClass)
 {
 	SelectedCraftingItemID = InCraftingItemID;
-	CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(CraftingObjectClass, FVector::ZeroVector, FRotator::ZeroRotator);
+	CraftingObject = GetWorld()->SpawnActor<ACraftingObject>(InCraftingObjectClass, FVector::ZeroVector, FRotator::ZeroRotator);
 	CraftingObject->Init(CanBuildMat);
 }
 
@@ -202,9 +202,9 @@ void UCraftingComponent::SR_PlaceCraftingObject_Implementation()
 	CraftingObject = nullptr;
 }
 
-void UCraftingComponent::SR_RotateCraftingObject_Implementation(float AxisValue)
+void UCraftingComponent::SR_RotateCraftingObject_Implementation(float InAxisValue)
 {
-	CraftingObject->AddActorLocalRotation(FRotator(0.0f, AxisValue * 15.0f, 0.0f));
+	CraftingObject->AddActorLocalRotation(FRotator(0.0f, InAxisValue * 15.0f, 0.0f));
 }
 
 void UCraftingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

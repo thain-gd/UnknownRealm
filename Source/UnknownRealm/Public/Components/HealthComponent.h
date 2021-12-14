@@ -17,10 +17,10 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
-	void TakeDamage(float Damage, AActor* InCauser, bool bInShowDamage = false);
+	void TakeDamage(float InDamage, AActor* InCauser, bool bInShowDamage = false);
 
 	UFUNCTION(Server, Reliable)
-	void SR_IncreaseHealth(float Amount);
+	void SR_IncreaseHealth(float InAmount);
 
 	bool IsAlive() const { return CurrentHealth > 0; }
 
@@ -37,7 +37,7 @@ protected:
 
 private:
 	UFUNCTION()
-	void HandleDamageTaken(AActor* OnTakeAnyDamage, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
+	void HandleDamageTaken(AActor* InDamagedActor, float InDamage, const class UDamageType* InDamageType, class AController* InInstigatedBy, AActor* InDamageCauser);
 
 
 public:

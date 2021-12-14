@@ -29,7 +29,7 @@
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
-	: AimingFOV(50.0f), AimingInterpSpeed(20.0f), MyCounterReduction(0.8f)
+	: AimingFOV(50.0f), AimingInterpSpeed(20.0f), CounterReduction(0.8f)
 {
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -111,14 +111,14 @@ float APlayerCharacter::GetStaminaPercent() const
 
 void APlayerCharacter::CL_SetRecoverableHealth_Implementation(float InRecoverableHealth)
 {
-	MyRecoverableHealth += InRecoverableHealth;
-	MyHealthRecoveryAmount = MyRecoverableHealth * 0.1f;
-	bMyCanStartRecoveryHealth = true;
+	RecoverableHealth += InRecoverableHealth;
+	HealthRecoveryAmount = RecoverableHealth * 0.1f;
+	bCanStartRecoveryHealth = true;
 }
 
 float APlayerCharacter::GetRecoverableHealthPercent() const
 {
-	return MyRecoverableHealth / HealthComp->GetMaxHealth();
+	return RecoverableHealth / HealthComp->GetMaxHealth();
 }
 
 // Called when the game starts or when spawned
@@ -159,7 +159,7 @@ void APlayerCharacter::OnHealthChanged()
 	}
 }
 
-void APlayerCharacter::SR_EquipWeapon_Implementation(AActor* WeaponOwner, const FName& InWeaponID)
+void APlayerCharacter::SR_EquipWeapon_Implementation(AActor* InWeaponOwner, const FName& InWeaponID)
 {
 	if (Weapon)
 	{
@@ -174,15 +174,15 @@ void APlayerCharacter::SR_EquipWeapon_Implementation(AActor* WeaponOwner, const 
 		return;
 	}
 	
-	Weapon->SetOwner(WeaponOwner);
+	Weapon->SetOwner(InWeaponOwner);
 	Weapon->Init(WeaponInfo);
 	Weapon->CL_SetupInputs();
 }
 
-void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor,
+	UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bInFromSweep, const FHitResult& InSweepResult)
 {
-	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
+	ACollectibleItem* Item = Cast<ACollectibleItem>(InOtherActor);
 	if (Item)
 	{
 		bInteractable = true;
@@ -201,10 +201,10 @@ void APlayerCharacter::ShowInteractingUI(UPrimitiveComponent* OverlappedComponen
 	}
 }
 
-void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor,
+	UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex)
 {
-	ACollectibleItem* Item = Cast<ACollectibleItem>(OtherActor);
+	ACollectibleItem* Item = Cast<ACollectibleItem>(InOtherActor);
 	if (Item && Item == CollectibleItem)
 	{
 		bInteractable = bInteracting = false;
@@ -217,47 +217,47 @@ void APlayerCharacter::HideInteractingUI(UPrimitiveComponent* OverlappedComponen
 	}
 }
 
-void APlayerCharacter::Tick(float DeltaSeconds)
+void APlayerCharacter::Tick(float InDeltaSeconds)
 {
-	Super::Tick(DeltaSeconds);
+	Super::Tick(InDeltaSeconds);
 
 	if (!IsLocallyControlled() || !IsValid(Weapon))
 		return;
 	
-	UpdateCameraFOV(DeltaSeconds);
+	UpdateCameraFOV(InDeltaSeconds);
 
 	if (!Weapon->IsAiming())
 		return;
 
 	const float InterpSpeed = 50.0f;
 	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
-	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaSeconds, InterpSpeed);
+	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, InDeltaSeconds, InterpSpeed);
 	SetActorRotation(NewRotation);
 	SR_UpdateAimingRotation(NewRotation);
 }
 
-void APlayerCharacter::UpdateCameraFOV(float DeltaSeconds)
+void APlayerCharacter::UpdateCameraFOV(float InDeltaSeconds)
 {
 	const bool bIsAiming = Weapon->IsAiming();
 	
 	const float TargetFOV = bIsAiming ? AimingFOV : DefaultFOV;
-	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, DeltaSeconds, AimingInterpSpeed);
+	const float NewFOV = FMath::FInterpTo(CameraComp->FieldOfView, TargetFOV, InDeltaSeconds, AimingInterpSpeed);
 	CameraComp->SetFieldOfView(NewFOV);
 
 	const float TargetSocketOffsetY = bIsAiming ? 60.0f : 0.0f;
-	const float NewSocketOffsetY = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, DeltaSeconds, AimingInterpSpeed);
+	const float NewSocketOffsetY = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, InDeltaSeconds, AimingInterpSpeed);
 	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
 }
 
-void APlayerCharacter::SR_UpdateAimingRotation_Implementation(const FRotator& NewRotation)
+void APlayerCharacter::SR_UpdateAimingRotation_Implementation(const FRotator& InNewRotation)
 {
-	SetActorRotation(NewRotation);
+	SetActorRotation(InNewRotation);
 }
 
 // Called to bind functionality to input
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* InPlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	Super::SetupPlayerInputComponent(InPlayerInputComponent);
 
 	InputComponent->BindAxis("MoveForward/Backward", this, &APlayerCharacter::MoveVertical);
 	InputComponent->BindAxis("MoveRight/Left", this, &APlayerCharacter::MoveHorizontal);
@@ -276,7 +276,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	//InputComponent->BindAction("PutWeaponAway", IE_Pressed, this, &APlayerCharacter::SR_PutWeaponAway);
 }
 
-void APlayerCharacter::MoveVertical(float AxisValue)
+void APlayerCharacter::MoveVertical(float InAxisValue)
 {
 	if (bInteracting)
 		return;
@@ -287,10 +287,10 @@ void APlayerCharacter::MoveVertical(float AxisValue)
 
 	// get forward vector
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	AddMovementInput(Direction, AxisValue);
+	AddMovementInput(Direction, InAxisValue);
 }
 
-void APlayerCharacter::MoveHorizontal(float AxisValue)
+void APlayerCharacter::MoveHorizontal(float InAxisValue)
 {
 	if (bInteracting)
 		return;
@@ -302,7 +302,7 @@ void APlayerCharacter::MoveHorizontal(float AxisValue)
 	// get right vector 
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	// add movement in that direction
-	AddMovementInput(Direction, AxisValue);
+	AddMovementInput(Direction, InAxisValue);
 }
 
 void APlayerCharacter::StartSprinting()
@@ -388,9 +388,9 @@ void APlayerCharacter::ResetMovement() const
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
-void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* MontageToPlay)
+void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* InMontageToPlay)
 {
-	PlayAnimMontage(MontageToPlay);
+	PlayAnimMontage(InMontageToPlay);
 }
 
 void APlayerCharacter::MC_PauseAnimInstance_Implementation() const
@@ -448,11 +448,11 @@ void APlayerCharacter::ToggleCraftMenu()
 	CraftingComp->ToggleCraftingWidget();
 }
 
-void APlayerCharacter::OnWheelAxisChanged(float AxisValue)
+void APlayerCharacter::OnWheelAxisChanged(float InAxisValue)
 {
-	if (AxisValue != 0 && CraftingComp->IsCrafting())
+	if (InAxisValue != 0 && CraftingComp->IsCrafting())
 	{
-		CraftingComp->SR_RotateCraftingObject(AxisValue);
+		CraftingComp->SR_RotateCraftingObject(InAxisValue);
 	}
 }
 
@@ -495,18 +495,18 @@ bool APlayerCharacter::CheckCounterAttack()
 
 void APlayerCharacter::StartRecoverHealth()
 {
-	if (bMyCanStartRecoveryHealth && IsLocallyControlled())
+	if (bCanStartRecoveryHealth && IsLocallyControlled())
 	{
-		bMyCanStartRecoveryHealth = false;
-		GetWorldTimerManager().SetTimer(MyHealthRecoveryTimerHandle, this, &APlayerCharacter::RecoverHealth, 1.0f, true, 0.0f);
+		bCanStartRecoveryHealth = false;
+		GetWorldTimerManager().SetTimer(HealthRecoveryTimerHandle, this, &APlayerCharacter::RecoverHealth, 1.0f, true, 0.0f);
 	}
 }
 
 void APlayerCharacter::RecoverHealth()
 {
-	MyRecoverableHealth -= MyHealthRecoveryAmount;
-	HealthComp->SR_IncreaseHealth(MyHealthRecoveryAmount);
-	if (MyRecoverableHealth <= 0)
+	RecoverableHealth -= HealthRecoveryAmount;
+	HealthComp->SR_IncreaseHealth(HealthRecoveryAmount);
+	if (RecoverableHealth <= 0)
 	{
 		CL_StopRecoverHealth();
 	}
@@ -514,13 +514,13 @@ void APlayerCharacter::RecoverHealth()
 
 void APlayerCharacter::CL_StopRecoverHealth_Implementation()
 {
-	MyRecoverableHealth = 0;
-	GetWorldTimerManager().ClearTimer(MyHealthRecoveryTimerHandle);
+	RecoverableHealth = 0;
+	GetWorldTimerManager().ClearTimer(HealthRecoveryTimerHandle);
 }
 
-void APlayerCharacter::SR_FinishCollecting_Implementation(ACollectibleItem* CollectedItem)
+void APlayerCharacter::SR_FinishCollecting_Implementation(ACollectibleItem* InCollectedItem)
 {
-	CollectedItem->OnFinishedCollecting();
+	InCollectedItem->OnFinishedCollecting();
 }
 
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

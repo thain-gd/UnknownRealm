@@ -28,22 +28,22 @@ void UHealthComponent::BeginPlay()
 	CurrentHealth = MaxHealth;
 }
 
-void UHealthComponent::HandleDamageTaken(AActor* OnTakeAnyDamage, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+void UHealthComponent::HandleDamageTaken(AActor* InDamagedActor, float InDamage, const UDamageType* InDamageType, AController* InInstigatedBy, AActor* InDamageCauser)
 {
-	if (bIsInvincible || Damage <= 0.0f || !IsAlive())
+	if (bIsInvincible || InDamage <= 0.0f || !IsAlive())
 		return;
 
-	const UBaseDamageType* BaseDamageType = Cast<UBaseDamageType>(DamageType);
+	const UBaseDamageType* BaseDamageType = Cast<UBaseDamageType>(InDamageType);
 	if (BaseDamageType)
 	{
-		BaseDamageType->HandleDamage(Damage, DamageCauser, GetOwner());
+		BaseDamageType->HandleDamage(InDamage, InDamageCauser, GetOwner());
 	}
 }
 
 
-void UHealthComponent::TakeDamage(float Damage, AActor* InCauser, bool bInShowDamage)
+void UHealthComponent::TakeDamage(float InDamage, AActor* InCauser, bool bInShowDamage)
 {
-	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
+	CurrentHealth = FMath::Clamp(CurrentHealth - InDamage, 0.0f, MaxHealth);
 	OnHealthChanged.Execute();
 
 	if (!InCauser || !bInShowDamage)
@@ -52,13 +52,13 @@ void UHealthComponent::TakeDamage(float Damage, AActor* InCauser, bool bInShowDa
 	const APlayerCharacter* PlayerChar = InCauser->GetOwner<APlayerCharacter>();
 	if (PlayerChar)
 	{
-		PlayerChar->ShowDamageDealt(Damage);
+		PlayerChar->ShowDamageDealt(InDamage);
 	}
 }
 
-void UHealthComponent::SR_IncreaseHealth_Implementation(float Amount)
+void UHealthComponent::SR_IncreaseHealth_Implementation(float InAmount)
 {
-	CurrentHealth += Amount;
+	CurrentHealth += InAmount;
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -7,10 +7,15 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/PlayerCharacter.h"
 
-void AComboWeapon::SetupInputs(UInputComponent* ControllerInputComp)
+void AComboWeapon::CL_SetupInputs_Implementation()
 {
-	ControllerInputComp->BindAction("LightAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerLightAttack);
-	ControllerInputComp->BindAction("HeavyAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerHeavyAttack);
+	Super::CL_SetupInputs_Implementation();
+
+	if (InputComponent)
+	{
+		InputComponent->BindAction("LightAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerLightAttack);
+		InputComponent->BindAction("HeavyAttack", IE_Pressed, this, &AComboWeapon::SR_TriggerHeavyAttack);
+	}
 }
 
 void AComboWeapon::SR_TriggerLightAttack_Implementation()
@@ -72,9 +77,9 @@ void AComboWeapon::TriggerNextAttack()
 	}
 }
 
-void AComboWeapon::MC_TriggerAttack_Implementation(UAnimMontage* AttackMontage)
+void AComboWeapon::MC_TriggerAttack_Implementation(UAnimMontage* InAttackMontage)
 {
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(AttackMontage);
+	GetOwner<APlayerCharacter>()->PlayAnimMontage(InAttackMontage);
 }
 
 void AComboWeapon::ResetCombo()
@@ -108,22 +113,22 @@ void AComboWeapon::BeginPlay()
 	}
 }
 
-void AComboWeapon::OnWeaponHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AComboWeapon::OnWeaponHit(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor,
+	UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bInFromSweep, const FHitResult& InSweepResult)
 {
-	if (!OtherActor->ActorHasTag(FName("AI")))
+	if (!InOtherActor->ActorHasTag(FName("AI")))
 		return;
 
 	if (!FirstHitEnemy)
 	{
-		FirstHitEnemy = OtherActor;
-		OnEnemyHit(OtherActor);
+		FirstHitEnemy = InOtherActor;
+		OnEnemyHit(InOtherActor);
 	}
 }
 
-void AComboWeapon::OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AComboWeapon::OnEndOverlapWeapon(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex)
 {
-	if (!OtherActor->ActorHasTag(FName("AI")) || OtherActor != FirstHitEnemy)
+	if (!InOtherActor->ActorHasTag(FName("AI")) || InOtherActor != FirstHitEnemy)
 		return;
 
 	FirstHitEnemy = nullptr;

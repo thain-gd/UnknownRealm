@@ -19,30 +19,30 @@ void UOvertimeDamageComponent::Init(AActor* InDamageCauser, float InDamage, floa
 	FTimerDelegate ApplyDamageDelegate;
 	ApplyDamageDelegate.BindUFunction(this, FName("ApplyDamage"), InDamageCauser);
 	
-	if (MyOvertimeDamageInfoByActorMap.Contains(InDamageCauser))
+	if (OvertimeDamageInfoByActorMap.Contains(InDamageCauser))
 	{
-		MyOvertimeDamageInfoByActorMap[InDamageCauser].MyTriggerTimes = TriggerTimes;
-		GetWorld()->GetTimerManager().SetTimer(MyOvertimeDamageInfoByActorMap[InDamageCauser].MyApplyDamageTimerHandle, ApplyDamageDelegate, InTriggerRate, true);
+		OvertimeDamageInfoByActorMap[InDamageCauser].TriggerTimes = TriggerTimes;
+		GetWorld()->GetTimerManager().SetTimer(OvertimeDamageInfoByActorMap[InDamageCauser].ApplyDamageTimerHandle, ApplyDamageDelegate, InTriggerRate, true);
 	}
 	else
 	{
 		FOvertimeDamageInfo OvertimeDamageInfo{ InDamage, TriggerTimes };
-		GetWorld()->GetTimerManager().SetTimer(OvertimeDamageInfo.MyApplyDamageTimerHandle, ApplyDamageDelegate, InTriggerRate, true);
-		MyOvertimeDamageInfoByActorMap.Add(InDamageCauser, OvertimeDamageInfo);
+		GetWorld()->GetTimerManager().SetTimer(OvertimeDamageInfo.ApplyDamageTimerHandle, ApplyDamageDelegate, InTriggerRate, true);
+		OvertimeDamageInfoByActorMap.Add(InDamageCauser, OvertimeDamageInfo);
 	}
 }
 
 void UOvertimeDamageComponent::ApplyDamage(AActor* InDamageCauser)
 {
-	FOvertimeDamageInfo& OvertimeDamageInfo = MyOvertimeDamageInfoByActorMap[InDamageCauser];
-	UE_LOG(LogTemp, Warning, TEXT("%s dealt %f"), *InDamageCauser->GetName(), OvertimeDamageInfo.MyDamage);
+	FOvertimeDamageInfo& OvertimeDamageInfo = OvertimeDamageInfoByActorMap[InDamageCauser];
+	UE_LOG(LogTemp, Warning, TEXT("%s dealt %f"), *InDamageCauser->GetName(), OvertimeDamageInfo.Damage);
 	UHealthComponent* HealthComp = GetOwner()->FindComponentByClass<UHealthComponent>();
 	check(HealthComp != nullptr);
-	HealthComp->TakeDamage(OvertimeDamageInfo.MyDamage, MyDamageCauser);
+	HealthComp->TakeDamage(OvertimeDamageInfo.Damage, DamageCauser);
 
-	--OvertimeDamageInfo.MyTriggerTimes;
-	if (OvertimeDamageInfo.MyTriggerTimes == 0)
+	--OvertimeDamageInfo.TriggerTimes;
+	if (OvertimeDamageInfo.TriggerTimes == 0)
 	{
-		GetWorld()->GetTimerManager().ClearTimer(OvertimeDamageInfo.MyApplyDamageTimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(OvertimeDamageInfo.ApplyDamageTimerHandle);
 	}
 }

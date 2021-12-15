@@ -40,15 +40,15 @@ void ARangeWeapon::Init(FEquipmentInfo* InEquipInfo)
 	}
 }
 
-void ARangeWeapon::CL_SetupComponents_Implementation(APlayerCharacter* PlayerChar)
+void ARangeWeapon::CL_SetupComponents_Implementation(APlayerCharacter* InPlayerChar)
 {
-	SetupComponents(PlayerChar);
+	SetupComponents(InPlayerChar);
 }
 
-void ARangeWeapon::SetupComponents(APlayerCharacter* PlayerChar)
+void ARangeWeapon::SetupComponents(APlayerCharacter* InPlayerChar)
 {
 	bIsLocallyControlled = true;
-	PlayerCharCameraComp = PlayerChar->GetCameraComp();
+	PlayerCharCameraComp = InPlayerChar->GetCameraComp();
 
 	SetupChargeTimeline();
 }
@@ -66,9 +66,9 @@ void ARangeWeapon::SetupChargeTimeline()
 	ChargeTimelineComp->SetTimelineFinishedFunc(ChargingFinishedEvent);
 }
 
-void ARangeWeapon::SR_UpdateChargeTimelineComp_Implementation(float NewChargeAmount)
+void ARangeWeapon::SR_UpdateChargeTimelineComp_Implementation(float InChargeAmount)
 {
-	ChargeAmount = NewChargeAmount;
+	ChargeAmount = InChargeAmount;
 	OR_UpdateTimingMultiplierByChargeAmount();
 }
 
@@ -88,9 +88,9 @@ void ARangeWeapon::OR_UpdateTimingMultiplierByChargeAmount()
 	}
 }
 
-void ARangeWeapon::UpdateTimingMultiplier(ETimingState TimingState)
+void ARangeWeapon::UpdateTimingMultiplier(ETimingState InTimingState)
 {
-	switch (TimingState)
+	switch (InTimingState)
 	{
 	case ETimingState::Default:
 		TimingMultiplier = DefaultTimingMultiplier;
@@ -106,12 +106,17 @@ void ARangeWeapon::UpdateTimingMultiplier(ETimingState TimingState)
 	}
 }
 
-void ARangeWeapon::SetupInputs(UInputComponent* ControllerInputComp)
+void ARangeWeapon::CL_SetupInputs_Implementation()
 {
-	ControllerInputComp->BindAction("Aim", IE_Pressed, this, &ARangeWeapon::SR_OnAimingStarted);
-	ControllerInputComp->BindAction("Aim", IE_Released, this, &ARangeWeapon::SR_OnAimingEnded);
-	ControllerInputComp->BindAction("Charge", IE_Pressed, this, &ARangeWeapon::OnChargingStart);
-	ControllerInputComp->BindAction("Charge", IE_Released, this, &ARangeWeapon::Fire);
+	Super::CL_SetupInputs_Implementation();
+
+	if (InputComponent)
+	{
+		InputComponent->BindAction("Aim", IE_Pressed, this, &ARangeWeapon::SR_OnAimingStarted);
+		InputComponent->BindAction("Aim", IE_Released, this, &ARangeWeapon::SR_OnAimingEnded);
+		InputComponent->BindAction("Charge", IE_Pressed, this, &ARangeWeapon::OnChargingStart);
+		InputComponent->BindAction("Charge", IE_Released, this, &ARangeWeapon::Fire);
+	}
 }
 
 void ARangeWeapon::SR_OnAimingStarted_Implementation()
@@ -244,7 +249,7 @@ float ARangeWeapon::CalculateDamage() const
 	return FMath::RoundToFloat(BaseDmg * RangeMultiplier * TimingMultiplier);
 }
 
-void ARangeWeapon::SR_OnFired_Implementation(const FVector& InTargetLocation, const float Damage)
+void ARangeWeapon::SR_OnFired_Implementation(const FVector& InTargetLocation, const float InDamage)
 {
 	AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
 	if (GameState)
@@ -252,10 +257,10 @@ void ARangeWeapon::SR_OnFired_Implementation(const FVector& InTargetLocation, co
 		GameState->GetInventory()->RemoveItem(CurrentArrowID);
 	}
 
-	LastTotalDmg = Damage; // cache to use when an arrow fires the registered OnEnemyHit event
+	LastTotalDmg = InDamage; // cache to use when an arrow fires the registered OnEnemyHit event
 	
 	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	Arrow->OnFired(InTargetLocation, Damage);
+	Arrow->OnFired(InTargetLocation, InDamage);
 	Arrow = nullptr;
 }
 
@@ -266,9 +271,9 @@ void ARangeWeapon::StopCharge() const
 	ChargeTimelineComp->Reverse();
 }
 
-void ARangeWeapon::Tick(float DeltaSeconds)
+void ARangeWeapon::Tick(float InDeltaSeconds)
 {
-	Super::Tick(DeltaSeconds);
+	Super::Tick(InDeltaSeconds);
 
 	if (!bIsLocallyControlled || !bIsAiming)
 		return;
@@ -301,27 +306,26 @@ void ARangeWeapon::UpdateTarget()
 	UpdateIndicatorByRange(bIsTargetEnemy, TargetRange);
 }
 
-void ARangeWeapon::TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation,
-	const FVector& EndLocation) const
+void ARangeWeapon::TraceHitTarget(FHitResult& OutHitResult, const FVector& InStartLocation, const FVector& InEndLocation) const
 {
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredActor(GetOwner());
-	GetWorld()->LineTraceSingleByChannel(OutHitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
+	GetWorld()->LineTraceSingleByChannel(OutHitResult, InStartLocation, InEndLocation, ECC_Visibility, TraceParams);
 }
 
-void ARangeWeapon::UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange)
+void ARangeWeapon::UpdateIndicatorByRange(bool bInIsTargetEnemy, float InCurrentRange)
 {
 	// Out of range state by default and change only if the target is an enemy and within range
 	RangeMultiplier = 0.0f;
 	ERangeState RangeState = ERangeState::OutOfRange;
-	if (bIsTargetEnemy)
+	if (bInIsTargetEnemy)
 	{
-		if (OptimalRangeLowerBound <= CurrentRange && CurrentRange <= OptimalRangeUpperBound)
+		if (OptimalRangeLowerBound <= InCurrentRange && InCurrentRange <= OptimalRangeUpperBound)
 		{
 			RangeState = ERangeState::Optimal;
 			RangeMultiplier = OptimalRangeMultiplier;
 		}
-		else if (CurrentRange < OptimalRangeLowerBound || CurrentRange > OptimalRangeUpperBound && CurrentRange <= MaxRange)
+		else if (InCurrentRange < OptimalRangeLowerBound || InCurrentRange > OptimalRangeUpperBound && InCurrentRange <= MaxRange)
 		{
 			RangeState = ERangeState::Normal;
 			RangeMultiplier = AcceptableRangeMultiplier;

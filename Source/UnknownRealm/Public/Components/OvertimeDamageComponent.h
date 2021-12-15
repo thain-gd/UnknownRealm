@@ -12,9 +12,9 @@ struct FOvertimeDamageInfo
 {
 	GENERATED_BODY()
 	
-	float MyDamage;
-	int32 MyTriggerTimes;
-	FTimerHandle MyApplyDamageTimerHandle;
+	float Damage;
+	int32 TriggerTimes;
+	FTimerHandle ApplyDamageTimerHandle;
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -35,8 +35,8 @@ private:
 
 private:
 	UPROPERTY()
-	AActor* MyDamageCauser;
+	AActor* DamageCauser;
 	
 	UPROPERTY()
-	TMap<AActor*, FOvertimeDamageInfo> MyOvertimeDamageInfoByActorMap;
+	TMap<AActor*, FOvertimeDamageInfo> OvertimeDamageInfoByActorMap;
 };

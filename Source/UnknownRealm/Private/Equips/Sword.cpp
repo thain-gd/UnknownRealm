@@ -9,6 +9,7 @@
 #include "Player/PlayerCharacter.h"
 
 ASword::ASword()
+	: FinalHeavyAttackTriggerTime(0.7f), BleedingDamageModifier(0.05f), BleedingDuration(10.0f), BleedingTriggerRate(1.0f)
 {
 	WeaponType = EWeaponType::Sword;
 	
@@ -16,11 +17,14 @@ ASword::ASword()
 	AddOwnedComponent(ComboComp);
 }
 
-void ASword::SetupInputs(UInputComponent* ControllerInputComp)
+void ASword::CL_SetupInputs_Implementation()
 {
-	Super::SetupInputs(ControllerInputComp);
+	Super::CL_SetupInputs_Implementation();
 
-	ControllerInputComp->BindAction("CounterAttack", IE_Pressed, this, &ASword::SR_TriggerCounterAttack);
+	if (InputComponent)
+	{
+		InputComponent->BindAction("CounterAttack", IE_Pressed, this, &ASword::SR_TriggerCounterAttack);
+	}
 }
 
 void ASword::SR_TriggerCounterAttack_Implementation()
@@ -29,7 +33,7 @@ void ASword::SR_TriggerCounterAttack_Implementation()
 		return;
 
 	bCanCounterAttack = false; // Reset to prevent multiple counter attacks
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(CounterAttackMontage);
+	GetOwner<APlayerCharacter>()->MC_PlayAnimMontage(CounterAttackMontage);
 }
 
 bool ASword::IsReadyToDoCounterAttack() const
@@ -38,49 +42,55 @@ bool ASword::IsReadyToDoCounterAttack() const
 	return IsAttacking() && bCanCounterAttack;
 }
 
-void ASword::OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void ASword::OnEndOverlapWeapon(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex)
 {
-	Super::OnEndOverlapWeapon(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
+	Super::OnEndOverlapWeapon(InOverlappedComponent, InOtherActor, InOtherComp, InOtherBodyIndex);
 
 	if (!FirstHitEnemy)
 	{
-		StopCheckingLastHAttackStep();
+		StopCheckingFinalHeavyAttack();
 	}
 }
 
-void ASword::StopCheckingLastHAttackStep()
+void ASword::StopCheckingFinalHeavyAttack()
 {
-	GetWorldTimerManager().ClearTimer(LastHAttackStepTriggerTimerHandle);
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	check(PlayerAnimInstance != nullptr);
-	if (PlayerAnimInstance)
+	if (HasAuthority())
 	{
-		PlayerAnimInstance->Montage_Resume(nullptr);
+		GetOwner<APlayerCharacter>()->MC_ResumeAnimInstance();
+		GetWorldTimerManager().ClearTimer(FinalHeavyAttackTriggerTimerHandle);
 	}
 }
 
-void ASword::StartCheckingLastHAttackStep()
+void ASword::CheckFinalCounterAttack()
 {
-	if (!FirstHitEnemy)
+	if (HasAuthority() && bCanDoNextCounterStep)
+	{
+		GetOwner<APlayerCharacter>()->MC_PlayAnimMontage(FinalCounterAttackMontage);
+		bCanDoNextCounterStep = false;
+	}
+}
+
+void ASword::StartCheckingFinalHeavyAttack()
+{
+	if (!HasAuthority() || !FirstHitEnemy)
+	{
 		return;
-
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	check(PlayerAnimInstance != nullptr);
-	if (PlayerAnimInstance)
-	{
-		PlayerAnimInstance->Montage_Pause();
-		GetWorldTimerManager().SetTimer(LastHAttackStepTriggerTimerHandle, this, &ASword::PlayLastHAttackStep, TimeBeforeTriggerLastHAttackStep, false);
 	}
+	
+	GetOwner<APlayerCharacter>()->MC_PauseAnimInstance();
+	
+	FTimerDelegate PlayFinalHeavyAttackDelegate;
+	PlayFinalHeavyAttackDelegate.BindUObject(GetOwner<APlayerCharacter>(), &APlayerCharacter::MC_PlayAnimMontage, FinalHeavyAttackMontage);
+	GetWorldTimerManager().SetTimer(FinalHeavyAttackTriggerTimerHandle, PlayFinalHeavyAttackDelegate, FinalHeavyAttackTriggerTime, false);
 }
 
-void ASword::PlayLastHAttackStep() const
+void ASword::ApplyFinalHeavyAttackEffect()
 {
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(LastHAttackMontage);
-}
-
-void ASword::ApplyLastHAttackEffect()
-{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
 	AActor* DamageReceiver = FirstHitEnemy;
 	DisableAttackCheck();
 	OnEnemyHit(DamageReceiver);

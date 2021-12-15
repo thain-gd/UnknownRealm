@@ -18,7 +18,7 @@ class UNKNOWNREALM_API AComboWeapon : public AWeapon
 	GENERATED_BODY()
 
 public:
-	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
+	void CL_SetupInputs_Implementation() override;
 
 	UFUNCTION(BlueprintCallable)
 	void EnableAttackCheck();
@@ -30,11 +30,11 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	virtual void OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	virtual void OnEndOverlapWeapon(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex);
 	
 private:
 	UFUNCTION()
-	void OnWeaponHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnWeaponHit(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bInFromSweep, const FHitResult& InSweepResult);
 	
 	UFUNCTION(BlueprintCallable)
 	void SetComboComp(UComboComponent* InCompoComp) { ComboComp = InCompoComp; }
@@ -49,7 +49,7 @@ private:
 	void TriggerNextAttack();
 	
 	UFUNCTION(NetMulticast, Reliable)
-	void MC_TriggerAttack(UAnimMontage* AttackMontage);
+	void MC_TriggerAttack(UAnimMontage* InAttackMontage);
 
 	UFUNCTION(BlueprintCallable)
 	void ResetCombo();

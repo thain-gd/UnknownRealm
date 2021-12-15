@@ -22,36 +22,36 @@ void UStaminaComponent::BeginPlay()
 }
 
 // Called every frame
-void UStaminaComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UStaminaComponent::TickComponent(float InDeltaTime, ELevelTick InTickType, FActorComponentTickFunction* InThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(InDeltaTime, InTickType, InThisTickFunction);
 
-	TimeSinceLastStaminaUsed += DeltaTime;
+	TimeSinceLastStaminaUsed += InDeltaTime;
 	if (IsStaminaFull() || TimeSinceLastStaminaUsed < TimeBeforeRegen)
 		return;
 
-	RegenStamina(DeltaTime);
+	RegenStamina(InDeltaTime);
 }
 
-void UStaminaComponent::RegenStamina(float DeltaTime)
+void UStaminaComponent::RegenStamina(float InDeltaTime)
 {
-	CurrentStamina = FMath::Min(CurrentStamina + StaminaRegenRate * DeltaTime, (float)MaxStamina);
+	CurrentStamina = FMath::Min(CurrentStamina + StaminaRegenRate * InDeltaTime, (float)MaxStamina);
 
 	// TODO: Cancel warning animation for the stamina bar
 }
 
-bool UStaminaComponent::DecreaseStaminaByPercentage(float StaminaPercentage)
+bool UStaminaComponent::DecreaseStaminaByPercentage(float InStaminaPercentage)
 {
-	const float StaminaCost = MaxStamina * StaminaPercentage;
+	const float StaminaCost = MaxStamina * InStaminaPercentage;
 	return DecreaseStaminaByPoint(StaminaCost);
 }
 
-bool UStaminaComponent::DecreaseStaminaByPoint(float StaminaCost)
+bool UStaminaComponent::DecreaseStaminaByPoint(float InStaminaCost)
 {
-	if (!IsEnoughStamina(StaminaCost))
+	if (!IsEnoughStamina(InStaminaCost))
 		return false;
 
-	CurrentStamina -= StaminaCost;
+	CurrentStamina -= InStaminaCost;
 
 	TimeSinceLastStaminaUsed = 0;
 	// TODO: Show warning animation for the stamina bar if lower than 25-30%

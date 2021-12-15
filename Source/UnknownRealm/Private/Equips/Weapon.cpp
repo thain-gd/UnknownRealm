@@ -28,6 +28,16 @@ void AWeapon::Init(FEquipmentInfo* InEquipInfo)
 	BaseDmg = WeaponInfo->BaseDmg;
 }
 
+void AWeapon::CL_SetupInputs_Implementation()
+{
+	InputComponent = NewObject<UInputComponent>(this);
+	InputComponent->RegisterComponent();
+	if (InputComponent)
+	{
+		EnableInput(GetWorld()->GetFirstPlayerController());
+	}
+}
+
 void AWeapon::SR_SetIsWeaponActive_Implementation(bool bInIsWeaponActive)
 {
 	SetIsWeaponActive(bInIsWeaponActive);
@@ -53,10 +63,10 @@ void AWeapon::SetMotionValue(float InMotionValue)
 	CurrentMotionValue = InMotionValue;
 }
 
-void AWeapon::OnEnemyHit(AActor* Enemy)
+void AWeapon::OnEnemyHit(AActor* InEnemy)
 {
 	const int32 TotalDmg = GetTotalDmg();
-	UGameplayStatics::ApplyDamage(Enemy, TotalDmg, nullptr, this, UBaseDamageType::StaticClass());
+	UGameplayStatics::ApplyDamage(InEnemy, TotalDmg, nullptr, this, UBaseDamageType::StaticClass());
 }
 
 int32 AWeapon::GetTotalDmg() const
@@ -64,9 +74,9 @@ int32 AWeapon::GetTotalDmg() const
 	return FMath::RoundToInt(BaseDmg * CurrentMotionValue);
 }
 
-void AWeapon::CL_ShowDmgDealt_Implementation(int32 TotalDmg)
+void AWeapon::CL_ShowDmgDealt_Implementation(int32 InTotalDmg)
 {
-	GetGameInstance<UMPGameInstance>()->ShowDamage(TotalDmg);
+	GetGameInstance<UMPGameInstance>()->ShowDamage(InTotalDmg);
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

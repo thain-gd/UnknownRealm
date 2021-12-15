@@ -17,12 +17,12 @@ class UNKNOWNREALM_API ASword : public AComboWeapon
 public:
 	ASword();
 	
-	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
+	void CL_SetupInputs_Implementation() override;
 
 	void AllowNextCounterStep() { bCanDoNextCounterStep = true; }
 
 protected:
-	virtual void OnEndOverlapWeapon(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+	void OnEndOverlapWeapon(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex) override;
 	
 private:
 	UFUNCTION(Server, Reliable)
@@ -31,15 +31,15 @@ private:
 	bool IsReadyToDoCounterAttack() const;
 
 	UFUNCTION(BlueprintCallable)
-	void StartCheckingLastHAttackStep();
+	void StartCheckingFinalHeavyAttack();
 
-	UFUNCTION()
-	void PlayLastHAttackStep() const;
-
-	void StopCheckingLastHAttackStep();
+	void StopCheckingFinalHeavyAttack();
 
 	UFUNCTION(BlueprintCallable)
-	void ApplyLastHAttackEffect();
+	void CheckFinalCounterAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void ApplyFinalHeavyAttackEffect();
 
 	void ApplyBleedingEffect(AActor* InDamageReceiver) const;
 
@@ -49,10 +49,13 @@ private:
 	UAnimMontage* CounterAttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* LastHAttackMontage;
+	UAnimMontage* FinalCounterAttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* FinalHeavyAttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	float TimeBeforeTriggerLastHAttackStep;
+	float FinalHeavyAttackTriggerTime;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanCounterAttack;
@@ -61,13 +64,13 @@ private:
 	bool bCanDoNextCounterStep;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	float BleedingDamageModifier = 0.05f;
+	float BleedingDamageModifier;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	float BleedingDuration = 10.0f;
+	float BleedingDuration;
 
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	float BleedingTriggerRate = 1.0f;
+	float BleedingTriggerRate;
 
-	FTimerHandle LastHAttackStepTriggerTimerHandle;
+	FTimerHandle FinalHeavyAttackTriggerTimerHandle;
 };

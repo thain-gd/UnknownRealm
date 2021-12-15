@@ -15,5 +15,5 @@ class UNKNOWNREALM_API UCounterReductionDamageType : public UBaseDamageType
 	GENERATED_BODY()
 
 public:
-	virtual void HandleDamage(float InDamage, AActor* InCauser, AActor* InReceiver) const override;
+	void HandleDamage(float InDamage, AActor* InCauser, AActor* InReceiver) const override;
 };

@@ -31,15 +31,24 @@ public:
 	APlayerCharacter();
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* InPlayerInputComponent) override;
 
-	virtual void Tick(float DeltaSeconds) override;
+	virtual void Tick(float InDeltaSeconds) override;
 
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_PlayAnimMontage(UAnimMontage* InMontageToPlay);
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_PauseAnimInstance() const;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MC_ResumeAnimInstance() const;
+
 	UFUNCTION(Server, Reliable)
-	void SR_FinishCollecting(ACollectibleItem* CollectedItem);
+	void SR_FinishCollecting(ACollectibleItem* InCollectedItem);
 
 	void UpdateCraftingMenu() const { CraftingComp->UpdateCraftingAvailabilities(); }
 
@@ -62,9 +71,9 @@ public:
 	
 	float GetStaminaPercent() const;
 
-	bool GetIsInCounterFrame() const { return bMyIsInCounterFrame; }
+	bool GetIsInCounterFrame() const { return bIsInCounterFrame; }
 
-	float GetCounterReduction() const { return MyCounterReduction; }
+	float GetCounterReduction() const { return CounterReduction; }
 
 	UFUNCTION(Client, Reliable)
 	void CL_StopRecoverHealth();
@@ -83,22 +92,22 @@ private:
 	UFUNCTION()
 	void OnHealthChanged();
 	
-	void UpdateCameraFOV(float DeltaSeconds);
+	void UpdateCameraFOV(float InDeltaSeconds);
 
 	UFUNCTION(Server, Unreliable)
-	void SR_UpdateAimingRotation(const FRotator& NewRotation);
+	void SR_UpdateAimingRotation(const FRotator& InNewRotation);
 
-	UFUNCTION(Server, Reliable)
-	void SR_SetupWeapon(AActor* WeaponOwner);
-
-	UFUNCTION()
-	void ShowInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void SR_EquipWeapon(AActor* InWeaponOwner, const FName& InWeaponID);
 
 	UFUNCTION()
-	void HideInteractingUI(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void ShowInteractingUI(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, class UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bInFromSweep, const FHitResult& InSweepResult);
+
+	UFUNCTION()
+	void HideInteractingUI(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex);
 	
-	void MoveVertical(float AxisValue);
-	void MoveHorizontal(float AxisValue);
+	void MoveVertical(float InAxisValue);
+	void MoveHorizontal(float InAxisValue);
 
 	void StartSprinting();
 	void StopSprinting();
@@ -109,10 +118,7 @@ private:
 	void SR_DodgeRoll();
 
 	UFUNCTION(Server, Reliable)
-	void SR_DoSideStep(bool bIsLeft);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PlayAnimMontage(UAnimMontage* MontageToPlay);
+	void SR_DoSideStep(bool bInIsLeft);
 	
 	UFUNCTION(Server, Reliable)
 	void SR_PutWeaponAway();
@@ -121,7 +127,7 @@ private:
 
 	void ToggleCraftMenu();
 
-	void OnWheelAxisChanged(float AxisValue);
+	void OnWheelAxisChanged(float InAxisValue);
 
 	UFUNCTION(BlueprintCallable)
 	void ActivateInvincibility();
@@ -170,7 +176,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> InteractionWidgetClass;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FName WeaponID;
 
 	UPROPERTY(EditAnywhere, Category = "Animation | Dodge")
@@ -199,15 +205,15 @@ private:
 	bool bCanSideStep;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bMyIsInCounterFrame;
+	bool bIsInCounterFrame;
 
 	UPROPERTY(EditAnywhere)
-	float MyCounterReduction;
+	float CounterReduction;
 
-	float MyRecoverableHealth;
-	float MyHealthRecoveryAmount;
-	bool bMyCanStartRecoveryHealth;
-	FTimerHandle MyHealthRecoveryTimerHandle;
+	float RecoverableHealth;
+	float HealthRecoveryAmount;
+	bool bCanStartRecoveryHealth;
+	FTimerHandle HealthRecoveryTimerHandle;
 
 	float DefaultFOV;
 	float AimingMovingSpeed;

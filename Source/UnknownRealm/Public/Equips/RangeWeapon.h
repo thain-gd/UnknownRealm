@@ -40,9 +40,9 @@ public:
 
 	virtual void Init(FEquipmentInfo* InEquipInfo) override;
 
-	virtual void SetupInputs(UInputComponent* ControllerInputComp) override;
+	void CL_SetupInputs_Implementation() override;
 
-	virtual void Tick(float DeltaSeconds) override;
+	virtual void Tick(float InDeltaSeconds) override;
 
 	float GetChargeAmount() const { return ChargeAmount; }
 
@@ -52,20 +52,20 @@ protected:
 	
 private:
 	UFUNCTION(Client, Reliable)
-	void CL_SetupComponents(APlayerCharacter* PlayerChar);
+	void CL_SetupComponents(APlayerCharacter* InPlayerChar);
 
-	void SetupComponents(APlayerCharacter* PlayerChar);
+	void SetupComponents(APlayerCharacter* InPlayerChar);
 
 	void SetupChargeTimeline();
 
 	UFUNCTION(Server, Unreliable)
-	void SR_UpdateChargeTimelineComp(float NewChargeAmount);
+	void SR_UpdateChargeTimelineComp(float InChargeAmount);
 
 	UFUNCTION()
 	void OR_UpdateTimingMultiplierByChargeAmount();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateTimingMultiplier(ETimingState TimingState);
+	void UpdateTimingMultiplier(ETimingState InTimingState);
 	
 	UFUNCTION(Server, Reliable)
 	void SR_OnAimingStarted();
@@ -92,15 +92,15 @@ private:
 	float CalculateDamage() const;
 
 	UFUNCTION(Server, Reliable)
-	void SR_OnFired(const FVector& InTargetLocation, const float Damage);
+	void SR_OnFired(const FVector& InTargetLocation, const float InDamage);
 	
 	void StopCharge() const;
 
 	void UpdateTarget();
-	void TraceHitTarget(FHitResult& OutHitResult, const FVector& StartLocation, const FVector& EndLocation) const;
+	void TraceHitTarget(FHitResult& OutHitResult, const FVector& InStartLocation, const FVector& InEndLocation) const;
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateIndicatorByRange(bool bIsTargetEnemy, float CurrentRange);
+	void UpdateIndicatorByRange(bool bInIsTargetEnemy, float InCurrentRange);
 
 protected:
 	virtual int32 GetTotalDmg() const override { return LastTotalDmg; }

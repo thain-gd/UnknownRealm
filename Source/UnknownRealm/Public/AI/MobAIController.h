@@ -15,7 +15,8 @@ class UNKNOWNREALM_API AMobAIController : public AAIController
 	GENERATED_BODY()
 
 public:
-	AMobAIController();
-
 	ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+
+protected:
+	void BeginPlay() override;
 };

@@ -49,7 +49,7 @@ void UHealthComponent::TakeDamage(float InDamage, AActor* InCauser, bool bInShow
 	if (!InCauser || !bInShowDamage)
 		return;
 
-	const APlayerCharacter* PlayerChar = InCauser->GetOwner<APlayerCharacter>();
+	const APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(InCauser);
 	if (PlayerChar)
 	{
 		PlayerChar->ShowDamageDealt(InDamage);

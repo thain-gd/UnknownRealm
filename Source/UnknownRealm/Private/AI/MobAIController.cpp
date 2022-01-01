@@ -1,11 +1,6 @@
 #include "AI/MobAIController.h"
 #include "GameTeam.h"
 
-AMobAIController::AMobAIController()
-{
-	SetGenericTeamId(FGenericTeamId(EGameTeam::Monster));
-}
-
 ETeamAttitude::Type AMobAIController::GetTeamAttitudeTowards(const AActor& Other) const
 {
     if (const APawn* OtherPawn = Cast<APawn>(&Other))
@@ -22,4 +17,11 @@ ETeamAttitude::Type AMobAIController::GetTeamAttitudeTowards(const AActor& Other
     }
 
     return ETeamAttitude::Neutral;
+}
+
+void AMobAIController::BeginPlay()
+{
+    Super::BeginPlay();
+	
+    SetGenericTeamId(FGenericTeamId(EGameTeam::Monster));
 }

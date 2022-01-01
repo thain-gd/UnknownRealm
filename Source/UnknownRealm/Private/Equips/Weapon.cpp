@@ -66,7 +66,7 @@ void AWeapon::SetMotionValue(float InMotionValue)
 void AWeapon::OnEnemyHit(AActor* InEnemy)
 {
 	const int32 TotalDmg = GetTotalDmg();
-	UGameplayStatics::ApplyDamage(InEnemy, TotalDmg, nullptr, this, UBaseDamageType::StaticClass());
+	UGameplayStatics::ApplyDamage(InEnemy, TotalDmg, nullptr, GetOwner(), UBaseDamageType::StaticClass());
 }
 
 int32 AWeapon::GetTotalDmg() const

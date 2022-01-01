@@ -7,6 +7,7 @@
 #include "Components/HealthComponent.h"
 #include "Core/MPGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/PlayerCharacter.h"
 
 // Sets default values
 AAIChar::AAIChar()
@@ -28,7 +29,16 @@ void AAIChar::BeginPlay()
 {
 	Super::BeginPlay();
 
+	OnTakeAnyDamage.AddDynamic(this, &AAIChar::OnGotHit);
 	HealthComp->OnHealthChanged.BindDynamic(this, &AAIChar::OnHealthChanged);
+}
+
+void AAIChar::OnGotHit(AActor* InDamagedActor, float InDamage, const UDamageType* InDamageType, AController* InInstigatedBy, AActor* InDamageCauser)
+{
+	if (APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(InDamageCauser))
+	{
+		TargetablePlayers.Add(PlayerChar);
+	}
 }
 
 void AAIChar::OnHealthChanged()

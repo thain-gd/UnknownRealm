@@ -195,20 +195,20 @@ private:
 	bool bInteracting;
 
 	// Combat system
-	UPROPERTY(EditAnywhere, Category = Combat)
+	UPROPERTY(EditAnywhere, Category = "Combat | Bow")
 	float AimingFOV;
 
-	UPROPERTY(EditAnywhere, Category = Combat)
+	UPROPERTY(EditAnywhere, Category = "Combat | Bow")
 	float AimingInterpSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Combat | Sword")
+	float CounterReduction;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanSideStep;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bIsInCounterFrame;
-
-	UPROPERTY(EditAnywhere)
-	float CounterReduction;
 
 	float RecoverableHealth;
 	float HealthRecoveryAmount;
@@ -218,4 +218,5 @@ private:
 	float DefaultFOV;
 	float AimingMovingSpeed;
 	float DefaultMovingSpeed;
+	float SprintSpeed;
 };

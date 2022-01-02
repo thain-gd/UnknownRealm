@@ -10,6 +10,7 @@
 
 class APlayerCharacter;
 class UHealthComponent;
+class UBehaviorTree;
 
 UENUM(BlueprintType)
 enum class EAIState : uint8
@@ -36,6 +37,8 @@ public:
 
 	APlayerCharacter* RemoveFirstTargetPlayer();
 
+	UBehaviorTree* GetCombatTree() const { return CombatTree; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -54,7 +57,10 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = Components)
 	UHealthComponent* HealthComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, Category = Combat)
+	UBehaviorTree* CombatTree;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
 	float AttackRange;
 
 	UPROPERTY(BlueprintReadWrite)

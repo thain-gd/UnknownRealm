@@ -32,4 +32,7 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Blackboard)
 	FBlackboardKeySelector TargetPlayerKey;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag CombatTag;
 };

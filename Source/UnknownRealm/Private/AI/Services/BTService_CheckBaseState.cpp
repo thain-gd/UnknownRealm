@@ -36,12 +36,14 @@ void UBTService_CheckBaseState::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 	switch (CurrentState)
 	{
 	case EAIState::AttackVillage:
+	case EAIState::ApproachVillage:
 		if (AIChar->HasAttackablePlayer())
 		{
 			APlayerCharacter* TargetPlayer = AIChar->RemoveFirstTargetPlayer();
 			BlackboardComponent->SetValueAsObject(TargetPlayerKey.SelectedKeyName, TargetPlayer);
 
 			BlackboardComponent->SetValueAsEnum(CurrentStateKey.SelectedKeyName, static_cast<uint8>(EAIState::EncounterPlayer));
+			BlackboardComponent->ClearValue(TargetObjectKey.SelectedKeyName);
 		}
 		break;
 

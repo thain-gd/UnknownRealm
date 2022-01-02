@@ -28,5 +28,8 @@ private:
 	FBlackboardKeySelector CurrentStateKey;
 
 	UPROPERTY(EditAnywhere, Category = Blackboard)
+	FBlackboardKeySelector TargetObjectKey;
+
+	UPROPERTY(EditAnywhere, Category = Blackboard)
 	FBlackboardKeySelector TargetPlayerKey;
 };

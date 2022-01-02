@@ -73,3 +73,15 @@ void AAIChar::Tick(float DeltaTime)
 
 }
 
+APlayerCharacter* AAIChar::RemoveFirstTargetPlayer()
+{
+	if (TargetablePlayers.Num() == 0)
+	{
+		return nullptr;
+	}
+	
+	APlayerCharacter* FirstTargetPlayer = *TargetablePlayers.begin();
+	TargetablePlayers.Remove(FirstTargetPlayer);
+	return FirstTargetPlayer;
+}
+

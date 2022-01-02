@@ -34,8 +34,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool HasAttackablePlayer() const { return TargetablePlayers.Num() > 0; }
 
-	const TSet<APlayerCharacter*> GetTargetablePlayers() const { return TargetablePlayers; }
-	
+	APlayerCharacter* RemoveFirstTargetPlayer();
 
 protected:
 	// Called when the game starts or when spawned

@@ -121,6 +121,11 @@ float APlayerCharacter::GetRecoverableHealthPercent() const
 	return RecoverableHealth / HealthComp->GetMaxHealth();
 }
 
+bool APlayerCharacter::IsDead() const
+{
+	return !HealthComp->IsAlive();
+}
+
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
 {

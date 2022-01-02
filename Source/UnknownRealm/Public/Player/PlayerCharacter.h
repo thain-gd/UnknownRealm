@@ -84,6 +84,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetRecoverableHealthPercent() const;
 
+	UFUNCTION(BlueprintCallable)
+	bool IsDead() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

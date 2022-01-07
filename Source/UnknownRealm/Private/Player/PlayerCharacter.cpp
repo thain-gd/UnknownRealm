@@ -89,11 +89,6 @@ EWeaponType APlayerCharacter::GetEquippedWeaponType() const
 	return Weapon->GetWeaponType();
 }
 
-UAnimInstance* APlayerCharacter::GetAnimInstance() const
-{
-	return GetMesh()->GetAnimInstance();
-}
-
 float APlayerCharacter::GetHealth() const
 {
 	return HealthComp->GetRemainingHealth();
@@ -365,22 +360,25 @@ void APlayerCharacter::OnSpaceActionsPressed()
 
 void APlayerCharacter::SR_DodgeRoll_Implementation()
 {
-	const bool bIsPlayingDodgeRoll = GetAnimInstance()->Montage_IsPlaying(DodgeRollMontage);
-	if (bIsPlayingDodgeRoll)
+	if (IsMontagePlaying(DodgeRollMontage))
+	{
 		return;
+	}
 
-	MC_PlayAnimMontage(DodgeRollMontage);
+	MC_PlayMontage(DodgeRollMontage);
 }
 
 void APlayerCharacter::SR_DoSideStep_Implementation(bool bIsLeft)
 {
-	MC_PlayAnimMontage(bIsLeft ? Weapon->GetLeftSideStepMontage() : Weapon->GetRightSideStepMontage());
+	MC_PlayMontage(bIsLeft ? Weapon->GetLeftSideStepMontage() : Weapon->GetRightSideStepMontage());
 }
 
 void APlayerCharacter::SR_PutWeaponAway_Implementation()
 {
 	if (!Weapon->IsWeaponActive())
+	{
 		return;
+	}
 	
 	Weapon->SetIsWeaponActive(false);
 }
@@ -395,21 +393,6 @@ void APlayerCharacter::ResetMovement() const
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-}
-
-void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* InMontageToPlay)
-{
-	PlayAnimMontage(InMontageToPlay);
-}
-
-void APlayerCharacter::MC_PauseAnimInstance_Implementation() const
-{
-	GetAnimInstance()->Montage_Pause();
-}
-
-void APlayerCharacter::MC_ResumeAnimInstance_Implementation() const
-{
-	GetAnimInstance()->Montage_Resume(nullptr);
 }
 
 void APlayerCharacter::Interact()

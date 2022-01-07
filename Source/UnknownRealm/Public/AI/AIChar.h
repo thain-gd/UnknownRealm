@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 #include "GenericTeamAgentInterface.h"
+#include "Core/MPCharacter.h"
 #include "GameFramework/Character.h"
 #include "AIChar.generated.h"
 
@@ -21,7 +22,7 @@ enum class EAIState : uint8
 };
 
 UCLASS()
-class UNKNOWNREALM_API AAIChar : public ACharacter
+class UNKNOWNREALM_API AAIChar : public AMPCharacter
 {
 	GENERATED_BODY()
 

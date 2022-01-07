@@ -6,6 +6,8 @@
 
 #include "Components/CraftingComponent.h"
 #include "GameFramework/Character.h"
+#include "Core/MPCharacter.h"
+
 #include "PlayerCharacter.generated.h"
 
 class UStaminaComponent;
@@ -22,7 +24,7 @@ class ACollectibleItem;
 enum class EWeaponType : uint8;
 
 UCLASS()
-class UNKNOWNREALM_API APlayerCharacter : public ACharacter
+class UNKNOWNREALM_API APlayerCharacter : public AMPCharacter
 {
 	GENERATED_BODY()
 
@@ -38,14 +40,7 @@ public:
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PlayAnimMontage(UAnimMontage* InMontageToPlay);
 	
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PauseAnimInstance() const;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_ResumeAnimInstance() const;
 
 	UFUNCTION(Server, Reliable)
 	void SR_FinishCollecting(ACollectibleItem* InCollectedItem);
@@ -62,7 +57,6 @@ public:
 
 	UCameraComponent* GetCameraComp() const { return CameraComp; }
 
-	UAnimInstance* GetAnimInstance() const;
 
 	float GetHealth() const;
 	

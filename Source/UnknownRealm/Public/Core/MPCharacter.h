@@ -27,7 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsMontagePlaying(UAnimMontage* InMontage) const;
 	
+	UFUNCTION(BlueprintCallable)
 	bool IsAnyMontagePlaying() const;
+	
 	bool CheckMontageSection(const FName& InSection) const;
 	
 protected:

@@ -40,8 +40,6 @@ public:
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
-	
-
 	UFUNCTION(Server, Reliable)
 	void SR_FinishCollecting(ACollectibleItem* InCollectedItem);
 
@@ -214,6 +212,5 @@ private:
 
 	float DefaultFOV;
 	float AimingMovingSpeed;
-	float DefaultMovingSpeed;
 	float SprintSpeed;
 };

@@ -16,22 +16,33 @@ public:
 	void MC_PlayMontage(UAnimMontage* InMontage);
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void MC_PauseMontage(UAnimMontage* InMontage = nullptr) const;
+	void MC_PauseMontage(const UAnimMontage* InMontage = nullptr) const;
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void MC_ResumeMontage(UAnimMontage* InMontage = nullptr) const;
+	void MC_ResumeMontage(const UAnimMontage* InMontage = nullptr) const;
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	void MC_StopMontage(UAnimMontage* InMontage = nullptr) const;
+	void MC_StopMontage(const UAnimMontage* InMontage = nullptr) const;
 
 	UFUNCTION(BlueprintCallable)
-	bool IsMontagePlaying(UAnimMontage* InMontage) const;
+	bool IsMontagePlaying(const UAnimMontage* InMontage) const;
 	
 	UFUNCTION(BlueprintCallable)
 	bool IsAnyMontagePlaying() const;
 	
 	bool CheckMontageSection(const FName& InSection) const;
+
+	UFUNCTION(Server, Reliable)
+	void SR_SetMovementSpeed(const float NewSpeed) const;
+
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	void MC_SetMovementSpeed(const float NewSpeed) const;
 	
 protected:
 	UAnimInstance* GetAnimInstance() const;
+
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat")
+	float DefaultMoveSpeed;
 };

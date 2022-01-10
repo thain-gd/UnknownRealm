@@ -140,9 +140,9 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	DefaultFOV = CameraComp->FieldOfView;
-	DefaultMovingSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	AimingMovingSpeed = DefaultMovingSpeed * 0.45f;
-	SprintSpeed = DefaultMovingSpeed * 1.5f;
+	DefaultMoveSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	AimingMovingSpeed = DefaultMoveSpeed * 0.45f;
+	SprintSpeed = DefaultMoveSpeed * 1.5f;
 	
 	CraftingComp->Init(CameraComp);
 }
@@ -308,17 +308,16 @@ void APlayerCharacter::MoveHorizontal(float InAxisValue)
 
 void APlayerCharacter::StartSprinting()
 {
-	UE_LOG(LogTemp, Warning, TEXT("StartSprinting"));
 	StaminaComp->DecreaseStaminaByPoint(60.0f);
 	
 	SR_PutWeaponAway();
 
-	GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	SR_SetMovementSpeed(SprintSpeed);
 }
 
 void APlayerCharacter::StopSprinting()
 {
-	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
+	SR_SetMovementSpeed(DefaultMoveSpeed);
 }
 
 void APlayerCharacter::OnSpaceActionsPressed()
@@ -385,13 +384,13 @@ void APlayerCharacter::SR_PutWeaponAway_Implementation()
 
 void APlayerCharacter::SetMovementForAiming() const
 {
-	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
+	MC_SetMovementSpeed(AimingMovingSpeed);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 }
 
 void APlayerCharacter::ResetMovement() const
 {
-	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
+	MC_SetMovementSpeed(DefaultMoveSpeed);
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 

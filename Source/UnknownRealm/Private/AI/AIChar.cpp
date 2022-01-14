@@ -4,13 +4,17 @@
 #include "AI/AIChar.h"
 
 #include "GameplayTagContainer.h"
+#include "Combat/BaseDamageType.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
 #include "Core/MPGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Player/PlayerCharacter.h"
 
 // Sets default values
 AAIChar::AAIChar()
+	: bFinishedAttacking(true)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -24,6 +28,12 @@ AAIChar::AAIChar()
 	Tags.Add(FName("AI"));
 }
 
+bool AAIChar::IsPlayerInRangeBounds(AActor* InPlayer, const float InUpperBound, const float InLowerBound) const
+{
+	const float DistanceSquared = UKismetMathLibrary::Vector_DistanceSquared(GetActorLocation(), InPlayer->GetActorLocation());
+	return DistanceSquared >= InLowerBound * InLowerBound && DistanceSquared <= InUpperBound * InUpperBound;
+}
+
 // Called when the game starts or when spawned
 void AAIChar::BeginPlay()
 {
@@ -33,11 +43,35 @@ void AAIChar::BeginPlay()
 	HealthComp->OnHealthChanged.BindDynamic(this, &AAIChar::OnHealthChanged);
 }
 
+void AAIChar::ApplySimpleDamage(AActor* InDamagedActor, const float InDamage)
+{
+	UGameplayStatics::ApplyDamage(InDamagedActor, InDamage, nullptr, this, UBaseDamageType::StaticClass());
+}
+
+bool AAIChar::CanDoBaseAttack() const
+{
+	return IsPlayerInRangeBounds(CurrentTargetPlayer, AttackRange);
+}
+
+APlayerCharacter* AAIChar::GetPlayerInRange(const float InRange)
+{
+	const FVector StartLocation = GetActorLocation();
+	const FVector EndLocation = StartLocation + GetActorForwardVector() * InRange;
+	FHitResult OutHitResult;
+	TArray<AActor*> IgnoredActors;
+	IgnoredActors.Add(this);
+	UKismetSystemLibrary::SphereTraceSingleByProfile(GetWorld(), StartLocation, EndLocation, GetCapsuleComponent()->GetScaledCapsuleRadius(), FName("PlayerDefault"), false, IgnoredActors, EDrawDebugTrace::None, OutHitResult, true);
+	return Cast<APlayerCharacter>(OutHitResult.Actor);
+}
+
 void AAIChar::OnGotHit(AActor* InDamagedActor, float InDamage, const UDamageType* InDamageType, AController* InInstigatedBy, AActor* InDamageCauser)
 {
 	if (APlayerCharacter* PlayerChar = Cast<APlayerCharacter>(InDamageCauser))
 	{
-		TargetablePlayers.Add(PlayerChar);
+		if (CurrentTargetPlayer != PlayerChar)
+		{
+			TargetablePlayers.Add(PlayerChar);
+		}
 	}
 }
 
@@ -73,15 +107,16 @@ void AAIChar::Tick(float DeltaTime)
 
 }
 
-APlayerCharacter* AAIChar::RemoveFirstTargetPlayer()
+APlayerCharacter* AAIChar::PickNextTargetPlayer()
 {
 	if (TargetablePlayers.Num() == 0)
 	{
 		return nullptr;
 	}
 	
-	APlayerCharacter* FirstTargetPlayer = *TargetablePlayers.begin();
-	TargetablePlayers.Remove(FirstTargetPlayer);
-	return FirstTargetPlayer;
+	APlayerCharacter* NextTargetPlayer = *TargetablePlayers.begin();
+	TargetablePlayers.Remove(NextTargetPlayer);
+	CurrentTargetPlayer = NextTargetPlayer;
+	return CurrentTargetPlayer;
 }
 

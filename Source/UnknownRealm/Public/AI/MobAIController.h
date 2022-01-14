@@ -19,4 +19,11 @@ public:
 
 protected:
 	void BeginPlay() override;
+
+	void OnPossess(APawn* InPawn) override;
+
+
+private:
+	UPROPERTY(EditDefaultsOnly)
+	UBehaviorTree* BaseTree;
 };

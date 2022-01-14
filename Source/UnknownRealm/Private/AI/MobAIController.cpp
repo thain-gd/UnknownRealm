@@ -1,5 +1,7 @@
 #include "AI/MobAIController.h"
 #include "GameTeam.h"
+#include "AI/AIChar.h"
+#include "BehaviorTree/BehaviorTree.h"
 
 ETeamAttitude::Type AMobAIController::GetTeamAttitudeTowards(const AActor& Other) const
 {
@@ -24,4 +26,16 @@ void AMobAIController::BeginPlay()
     Super::BeginPlay();
 	
     SetGenericTeamId(FGenericTeamId(EGameTeam::Monster));
+}
+
+void AMobAIController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+
+    AAIChar* AIChar = Cast<AAIChar>(InPawn);
+	if (HasAuthority())
+    {
+        BaseTree->BlackboardAsset = AIChar->GetBlackboardData();
+        RunBehaviorTree(BaseTree);
+    }
 }

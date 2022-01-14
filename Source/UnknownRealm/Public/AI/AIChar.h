@@ -12,6 +12,7 @@
 class APlayerCharacter;
 class UHealthComponent;
 class UBehaviorTree;
+class UBlackboardData;
 
 UENUM(BlueprintType)
 enum class EAIState : uint8
@@ -36,18 +37,43 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool HasAttackablePlayer() const { return TargetablePlayers.Num() > 0; }
 
-	APlayerCharacter* RemoveFirstTargetPlayer();
+	virtual APlayerCharacter* PickNextTargetPlayer();
+	
+	void CleanCurrentTargetPlayer() { CurrentTargetPlayer = nullptr; }
+
+	bool CanDoBaseAttack() const;
+
+	UBlackboardData* GetBlackboardData() const { return BlackboardData; }
 
 	UBehaviorTree* GetCombatTree() const { return CombatTree; }
+
+	APlayerCharacter* GetCurrentTargetPlayer() const { return CurrentTargetPlayer; }
+
+	void StartAttacking() { bFinishedAttacking = false; }
+
+	UFUNCTION(BlueprintCallable)
+	void FinishAttacking() { bFinishedAttacking = true; }
+
+	UFUNCTION(BlueprintCallable)
+	bool IsFinishedAttacking() const { return bFinishedAttacking; }
+
+	// TODO: Extract this to a utils namespace/class
+	bool IsPlayerInRangeBounds(AActor* InPlayer, const float InUpperBound, const float InLowerBound = 0.0f) const;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:
+	UFUNCTION(BlueprintCallable)
+	void ApplySimpleDamage(AActor* InDamagedActor, const float InDamage);
+
+	UFUNCTION(BlueprintPure)
+	APlayerCharacter* GetPlayerInRange(const float InRange);
+
 	UFUNCTION()
-	void OnGotHit(AActor* InDamagedActor, float InDamage, const UDamageType* InDamageType, AController* InInstigatedBy, AActor* InDamageCauser);
+	virtual void OnGotHit(AActor* InDamagedActor, float InDamage, const UDamageType* InDamageType, AController* InInstigatedBy, AActor* InDamageCauser);
 	
+private:
 	UFUNCTION()
 	void OnHealthChanged();
 	
@@ -58,12 +84,21 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = Components)
 	UHealthComponent* HealthComp;
 
-	UPROPERTY(EditDefaultsOnly, Category = Combat)
+	UPROPERTY(EditDefaultsOnly, Category = "Combat | AI")
+	UBlackboardData* BlackboardData;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Combat | AI")
 	UBehaviorTree* CombatTree;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	float AttackRange;
 
 	UPROPERTY(BlueprintReadWrite)
 	TSet<APlayerCharacter*> TargetablePlayers;
+
+	UPROPERTY()
+	APlayerCharacter* CurrentTargetPlayer;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bFinishedAttacking;
 };

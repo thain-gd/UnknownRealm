@@ -38,9 +38,9 @@ void UBTService_CheckBaseState::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 	{
 	case EAIState::AttackVillage:
 	case EAIState::ApproachVillage:
-		if (AIChar->HasAttackablePlayer())
+		if (AIChar->HasAttackablePlayer() && !AIChar->GetCurrentTargetPlayer())
 		{
-			APlayerCharacter* TargetPlayer = AIChar->RemoveFirstTargetPlayer();
+			APlayerCharacter* TargetPlayer = AIChar->PickNextTargetPlayer();
 			BlackboardComponent->SetValueAsObject(TargetPlayerKey.SelectedKeyName, TargetPlayer);
 
 			BlackboardComponent->SetValueAsEnum(CurrentStateKey.SelectedKeyName, static_cast<uint8>(EAIState::EncounterPlayer));
@@ -53,6 +53,7 @@ void UBTService_CheckBaseState::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 		{
 			if (PlayerCharacter->IsDead())
 			{
+				AIChar->CleanCurrentTargetPlayer();
 				BlackboardComponent->ClearValue(TargetPlayerKey.SelectedKeyName);
 				BlackboardComponent->SetValueAsEnum(CurrentStateKey.SelectedKeyName, static_cast<uint8>(EAIState::ApproachVillage));
 			}

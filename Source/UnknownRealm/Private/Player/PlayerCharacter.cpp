@@ -81,6 +81,19 @@ void APlayerCharacter::CL_ShowDamageDealt_Implementation(const float InDealtDama
 	GetGameInstance<UMPGameInstance>()->ShowDamage(InDealtDamage);
 }
 
+void APlayerCharacter::EnableImmobility()
+{
+	SR_PutWeaponAway();
+	GetCharacterMovement()->DisableMovement();
+	Weapon->CL_DisableInput(Cast<APlayerController>(GetController()));
+}
+
+void APlayerCharacter::DisableImmobility() const
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	Weapon->CL_EnableInput(Cast<APlayerController>(GetController()));
+}
+
 EWeaponType APlayerCharacter::GetEquippedWeaponType() const
 {
 	if (!IsValid(Weapon) || !Weapon->IsWeaponActive())

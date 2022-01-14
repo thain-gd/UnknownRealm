@@ -50,6 +50,11 @@ public:
 	UFUNCTION(Client, Reliable)
 	void CL_ShowDamageDealt(const float InDealtDamage) const;
 
+	// Used for disabling all inputs except camera
+	void EnableImmobility();
+
+	void DisableImmobility() const;
+
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetEquippedWeaponType() const;
 

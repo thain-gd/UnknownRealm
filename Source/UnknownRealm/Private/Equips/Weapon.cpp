@@ -38,6 +38,16 @@ void AWeapon::CL_SetupInputs_Implementation()
 	}
 }
 
+void AWeapon::CL_EnableInput_Implementation(APlayerController* InPlayerController)
+{
+	EnableInput(InPlayerController);
+}
+
+void AWeapon::CL_DisableInput_Implementation(APlayerController* InPlayerController)
+{
+	DisableInput(InPlayerController);
+}
+
 void AWeapon::SR_SetIsWeaponActive_Implementation(bool bInIsWeaponActive)
 {
 	SetIsWeaponActive(bInIsWeaponActive);

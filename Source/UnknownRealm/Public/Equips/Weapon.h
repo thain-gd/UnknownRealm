@@ -40,6 +40,12 @@ public:
 	UFUNCTION(Client, Reliable)
 	virtual void CL_SetupInputs();
 
+	UFUNCTION(Client, Reliable)
+	void CL_EnableInput(APlayerController* InPlayerController);
+
+	UFUNCTION(Client, Reliable)
+	void CL_DisableInput(APlayerController* InPlayerController);
+	
 	bool IsWeaponActive() const { return bIsWeaponActive; }
 	
 	UFUNCTION(Server, Reliable)

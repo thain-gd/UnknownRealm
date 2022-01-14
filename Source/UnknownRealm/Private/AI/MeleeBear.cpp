@@ -45,10 +45,17 @@ void AMeleeBear::OnChargeAttackFinished()
 	DisableChargeAttack();
 	if (APlayerCharacter* PlayerCharacter = GetPlayerInRange(AttackRange))
 	{
-		CurrentTargetPlayer->GetCharacterMovement()->DisableMovement();
+		PlayerCharacter->EnableImmobility();
 		// TODO: Change this y rotation to a taken down animation
 		const FRotator LyingDownRotation(90.0f, CurrentTargetPlayer->GetActorRotation().Yaw, CurrentTargetPlayer->GetActorRotation().Pitch);
 		CurrentTargetPlayer->SetActorRotation(LyingDownRotation);
+		
+		if (PlayerCharacter != CurrentTargetPlayer)
+		{
+			TargetablePlayers.Add(CurrentTargetPlayer);
+			CurrentTargetPlayer = PlayerCharacter;
+		}
+		
 		bIsChomping = true;
 	}
 }
@@ -74,11 +81,10 @@ void AMeleeBear::OnGotHit(AActor* InDamagedActor, float InDamage, const UDamageT
 		PickNextTargetPlayer();
 		if (!PreviousTargetPlayer->IsDead())
 		{
-			PreviousTargetPlayer->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-			TargetablePlayers.Add(PreviousTargetPlayer);
-
+			PreviousTargetPlayer->DisableImmobility();
 			// TODO: Change this y rotation to a standing up animation
 			PreviousTargetPlayer->SetActorRotation(FRotator::ZeroRotator);
+			TargetablePlayers.Add(PreviousTargetPlayer);
 		}
 	}
 }

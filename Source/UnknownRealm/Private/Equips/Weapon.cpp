@@ -38,6 +38,16 @@ void AWeapon::CL_SetupInputs_Implementation()
 	}
 }
 
+void AWeapon::CL_EnableInput_Implementation(APlayerController* InPlayerController)
+{
+	EnableInput(InPlayerController);
+}
+
+void AWeapon::CL_DisableInput_Implementation(APlayerController* InPlayerController)
+{
+	DisableInput(InPlayerController);
+}
+
 void AWeapon::SR_SetIsWeaponActive_Implementation(bool bInIsWeaponActive)
 {
 	SetIsWeaponActive(bInIsWeaponActive);
@@ -66,7 +76,7 @@ void AWeapon::SetMotionValue(float InMotionValue)
 void AWeapon::OnEnemyHit(AActor* InEnemy)
 {
 	const int32 TotalDmg = GetTotalDmg();
-	UGameplayStatics::ApplyDamage(InEnemy, TotalDmg, nullptr, this, UBaseDamageType::StaticClass());
+	UGameplayStatics::ApplyDamage(InEnemy, TotalDmg, nullptr, GetOwner(), UBaseDamageType::StaticClass());
 }
 
 int32 AWeapon::GetTotalDmg() const

@@ -23,7 +23,7 @@ protected:
 	
 
 protected:
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UStaticMeshComponent* MeshComp;
 	
 	UPROPERTY(VisibleAnywhere)

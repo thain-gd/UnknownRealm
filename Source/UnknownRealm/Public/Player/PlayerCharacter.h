@@ -6,6 +6,8 @@
 
 #include "Components/CraftingComponent.h"
 #include "GameFramework/Character.h"
+#include "Core/MPCharacter.h"
+
 #include "PlayerCharacter.generated.h"
 
 class UStaminaComponent;
@@ -22,7 +24,7 @@ class ACollectibleItem;
 enum class EWeaponType : uint8;
 
 UCLASS()
-class UNKNOWNREALM_API APlayerCharacter : public ACharacter
+class UNKNOWNREALM_API APlayerCharacter : public AMPCharacter
 {
 	GENERATED_BODY()
 
@@ -38,15 +40,15 @@ public:
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PlayAnimMontage(UAnimMontage* InMontageToPlay);
+	// Used for updating rotation continuously, i.e., in Tick function
+	void SetPlayerRotation(const FRotator& InNewRotation);
 	
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_PauseAnimInstance() const;
+	UFUNCTION(Server, Unreliable)
+	void SR_SetPlayerRotation(const FRotator& InRotation);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_ResumeAnimInstance() const;
-
+	UFUNCTION(NetMulticast, Unreliable)
+	void MC_SetPlayerRotation(const FRotator& InRotation);
+	
 	UFUNCTION(Server, Reliable)
 	void SR_FinishCollecting(ACollectibleItem* InCollectedItem);
 
@@ -57,12 +59,16 @@ public:
 	UFUNCTION(Client, Reliable)
 	void CL_ShowDamageDealt(const float InDealtDamage) const;
 
+	// Used for disabling all inputs except camera
+	void EnableImmobility();
+
+	void DisableImmobility() const;
+
 	UFUNCTION(BlueprintCallable)
 	EWeaponType GetEquippedWeaponType() const;
 
 	UCameraComponent* GetCameraComp() const { return CameraComp; }
 
-	UAnimInstance* GetAnimInstance() const;
 
 	float GetHealth() const;
 	
@@ -84,6 +90,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetRecoverableHealthPercent() const;
 
+	UFUNCTION(BlueprintCallable)
+	bool IsDead() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -93,9 +102,6 @@ private:
 	void OnHealthChanged();
 	
 	void UpdateCameraFOV(float InDeltaSeconds);
-
-	UFUNCTION(Server, Unreliable)
-	void SR_UpdateAimingRotation(const FRotator& InNewRotation);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void SR_EquipWeapon(AActor* InWeaponOwner, const FName& InWeaponID);
@@ -195,20 +201,20 @@ private:
 	bool bInteracting;
 
 	// Combat system
-	UPROPERTY(EditAnywhere, Category = Combat)
+	UPROPERTY(EditAnywhere, Category = "Combat | Bow")
 	float AimingFOV;
 
-	UPROPERTY(EditAnywhere, Category = Combat)
+	UPROPERTY(EditAnywhere, Category = "Combat | Bow")
 	float AimingInterpSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Combat | Sword")
+	float CounterReduction;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bCanSideStep;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	bool bIsInCounterFrame;
-
-	UPROPERTY(EditAnywhere)
-	float CounterReduction;
 
 	float RecoverableHealth;
 	float HealthRecoveryAmount;
@@ -217,5 +223,5 @@ private:
 
 	float DefaultFOV;
 	float AimingMovingSpeed;
-	float DefaultMovingSpeed;
+	float SprintSpeed;
 };

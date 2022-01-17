@@ -45,12 +45,11 @@ private:
 	UFUNCTION(Server, Reliable)
 	void SR_TriggerHeavyAttack();
 
+	void SetNextAttackMontage(UAnimMontage* InNextMontage);
+
 	UFUNCTION(BlueprintCallable)
 	void TriggerNextAttack();
 	
-	UFUNCTION(NetMulticast, Reliable)
-	void MC_TriggerAttack(UAnimMontage* InAttackMontage);
-
 	UFUNCTION(BlueprintCallable)
 	void ResetCombo();
 

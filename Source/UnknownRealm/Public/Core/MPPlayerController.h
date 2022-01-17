@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/PlayerController.h"
 #include "MPPlayerController.generated.h"
 
@@ -10,13 +12,15 @@
  * 
  */
 UCLASS()
-class UNKNOWNREALM_API AMPPlayerController : public APlayerController
+class UNKNOWNREALM_API AMPPlayerController : public APlayerController, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
 	friend class UInventoryWidget;
 
 public:
+	AMPPlayerController();
+	
 	virtual void SetupInputComponent() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -30,6 +34,9 @@ public:
 
 	void SetInputToGameAndUI();
 	void SetInputToGameOnly();
+
+	// For AI
+	FGenericTeamId GetGenericTeamId() const override { return MyTeamId; }
 
 protected:
 	UFUNCTION(BlueprintCallable)
@@ -65,4 +72,6 @@ private:
 
 	bool bGameMenuOn;
 	bool bInventoryOn;
+
+	FGenericTeamId MyTeamId;
 };

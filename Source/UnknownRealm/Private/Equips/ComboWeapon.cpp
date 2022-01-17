@@ -28,21 +28,7 @@ void AComboWeapon::SR_TriggerLightAttack_Implementation()
 		return;
 	}
 
-	// Ignore if there is a waiting attack montage to be played next
-	if (NextAttackMontage)
-		return;
-
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	check(PlayerAnimInstance != nullptr);
-	if (!PlayerAnimInstance->IsAnyMontagePlaying())
-	{
-		NextAttackMontage = ComboComp->GetNextLightAttackMontage();
-		TriggerNextAttack();
-	}
-	else if (PlayerAnimInstance->Montage_GetCurrentSection() == FName("ComboWindow"))
-	{
-		NextAttackMontage = ComboComp->GetNextLightAttackMontage();
-	}
+	SetNextAttackMontage(ComboComp->GetNextLightAttackMontage());
 }
 
 void AComboWeapon::SR_TriggerHeavyAttack_Implementation()
@@ -50,36 +36,41 @@ void AComboWeapon::SR_TriggerHeavyAttack_Implementation()
 	checkf(ComboComp != nullptr, TEXT("Combo Component hasn't added to this actor yet"));
 
 	if (!bIsWeaponActive)
+	{
 		return;
+	}
 
+	SetNextAttackMontage(ComboComp->GetNextHeavyAttackMontage());
+}
+
+void AComboWeapon::SetNextAttackMontage(UAnimMontage* InNextMontage)
+{
 	// Ignore if there is a waiting attack montage to be played next
 	if (NextAttackMontage)
-		return;
-
-	UAnimInstance* PlayerAnimInstance = GetOwner<APlayerCharacter>()->GetAnimInstance();
-	if (!PlayerAnimInstance->IsAnyMontagePlaying())
 	{
-		NextAttackMontage = ComboComp->GetNextHeavyAttackMontage();
+		return;
+	}
+
+	APlayerCharacter* PlayerOwner = GetOwner<APlayerCharacter>();
+	check(PlayerOwner);
+	if (!PlayerOwner->IsAnyMontagePlaying())
+	{
+		NextAttackMontage = InNextMontage;
 		TriggerNextAttack();
 	}
-	else if (PlayerAnimInstance->Montage_GetCurrentSection() == FName("ComboWindow"))
+	else if (PlayerOwner->CheckMontageSection("ComboWindow"))
 	{
-		NextAttackMontage = ComboComp->GetNextHeavyAttackMontage();
-	};
+		NextAttackMontage = InNextMontage;
+	}
 }
 
 void AComboWeapon::TriggerNextAttack()
 {
 	if (HasAuthority() && NextAttackMontage)
 	{
-		MC_TriggerAttack(NextAttackMontage);
+		GetOwner<APlayerCharacter>()->MC_PlayMontage(NextAttackMontage);
 		NextAttackMontage = nullptr;
 	}
-}
-
-void AComboWeapon::MC_TriggerAttack_Implementation(UAnimMontage* InAttackMontage)
-{
-	GetOwner<APlayerCharacter>()->PlayAnimMontage(InAttackMontage);
 }
 
 void AComboWeapon::ResetCombo()

@@ -81,17 +81,25 @@ void APlayerCharacter::CL_ShowDamageDealt_Implementation(const float InDealtDama
 	GetGameInstance<UMPGameInstance>()->ShowDamage(InDealtDamage);
 }
 
+void APlayerCharacter::EnableImmobility()
+{
+	SR_PutWeaponAway();
+	GetCharacterMovement()->DisableMovement();
+	Weapon->CL_DisableInput(Cast<APlayerController>(GetController()));
+}
+
+void APlayerCharacter::DisableImmobility() const
+{
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	Weapon->CL_EnableInput(Cast<APlayerController>(GetController()));
+}
+
 EWeaponType APlayerCharacter::GetEquippedWeaponType() const
 {
 	if (!IsValid(Weapon) || !Weapon->IsWeaponActive())
 		return EWeaponType::None;
 	
 	return Weapon->GetWeaponType();
-}
-
-UAnimInstance* APlayerCharacter::GetAnimInstance() const
-{
-	return GetMesh()->GetAnimInstance();
 }
 
 float APlayerCharacter::GetHealth() const
@@ -121,6 +129,11 @@ float APlayerCharacter::GetRecoverableHealthPercent() const
 	return RecoverableHealth / HealthComp->GetMaxHealth();
 }
 
+bool APlayerCharacter::IsDead() const
+{
+	return !HealthComp->IsAlive();
+}
+
 // Called when the game starts or when spawned
 void APlayerCharacter::BeginPlay()
 {
@@ -140,8 +153,9 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	DefaultFOV = CameraComp->FieldOfView;
-	DefaultMovingSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	AimingMovingSpeed = DefaultMovingSpeed * 0.45f;
+	DefaultMoveSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	AimingMovingSpeed = DefaultMoveSpeed * 0.45f;
+	SprintSpeed = DefaultMoveSpeed * 1.5f;
 	
 	CraftingComp->Init(CameraComp);
 }
@@ -232,8 +246,7 @@ void APlayerCharacter::Tick(float InDeltaSeconds)
 	const float InterpSpeed = 50.0f;
 	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, InDeltaSeconds, InterpSpeed);
-	SetActorRotation(NewRotation);
-	SR_UpdateAimingRotation(NewRotation);
+	SetPlayerRotation(NewRotation);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float InDeltaSeconds)
@@ -247,11 +260,6 @@ void APlayerCharacter::UpdateCameraFOV(float InDeltaSeconds)
 	const float TargetSocketOffsetY = bIsAiming ? 60.0f : 0.0f;
 	const float NewSocketOffsetY = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, InDeltaSeconds, AimingInterpSpeed);
 	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
-}
-
-void APlayerCharacter::SR_UpdateAimingRotation_Implementation(const FRotator& InNewRotation)
-{
-	SetActorRotation(InNewRotation);
 }
 
 // Called to bind functionality to input
@@ -307,14 +315,16 @@ void APlayerCharacter::MoveHorizontal(float InAxisValue)
 
 void APlayerCharacter::StartSprinting()
 {
-	UE_LOG(LogTemp, Warning, TEXT("StartSprinting"));
 	StaminaComp->DecreaseStaminaByPoint(60.0f);
 	
 	SR_PutWeaponAway();
+
+	SR_SetMovementSpeed(SprintSpeed);
 }
 
 void APlayerCharacter::StopSprinting()
 {
+	SR_SetMovementSpeed(DefaultMoveSpeed);
 }
 
 void APlayerCharacter::OnSpaceActionsPressed()
@@ -356,51 +366,58 @@ void APlayerCharacter::OnSpaceActionsPressed()
 
 void APlayerCharacter::SR_DodgeRoll_Implementation()
 {
-	const bool bIsPlayingDodgeRoll = GetAnimInstance()->Montage_IsPlaying(DodgeRollMontage);
-	if (bIsPlayingDodgeRoll)
+	if (IsMontagePlaying(DodgeRollMontage))
+	{
 		return;
+	}
 
-	MC_PlayAnimMontage(DodgeRollMontage);
+	MC_PlayMontage(DodgeRollMontage);
 }
 
 void APlayerCharacter::SR_DoSideStep_Implementation(bool bIsLeft)
 {
-	MC_PlayAnimMontage(bIsLeft ? Weapon->GetLeftSideStepMontage() : Weapon->GetRightSideStepMontage());
+	MC_PlayMontage(bIsLeft ? Weapon->GetLeftSideStepMontage() : Weapon->GetRightSideStepMontage());
 }
 
 void APlayerCharacter::SR_PutWeaponAway_Implementation()
 {
 	if (!Weapon->IsWeaponActive())
+	{
 		return;
+	}
 	
 	Weapon->SetIsWeaponActive(false);
 }
 
 void APlayerCharacter::SetMovementForAiming() const
 {
-	GetCharacterMovement()->MaxWalkSpeed = AimingMovingSpeed;
+	MC_SetMovementSpeed(AimingMovingSpeed);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 }
 
 void APlayerCharacter::ResetMovement() const
 {
-	GetCharacterMovement()->MaxWalkSpeed = DefaultMovingSpeed;
+	MC_SetMovementSpeed(DefaultMoveSpeed);
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 
-void APlayerCharacter::MC_PlayAnimMontage_Implementation(UAnimMontage* InMontageToPlay)
+void APlayerCharacter::SetPlayerRotation(const FRotator& InNewRotation)
 {
-	PlayAnimMontage(InMontageToPlay);
+	if (!HasAuthority())
+	{
+		SetActorRotation(InNewRotation);
+	}
+	SR_SetPlayerRotation(InNewRotation);
 }
 
-void APlayerCharacter::MC_PauseAnimInstance_Implementation() const
+void APlayerCharacter::SR_SetPlayerRotation_Implementation(const FRotator& InRotation)
 {
-	GetAnimInstance()->Montage_Pause();
+	SetActorRotation(InRotation);
 }
 
-void APlayerCharacter::MC_ResumeAnimInstance_Implementation() const
+void APlayerCharacter::MC_SetPlayerRotation_Implementation(const FRotator& InRotation)
 {
-	GetAnimInstance()->Montage_Resume(nullptr);
+	SetActorRotation(InRotation);
 }
 
 void APlayerCharacter::Interact()

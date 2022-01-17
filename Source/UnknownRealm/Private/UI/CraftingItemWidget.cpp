@@ -69,7 +69,6 @@ void UCraftingItemWidget::Reset() const
 	for (auto& Requirement : CraftingItemSettings->Requirements)
 	{
 		Cast<UItemWidget>(RequirementWidgets[i])->SetCountNumberText(Requirement.Value);
-
 		++i;
 	}
 }

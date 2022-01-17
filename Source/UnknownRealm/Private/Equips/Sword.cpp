@@ -33,7 +33,7 @@ void ASword::SR_TriggerCounterAttack_Implementation()
 		return;
 
 	bCanCounterAttack = false; // Reset to prevent multiple counter attacks
-	GetOwner<APlayerCharacter>()->MC_PlayAnimMontage(CounterAttackMontage);
+	GetOwner<APlayerCharacter>()->MC_PlayMontage(CounterAttackMontage);
 }
 
 bool ASword::IsReadyToDoCounterAttack() const
@@ -56,7 +56,7 @@ void ASword::StopCheckingFinalHeavyAttack()
 {
 	if (HasAuthority())
 	{
-		GetOwner<APlayerCharacter>()->MC_ResumeAnimInstance();
+		GetOwner<APlayerCharacter>()->MC_ResumeMontage();
 		GetWorldTimerManager().ClearTimer(FinalHeavyAttackTriggerTimerHandle);
 	}
 }
@@ -65,7 +65,7 @@ void ASword::CheckFinalCounterAttack()
 {
 	if (HasAuthority() && bCanDoNextCounterStep)
 	{
-		GetOwner<APlayerCharacter>()->MC_PlayAnimMontage(FinalCounterAttackMontage);
+		GetOwner<APlayerCharacter>()->MC_PlayMontage(FinalCounterAttackMontage);
 		bCanDoNextCounterStep = false;
 	}
 }
@@ -77,10 +77,10 @@ void ASword::StartCheckingFinalHeavyAttack()
 		return;
 	}
 	
-	GetOwner<APlayerCharacter>()->MC_PauseAnimInstance();
+	GetOwner<APlayerCharacter>()->MC_PauseMontage();
 	
 	FTimerDelegate PlayFinalHeavyAttackDelegate;
-	PlayFinalHeavyAttackDelegate.BindUObject(GetOwner<APlayerCharacter>(), &APlayerCharacter::MC_PlayAnimMontage, FinalHeavyAttackMontage);
+	PlayFinalHeavyAttackDelegate.BindUObject(GetOwner<APlayerCharacter>(), &APlayerCharacter::MC_PlayMontage, FinalHeavyAttackMontage);
 	GetWorldTimerManager().SetTimer(FinalHeavyAttackTriggerTimerHandle, PlayFinalHeavyAttackDelegate, FinalHeavyAttackTriggerTime, false);
 }
 

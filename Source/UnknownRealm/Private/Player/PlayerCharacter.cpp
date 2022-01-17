@@ -540,6 +540,16 @@ void APlayerCharacter::SR_FinishCollecting_Implementation(ACollectibleItem* InCo
 	InCollectedItem->OnFinishedCollecting();
 }
 
+void APlayerCharacter::RecoverFullHealth() const
+{
+	HealthComp->SR_IncreaseHealth(HealthComp->GetMaxHealth());
+}
+
+void APlayerCharacter::ToggleInvincibility(bool bInIsInvincible) const
+{
+	HealthComp->SetInvincibility(bInIsInvincible);
+}
+
 void APlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

@@ -93,6 +93,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsDead() const;
 
+	// Dev only
+	UFUNCTION(Exec)
+	void RecoverFullHealth() const;
+
+	UFUNCTION(Exec)
+	void ToggleInvincibility(bool bInIsInvincible) const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

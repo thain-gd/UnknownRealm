@@ -40,6 +40,15 @@ public:
 	void SetMovementForAiming() const;
 	void ResetMovement() const;
 
+	// Used for updating rotation continuously, i.e., in Tick function
+	void SetPlayerRotation(const FRotator& InNewRotation);
+	
+	UFUNCTION(Server, Unreliable)
+	void SR_SetPlayerRotation(const FRotator& InRotation);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MC_SetPlayerRotation(const FRotator& InRotation);
+	
 	UFUNCTION(Server, Reliable)
 	void SR_FinishCollecting(ACollectibleItem* InCollectedItem);
 
@@ -93,9 +102,6 @@ private:
 	void OnHealthChanged();
 	
 	void UpdateCameraFOV(float InDeltaSeconds);
-
-	UFUNCTION(Server, Unreliable)
-	void SR_UpdateAimingRotation(const FRotator& InNewRotation);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void SR_EquipWeapon(AActor* InWeaponOwner, const FName& InWeaponID);

@@ -18,18 +18,15 @@ public:
 	AMeleeBear();
 	
 	UFUNCTION(BlueprintCallable)
-	void EnableChargeAttack();
+	void OnPounceAttackFinished();
 
-	UFUNCTION(BlueprintCallable)
-	void DisableChargeAttack();
+	void AllowNextPounceAttack();
 
-	UFUNCTION(BlueprintCallable)
-	void UpdateMoveSpeed();
+	bool CanRun() const;
+	bool CanDoPounceAttack() const;
 
-	UFUNCTION(BlueprintCallable)
-	void OnChargeAttackFinished();
-
-	bool CanDoChargeAttack() const;
+	void StartRunning() const;
+	
 	APlayerCharacter* PickNextTargetPlayer() override;
 	bool IsChomping() const { return bIsChomping; }
 
@@ -39,17 +36,16 @@ protected:
 
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
-	float ChargeAttackCooldown;
+	float PounceAttackCooldown;
 
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ChombIntervalTime;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float PounceAttackRange;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	bool bIsChargeAttackReady;
+	bool bIsPounceAttackReady;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bIsChomping;
 	
 	const float RunSpeed = 450.0f;
-	FTimerHandle ChombTimerHandle;
 };

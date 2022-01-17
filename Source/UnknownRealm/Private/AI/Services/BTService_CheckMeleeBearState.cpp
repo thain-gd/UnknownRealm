@@ -31,15 +31,10 @@ void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp,
 	case EMeleeBearState::Approach:
 		if (AActor* PlayerCharacter = Cast<AActor>(BlackboardComponent->GetValueAsObject(TargetPlayerKey.SelectedKeyName)))
 		{
-			if (MeleeBear->IsChomping())
+			if (MeleeBear->CanRun())
 			{
-				MeleeBear->StartAttacking();
-				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Chomp);
-			}
-			else if (MeleeBear->CanDoChargeAttack())
-			{
-				MeleeBear->StartAttacking();
-				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Charge);
+				MeleeBear->StartRunning();
+				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Run);
 			}
 			else if (MeleeBear->CanDoBaseAttack())
 			{
@@ -48,12 +43,41 @@ void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp,
 			}
 		}
 		break;
+
+	case EMeleeBearState::Run:
+		if (MeleeBear->CanDoPounceAttack())
+		{
+			MeleeBear->StartAttacking();
+			ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Pounce);
+		}
+		break;
 		
-	case EMeleeBearState::Charge:
+	case EMeleeBearState::Pounce:
+		if (MeleeBear->IsFinishedAttacking())
+		{
+			if (MeleeBear->IsChomping())
+			{
+				MeleeBear->StartAttacking();
+				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Chomp);
+			}
+			else
+			{
+				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Approach);
+			}
+		}
+		break;
+		
 	case EMeleeBearState::Slash:
 		if (MeleeBear->IsFinishedAttacking())
 		{
-			ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Approach);
+			if (MeleeBear->CanDoBaseAttack())
+			{
+				MeleeBear->StartAttacking();
+			}
+			else
+			{
+				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Approach);
+			}
 		}
 		break;
 		

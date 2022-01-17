@@ -246,8 +246,7 @@ void APlayerCharacter::Tick(float InDeltaSeconds)
 	const float InterpSpeed = 50.0f;
 	const FRotator TargetRotation(0.0f, GetControlRotation().Yaw + 20.0f, 0.0f);
 	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, InDeltaSeconds, InterpSpeed);
-	SetActorRotation(NewRotation);
-	SR_UpdateAimingRotation(NewRotation);
+	SetPlayerRotation(NewRotation);
 }
 
 void APlayerCharacter::UpdateCameraFOV(float InDeltaSeconds)
@@ -261,11 +260,6 @@ void APlayerCharacter::UpdateCameraFOV(float InDeltaSeconds)
 	const float TargetSocketOffsetY = bIsAiming ? 60.0f : 0.0f;
 	const float NewSocketOffsetY = FMath::FInterpTo(SpringArmComp->SocketOffset.Y, TargetSocketOffsetY, InDeltaSeconds, AimingInterpSpeed);
 	SpringArmComp->SocketOffset = FVector(SpringArmComp->TargetOffset.X, NewSocketOffsetY, SpringArmComp->TargetOffset.Z);
-}
-
-void APlayerCharacter::SR_UpdateAimingRotation_Implementation(const FRotator& InNewRotation)
-{
-	SetActorRotation(InNewRotation);
 }
 
 // Called to bind functionality to input
@@ -405,6 +399,25 @@ void APlayerCharacter::ResetMovement() const
 {
 	MC_SetMovementSpeed(DefaultMoveSpeed);
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+}
+
+void APlayerCharacter::SetPlayerRotation(const FRotator& InNewRotation)
+{
+	if (!HasAuthority())
+	{
+		SetActorRotation(InNewRotation);
+	}
+	SR_SetPlayerRotation(InNewRotation);
+}
+
+void APlayerCharacter::SR_SetPlayerRotation_Implementation(const FRotator& InRotation)
+{
+	SetActorRotation(InRotation);
+}
+
+void APlayerCharacter::MC_SetPlayerRotation_Implementation(const FRotator& InRotation)
+{
+	SetActorRotation(InRotation);
 }
 
 void APlayerCharacter::Interact()

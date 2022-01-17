@@ -9,46 +9,25 @@
 #include "Player/PlayerCharacter.h"
 
 AMeleeBear::AMeleeBear()
-	: ChargeAttackCooldown(10.0f), bIsChargeAttackReady(true)
+	: PounceAttackCooldown(10.0f), PounceAttackRange(320.0f), bIsPounceAttackReady(true)
 {
 }
 
-void AMeleeBear::EnableChargeAttack()
+void AMeleeBear::OnPounceAttackFinished()
 {
-	bIsChargeAttackReady = true;
-	UpdateMoveSpeed();
-}
+	bIsPounceAttackReady = false;
+	MC_SetMovementSpeed(DefaultMoveSpeed);
 
-void AMeleeBear::DisableChargeAttack()
-{
-	bIsChargeAttackReady = false;
-	UpdateMoveSpeed();
-
+	// Set a timer to reset next pounce attack availability after the cooldown
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMeleeBear::EnableChargeAttack, ChargeAttackCooldown);
-}
-
-void AMeleeBear::UpdateMoveSpeed()
-{
-	if (bIsChargeAttackReady)
-	{
-		MC_SetMovementSpeed(RunSpeed);
-	}
-	else
-	{
-		MC_SetMovementSpeed(DefaultMoveSpeed);
-	}
-}
-
-void AMeleeBear::OnChargeAttackFinished()
-{
-	DisableChargeAttack();
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMeleeBear::AllowNextPounceAttack, PounceAttackCooldown);
+	
 	if (APlayerCharacter* PlayerCharacter = GetPlayerInRange(AttackRange))
 	{
 		PlayerCharacter->EnableImmobility();
 		// TODO: Change this y rotation to a taken down animation
-		const FRotator LyingDownRotation(90.0f, CurrentTargetPlayer->GetActorRotation().Yaw, CurrentTargetPlayer->GetActorRotation().Pitch);
-		CurrentTargetPlayer->SetActorRotation(LyingDownRotation);
+		const FRotator LyingDownRotation(90.0f, PlayerCharacter->GetActorRotation().Yaw, PlayerCharacter->GetActorRotation().Pitch);
+		PlayerCharacter->MC_SetPlayerRotation(LyingDownRotation);
 		
 		if (PlayerCharacter != CurrentTargetPlayer)
 		{
@@ -60,9 +39,24 @@ void AMeleeBear::OnChargeAttackFinished()
 	}
 }
 
-bool AMeleeBear::CanDoChargeAttack() const
+void AMeleeBear::AllowNextPounceAttack()
 {
-	return bIsChargeAttackReady && IsPlayerInRangeBounds(CurrentTargetPlayer, 330.0f, 250.0f);
+	bIsPounceAttackReady = true;
+}
+
+bool AMeleeBear::CanRun() const
+{
+	return bIsPounceAttackReady && !IsPlayerInRangeBounds(CurrentTargetPlayer, PounceAttackRange * 1.5f);
+}
+
+bool AMeleeBear::CanDoPounceAttack() const
+{
+	return IsPlayerInRangeBounds(CurrentTargetPlayer, PounceAttackRange);
+}
+
+void AMeleeBear::StartRunning() const
+{
+	MC_SetMovementSpeed(RunSpeed);
 }
 
 APlayerCharacter* AMeleeBear::PickNextTargetPlayer()
@@ -83,7 +77,8 @@ void AMeleeBear::OnGotHit(AActor* InDamagedActor, float InDamage, const UDamageT
 		{
 			PreviousTargetPlayer->DisableImmobility();
 			// TODO: Change this y rotation to a standing up animation
-			PreviousTargetPlayer->SetActorRotation(FRotator::ZeroRotator);
+			PreviousTargetPlayer->MC_SetPlayerRotation(FRotator::ZeroRotator);
+			
 			TargetablePlayers.Add(PreviousTargetPlayer);
 		}
 	}

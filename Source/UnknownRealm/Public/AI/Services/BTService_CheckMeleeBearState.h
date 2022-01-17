@@ -11,7 +11,8 @@ enum class EMeleeBearState : uint8
 {
 	Approach,
 	Slash,
-	Charge,
+	Run,
+	Pounce,
 	Chomp
 };
 

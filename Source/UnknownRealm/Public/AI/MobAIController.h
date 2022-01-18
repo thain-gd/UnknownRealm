@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "GameplayTagContainer.h"
+
 #include "MobAIController.generated.h"
 
 /**
@@ -26,4 +28,7 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	UBehaviorTree* BaseTree;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag CombatTag;
 };

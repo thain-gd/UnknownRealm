@@ -8,7 +8,6 @@
 UBTService_CheckMeleeBearState::UBTService_CheckMeleeBearState()
 {
 	NodeName = TEXT("Check Melee Bear Combat State");
-	bNotifyBecomeRelevant = true;
 }
 
 void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)

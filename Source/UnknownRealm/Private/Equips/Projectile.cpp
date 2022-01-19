@@ -21,16 +21,21 @@ AProjectile::AProjectile()
 	MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
 	RootComponent = MeshComp;
 
+	ProjectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComp"));
+	ProjectileMovementComp->ProjectileGravityScale = 0.0f;
+	ProjectileMovementComp->bRotationFollowsVelocity = true;
+
 	bReplicates = true;
 	SetReplicatingMovement(true);
 }
 
-void AProjectile::OnFired(const FVector& TargetLocation, float InTotalDamage)
+void AProjectile::OnFired(const FVector& InTargetLocation)
 {
 	MeshComp->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	TotalDamage = InTotalDamage;
 
-	AddProjectileMovementComponent(TargetLocation);
+	const FVector FlyingDirection = UKismetMathLibrary::GetDirectionUnitVector(GetActorLocation(), InTargetLocation);
+	ProjectileMovementComp->Velocity = FlyingDirection * FlyingSpeed + FVector::UpVector * VerticalSpeed;
+	ProjectileMovementComp->ProjectileGravityScale = ProjectileGravityScale;
 }
 
 void AProjectile::BeginPlay()
@@ -40,58 +45,17 @@ void AProjectile::BeginPlay()
 	MeshComp->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnProjectileHit);
 }
 
-void AProjectile::OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AProjectile::OnProjectileHit(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor,
+	UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bInFromSweep, const FHitResult& InSweepResult)
 {
-	if (bHit || OtherActor->ActorHasTag(FName("Player")) || OtherActor->IsA(StaticClass()))
+	// Prevent multiple overlapping occur and ignore owner
+	if (bHit || InOtherActor == GetOwner())
 	{
-		if (bHit && OtherActor == GetOwner())
-		{
-			AMPGameState* GameState = GetWorld()->GetGameState<AMPGameState>();
-			if (GameState)
-			{
-				GameState->GetInventory()->AddItem(ID);
-			}
-
-			Destroy();
-		}
-		
 		return;
 	}
-
-	// TODO: Play hit SFX
 
 	bHit = true;
-	ProjectileMovement->DestroyComponent();
-
-	if (OtherActor->ActorHasTag(FName("AI")))
-	{
-		MeshComp->SetCollisionProfileName(TEXT("NoCollision"));
-		SetLifeSpan(3.5f);
-		
-		OnProjectileHitEnemy.Execute(OtherActor);
-	}
+	ProjectileMovementComp->DestroyComponent();
 	
-	const FVector NewLocation = SweepResult.ImpactPoint - GetActorForwardVector() * 60.0f;
-	SetActorLocation(NewLocation);
-	
-	AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+	// TODO: Play hit SFX
 }
-
-void AProjectile::AddProjectileMovementComponent(const FVector& TargetLocation)
-{
-	ProjectileMovement = NewObject<UProjectileMovementComponent>(this, UProjectileMovementComponent::StaticClass());
-	if (!ProjectileMovement)
-		return;
-
-	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation));
-	const FVector FlyingDirection = UKismetMathLibrary::GetDirectionUnitVector(GetActorLocation(), TargetLocation);
-
-	ProjectileMovement->RegisterComponent();
-	ProjectileMovement->ProjectileGravityScale = 0.15f;
-	ProjectileMovement->Velocity = FlyingDirection * FlyingSpeed;
-	ProjectileMovement->bRotationFollowsVelocity = true;
-	AddOwnedComponent(ProjectileMovement);
-}
-
-

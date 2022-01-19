@@ -159,7 +159,9 @@ void ARangeWeapon::Reload()
 void ARangeWeapon::SR_OnAimingEnded_Implementation()
 {
 	if (!bIsAiming)
+	{
 		return;
+	}
 
 	ResetArrow();
 	MC_UpdateIsAiming(false);
@@ -226,7 +228,9 @@ void ARangeWeapon::OnChargingStart()
 	}
 	
 	if (!bIsAiming || !IsValid(Arrow))
+	{
 		return;
+	}
 
 	ChargeTimelineComp->Play();
 	BowWidget->StartCharging();
@@ -235,7 +239,9 @@ void ARangeWeapon::OnChargingStart()
 void ARangeWeapon::Fire()
 {
 	if (!IsValid(Arrow))
+	{
 		return;
+	}
 	
 	BowWidget->StopCharging();
 	
@@ -246,7 +252,7 @@ void ARangeWeapon::Fire()
 
 float ARangeWeapon::CalculateDamage() const
 {
-	return FMath::RoundToFloat(BaseDmg * RangeMultiplier * TimingMultiplier);
+	return FMath::RoundToFloat(BaseDmg * RangeMultiplier * TimingMultiplier) + Arrow->GetDamage();
 }
 
 void ARangeWeapon::SR_OnFired_Implementation(const FVector& InTargetLocation, const float InDamage)
@@ -260,7 +266,7 @@ void ARangeWeapon::SR_OnFired_Implementation(const FVector& InTargetLocation, co
 	LastTotalDmg = InDamage; // cache to use when an arrow fires the registered OnEnemyHit event
 	
 	Arrow->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	Arrow->OnFired(InTargetLocation, InDamage);
+	Arrow->OnFired(InTargetLocation);
 	Arrow = nullptr;
 }
 

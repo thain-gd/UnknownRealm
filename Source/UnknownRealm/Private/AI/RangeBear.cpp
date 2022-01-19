@@ -1,5 +1,6 @@
 #include "AI/RangeBear.h"
 
+#include "Combat/BeeNest.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Player/PlayerCharacter.h"
@@ -16,7 +17,7 @@ bool ARangeBear::CanThrowBeeNest() const
 
 void ARangeBear::SpawnBeeNest()
 {
-	BeeNest = GetWorld()->SpawnActor<AActor>(BeeNestClass);
+	BeeNest = GetWorld()->SpawnActor<ABeeNest>(BeeNestClass);
 	BeeNest->SetOwner(this);
 	BeeNest->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, BeeNestSocketName);
 }
@@ -26,10 +27,7 @@ void ARangeBear::ThrowBeeNest()
 	if (CurrentTargetPlayer)
 	{
 		BeeNest->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		UProjectileMovementComponent* ProjectileMovementComp = Cast<UProjectileMovementComponent>(BeeNest->GetComponentByClass(UProjectileMovementComponent::StaticClass()));
-		ProjectileMovementComp->ProjectileGravityScale = 1.0f;
-		const FVector FlyingDirection = UKismetMathLibrary::GetDirectionUnitVector(GetActorLocation(), CurrentTargetPlayer->GetActorLocation());
-		ProjectileMovementComp->Velocity = FlyingDirection * 500.0f + FVector::UpVector * 400.0f;
+		BeeNest->OnFired(CurrentTargetPlayer->GetActorLocation());
 	}
 	else
 	{

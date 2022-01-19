@@ -9,7 +9,7 @@
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnProjectileHitEnemy, AActor*, Enemy);
 
 class UProjectileMovementComponent;
-UCLASS()
+UCLASS(Abstract)
 class UNKNOWNREALM_API AProjectile : public AActor
 {
 	GENERATED_BODY()
@@ -18,37 +18,39 @@ public:
 	// Sets default values for this actor's properties
 	AProjectile();
 
-	void OnFired(const FVector& TargetLocation, float InTotalDamage);
+	virtual void OnFired(const FVector& InTargetLocation);
 
-	const FName& GetID() const { return ID; }
+	float GetDamage() const { return Damage; }
 
 protected:
 	virtual void BeginPlay() override;
 
-private:
 	UFUNCTION()
-	void OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-	
-	void AddProjectileMovementComponent(const FVector& TargetLocation);
+	virtual void OnProjectileHit(UPrimitiveComponent* InOverlappedComponent, AActor* InOtherActor, UPrimitiveComponent* InOtherComp, int32 InOtherBodyIndex, bool bInFromSweep, const FHitResult& InSweepResult);
 
 
 public:
 	FOnProjectileHitEnemy OnProjectileHitEnemy;
 	
-private:
+protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComp;
 
-	UPROPERTY(EditDefaultsOnly)
-	FName ID;
+	UPROPERTY(EditAnywhere)
+	float Damage;
+
+	bool bHit;
+
+private:
+	UPROPERTY(VisibleAnywhere)
+	UProjectileMovementComponent* ProjectileMovementComp;
+
+	UPROPERTY(EditAnywhere)
+	float ProjectileGravityScale;
 
 	UPROPERTY(EditAnywhere)
 	float FlyingSpeed;
 
-	bool bHit;
-
-	UPROPERTY()
-	UProjectileMovementComponent* ProjectileMovement;
-
-	float TotalDamage;
+	UPROPERTY(EditAnywhere)
+	float VerticalSpeed;
 };

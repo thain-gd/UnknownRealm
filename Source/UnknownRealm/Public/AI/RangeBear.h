@@ -6,9 +6,8 @@
 #include "AI/AIChar.h"
 #include "RangeBear.generated.h"
 
-/**
- * 
- */
+class ABeeNest;
+
 UCLASS()
 class UNKNOWNREALM_API ARangeBear : public AAIChar
 {
@@ -35,10 +34,10 @@ protected:
 	float ThrowAttackLowerBound;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
-	TSubclassOf<AActor> BeeNestClass;
+	TSubclassOf<ABeeNest> BeeNestClass;
 
 	UPROPERTY()
-	AActor* BeeNest;
+	ABeeNest* BeeNest;
 
 	FName BeeNestSocketName;
 };

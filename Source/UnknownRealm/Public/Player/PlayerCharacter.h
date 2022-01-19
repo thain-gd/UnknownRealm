@@ -10,6 +10,7 @@
 
 #include "PlayerCharacter.generated.h"
 
+class UBlindEffectComponent;
 class UStaminaComponent;
 class AWeapon;
 struct FInventoryItem;
@@ -22,6 +23,8 @@ class UHealthComponent;
 class ACollectibleItem;
 
 enum class EWeaponType : uint8;
+
+DECLARE_DELEGATE(FOnPlayerDodgeRolled);
 
 UCLASS()
 class UNKNOWNREALM_API APlayerCharacter : public AMPCharacter
@@ -58,6 +61,9 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void CL_ShowDamageDealt(const float InDealtDamage) const;
+
+	UFUNCTION(Client, Reliable)
+	void CL_ApplyBlindEffect(const UClass* InBlindEffectClass);
 
 	// Used for disabling all inputs except camera
 	void EnableImmobility();
@@ -163,6 +169,9 @@ private:
 	UFUNCTION()
 	void RecoverHealth();
 	
+
+public:
+	FOnPlayerDodgeRolled OnPlayerDodgeRolled;
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

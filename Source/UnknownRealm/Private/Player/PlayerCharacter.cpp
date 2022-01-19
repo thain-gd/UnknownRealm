@@ -6,6 +6,7 @@
 #include "DrawDebugHelpers.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BlindEffectComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/CraftingComponent.h"
@@ -79,6 +80,16 @@ void APlayerCharacter::ShowDamageDealt(const float InDealtDamage) const
 void APlayerCharacter::CL_ShowDamageDealt_Implementation(const float InDealtDamage) const
 {
 	GetGameInstance<UMPGameInstance>()->ShowDamage(InDealtDamage);
+}
+
+void APlayerCharacter::CL_ApplyBlindEffect_Implementation(const UClass* InBlindEffectClass)
+{
+	UBlindEffectComponent* BlindEffectComp = FindComponentByClass<UBlindEffectComponent>();
+	if (!BlindEffectComp)
+	{
+		BlindEffectComp = NewObject<UBlindEffectComponent>(this, InBlindEffectClass);
+	}
+	BlindEffectComp->Init();
 }
 
 void APlayerCharacter::EnableImmobility()
@@ -355,22 +366,15 @@ void APlayerCharacter::OnSpaceActionsPressed()
 			SR_DoSideStep(bIsLeft);
 		}
 	}
-	else
+	else if (!IsMontagePlaying(DodgeRollMontage) && StaminaComp->DecreaseStaminaByPercentage(DodgeStaminaPercent))
 	{
-		if (StaminaComp->DecreaseStaminaByPercentage(DodgeStaminaPercent))
-		{
-			SR_DodgeRoll();
-		}
+		SR_DodgeRoll();
+		OnPlayerDodgeRolled.ExecuteIfBound();
 	}
 }
 
 void APlayerCharacter::SR_DodgeRoll_Implementation()
 {
-	if (IsMontagePlaying(DodgeRollMontage))
-	{
-		return;
-	}
-
 	MC_PlayMontage(DodgeRollMontage);
 }
 

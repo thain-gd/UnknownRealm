@@ -37,5 +37,9 @@ void AMobAIController::OnPossess(APawn* InPawn)
     {
         BaseTree->BlackboardAsset = AIChar->GetBlackboardData();
         RunBehaviorTree(BaseTree);
+		if (UBehaviorTreeComponent* BTComp = Cast<UBehaviorTreeComponent>(BrainComponent))
+		{
+            BTComp->SetDynamicSubtree(CombatTag, AIChar->GetCombatTree());
+		}
     }
 }

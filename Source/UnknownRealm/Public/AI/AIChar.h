@@ -91,7 +91,7 @@ protected:
 	UBehaviorTree* CombatTree;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-	float AttackRange;
+	float BaseAttackRange;
 
 	UPROPERTY(BlueprintReadWrite)
 	TSet<APlayerCharacter*> TargetablePlayers;

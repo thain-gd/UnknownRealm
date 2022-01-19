@@ -18,7 +18,6 @@ void UBTService_CheckBaseState::OnBecomeRelevant(UBehaviorTreeComponent& OwnerCo
 {
 	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
 
-	OwnerComp.SetDynamicSubtree(CombatTag, OwnerComp.GetAIOwner()->GetPawn<AAIChar>()->GetCombatTree());
 	OwnerComp.GetBlackboardComponent()->SetValueAsEnum(CurrentStateKey.SelectedKeyName, static_cast<uint8>(EAIState::ApproachVillage));
 }
 

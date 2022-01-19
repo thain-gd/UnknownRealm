@@ -50,7 +50,7 @@ void AAIChar::ApplySimpleDamage(AActor* InDamagedActor, const float InDamage)
 
 bool AAIChar::CanDoBaseAttack() const
 {
-	return IsPlayerInRangeBounds(CurrentTargetPlayer, AttackRange);
+	return IsPlayerInRangeBounds(CurrentTargetPlayer, BaseAttackRange);
 }
 
 APlayerCharacter* AAIChar::GetPlayerInRange(const float InRange)

@@ -22,7 +22,7 @@ void AMeleeBear::OnPounceAttackFinished()
 	FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &AMeleeBear::AllowNextPounceAttack, PounceAttackCooldown);
 	
-	if (APlayerCharacter* PlayerCharacter = GetPlayerInRange(AttackRange))
+	if (APlayerCharacter* PlayerCharacter = GetPlayerInRange(BaseAttackRange))
 	{
 		PlayerCharacter->EnableImmobility();
 		// TODO: Change this y rotation to a taken down animation

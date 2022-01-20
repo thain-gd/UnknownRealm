@@ -8,6 +8,8 @@
 #include "GameFramework/PlayerController.h"
 #include "MPPlayerController.generated.h"
 
+class APlayerCharacter;
+class UPlayerHUDWidget;
 /**
  * 
  */
@@ -27,6 +29,8 @@ public:
 	UFUNCTION(Client, Reliable)
 	void CL_PostLogin();
 
+	void OnRep_Pawn() override;
+	
 	void ShowWaveResult();
 
 	UFUNCTION(Server, Reliable)
@@ -38,11 +42,9 @@ public:
 	// For AI
 	FGenericTeamId GetGenericTeamId() const override { return MyTeamId; }
 
-protected:
-	UFUNCTION(BlueprintCallable)
-	void SetupUIs();
-
 private:
+	void SetupUIs();
+	
 	void ToggleGameMenu();
 	void ShowGameMenu();
 	void HideGameMenu();
@@ -55,7 +57,7 @@ protected:
 	TSubclassOf<UUserWidget> GameMenuClass;
 	
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UUserWidget> HUDClass;
+	TSubclassOf<UPlayerHUDWidget> HUDClass;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UUserWidget> StatusWidgetClass;
@@ -65,7 +67,7 @@ private:
 	UUserWidget* GameMenu;
 	
 	UPROPERTY()
-	UUserWidget* HUD;
+	UPlayerHUDWidget* HUD;
 
 	UPROPERTY()
 	UUserWidget* StatusWidget;

@@ -6,15 +6,18 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerHUDWidget.generated.h"
 
+class APlayerCharacter;
 class UProgressBar;
-/**
- * 
- */
+
 UCLASS()
 class UNKNOWNREALM_API UPlayerHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	const APlayerCharacter* GetOwnerPlayerChar() const { return OwnerPlayerChar; }
+	void SetOwnerPlayerChar(APlayerCharacter* InOwnerPlayerChar) { OwnerPlayerChar = InOwnerPlayerChar; }
+	
 private:
 	UFUNCTION(BlueprintPure)
 	FText GetPreparingTimeText() const;
@@ -38,4 +41,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AActor> VillageClass;
+
+	UPROPERTY(BlueprintReadOnly)
+	APlayerCharacter* OwnerPlayerChar;
 };

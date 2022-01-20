@@ -7,10 +7,28 @@
 #include "Core/MPGameState.h"
 #include "Player/PlayerCharacter.h"
 #include "GameTeam.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "UI/PlayerHUDWidget.h"
 
 void AMPPlayerController::CL_PostLogin_Implementation()
 {
 	SetupUIs();
+}
+
+void AMPPlayerController::SetupUIs()
+{
+	HUD = CreateWidget<UPlayerHUDWidget>(this, HUDClass);
+	HUD->SetOwnerPlayerChar(GetPawn<APlayerCharacter>());
+	HUD->AddToViewport();
+
+	GameMenu = CreateWidget(this, GameMenuClass);
+
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputMode.SetHideCursorDuringCapture(true);
+	SetInputMode(InputMode);
+
+	bShowMouseCursor = false;
 }
 
 AMPPlayerController::AMPPlayerController()
@@ -37,6 +55,17 @@ void AMPPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		StatusWidget->RemoveFromParent();
 }
 
+void AMPPlayerController::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+
+	// Clients' Pawns will be nullptr at the time SetupUIs is called so need to set it here
+	if (GetPawn() && HUD && !HUD->GetOwnerPlayerChar())
+	{
+		HUD->SetOwnerPlayerChar(GetPawn<APlayerCharacter>());
+	}
+}
+
 void AMPPlayerController::ShowWaveResult()
 {
 	CreateWidget(this, StatusWidgetClass)->AddToViewport();
@@ -45,24 +74,6 @@ void AMPPlayerController::ShowWaveResult()
 void AMPPlayerController::SR_DestroyActor_Implementation(AActor* Actor)
 {
 	GetWorld()->DestroyActor(Actor);
-}
-
-void AMPPlayerController::SetupUIs()
-{
-	if (!IsLocalPlayerController())
-		return;
-
-	HUD = CreateWidget(this, HUDClass);
-	HUD->AddToViewport();
-
-	GameMenu = CreateWidget(this, GameMenuClass);
-
-	FInputModeGameAndUI InputMode;
-	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	InputMode.SetHideCursorDuringCapture(true);
-	SetInputMode(InputMode);
-	
-	bShowMouseCursor = false;
 }
 
 void AMPPlayerController::ToggleGameMenu()

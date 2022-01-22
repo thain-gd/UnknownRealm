@@ -7,7 +7,6 @@
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
-	: MaxHealth(100), CurrentHealth(MaxHealth)
 {
 	SetIsReplicatedByDefault(true);
 }

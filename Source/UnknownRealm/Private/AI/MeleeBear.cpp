@@ -83,10 +83,3 @@ void AMeleeBear::OnGotHit(AActor* InDamagedActor, float InDamage, const UDamageT
 		}
 	}
 }
-
-void AMeleeBear::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(AMeleeBear, bIsChomping);
-}

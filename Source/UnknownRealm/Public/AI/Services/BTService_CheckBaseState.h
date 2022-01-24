@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BTService_CheckState.h"
 #include "BehaviorTree/BTService.h"
 #include "BTService_CheckBaseState.generated.h"
 
@@ -10,7 +11,7 @@
  * 
  */
 UCLASS()
-class UNKNOWNREALM_API UBTService_CheckBaseState : public UBTService
+class UNKNOWNREALM_API UBTService_CheckBaseState : public UBTService_CheckState
 {
 	GENERATED_BODY()
 
@@ -25,11 +26,5 @@ protected:
 	
 private:
 	UPROPERTY(EditAnywhere, Category = Blackboard)
-	FBlackboardKeySelector CurrentStateKey;
-
-	UPROPERTY(EditAnywhere, Category = Blackboard)
 	FBlackboardKeySelector TargetObjectKey;
-
-	UPROPERTY(EditAnywhere, Category = Blackboard)
-	FBlackboardKeySelector TargetPlayerKey;
 };

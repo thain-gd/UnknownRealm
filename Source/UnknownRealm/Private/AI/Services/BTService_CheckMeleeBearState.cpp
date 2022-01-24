@@ -24,7 +24,7 @@ void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp,
 	UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
 	BlackboardComponent->SetValueAsObject(TargetPlayerKey.SelectedKeyName, MeleeBear->GetCurrentTargetPlayer());
 	
-	const EMeleeBearState State = static_cast<EMeleeBearState>(BlackboardComponent->GetValueAsEnum(CombatStateKey.SelectedKeyName));
+	const EMeleeBearState State = static_cast<EMeleeBearState>(BlackboardComponent->GetValueAsEnum(StateKey.SelectedKeyName));
 	switch (State)
 	{
 	case EMeleeBearState::Approach:
@@ -33,12 +33,12 @@ void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp,
 			if (MeleeBear->CanRun())
 			{
 				MeleeBear->StartRunning();
-				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Run);
+				SetState(*BlackboardComponent, static_cast<uint8>(EMeleeBearState::Run));
 			}
 			else if (MeleeBear->CanDoBaseAttack())
 			{
 				MeleeBear->StartAttacking();
-				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Slash);
+				SetState(*BlackboardComponent, static_cast<uint8>(EMeleeBearState::Slash));
 			}
 		}
 		break;
@@ -47,21 +47,21 @@ void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp,
 		if (MeleeBear->CanDoPounceAttack())
 		{
 			MeleeBear->StartAttacking();
-			ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Pounce);
+			SetState(*BlackboardComponent, static_cast<uint8>(EMeleeBearState::Pounce));
 		}
 		break;
-		
+
 	case EMeleeBearState::Pounce:
 		if (MeleeBear->IsFinishedAttacking())
 		{
 			if (MeleeBear->IsChomping())
 			{
 				MeleeBear->StartAttacking();
-				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Chomp);
+				SetState(*BlackboardComponent, static_cast<uint8>(EMeleeBearState::Chomp));
 			}
 			else
 			{
-				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Approach);
+				SetState(*BlackboardComponent, static_cast<uint8>(EMeleeBearState::Approach));
 			}
 		}
 		break;
@@ -75,16 +75,16 @@ void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp,
 			}
 			else
 			{
-				ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Approach);
+				SetState(*BlackboardComponent, static_cast<uint8>(EMeleeBearState::Approach));
 			}
 		}
 		break;
-		
+
 	case EMeleeBearState::Chomp:
 		// Only return to approach state if not chomping anymore
 		if (!MeleeBear->IsChomping())
 		{
-			ChangeMeleeBearState(*BlackboardComponent, EMeleeBearState::Approach);
+			SetState(*BlackboardComponent, static_cast<uint8>(EMeleeBearState::Approach));
 		}
 		else
 		{
@@ -92,9 +92,4 @@ void UBTService_CheckMeleeBearState::TickNode(UBehaviorTreeComponent& OwnerComp,
 		}
 		break;
 	}
-}
-
-void UBTService_CheckMeleeBearState::ChangeMeleeBearState(UBlackboardComponent& InBlackboardComponent, EMeleeBearState InNewState) const
-{
-	InBlackboardComponent.SetValueAsEnum(CombatStateKey.SelectedKeyName, static_cast<uint8>(InNewState));
 }

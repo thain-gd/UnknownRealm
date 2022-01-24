@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BTService_CheckState.h"
 #include "BehaviorTree/BTService.h"
 #include "BTService_CheckMeleeBearState.generated.h"
 
@@ -17,7 +18,7 @@ enum class EMeleeBearState : uint8
 };
 
 UCLASS()
-class UNKNOWNREALM_API UBTService_CheckMeleeBearState : public UBTService
+class UNKNOWNREALM_API UBTService_CheckMeleeBearState : public UBTService_CheckState
 {
 	GENERATED_BODY()
 
@@ -26,15 +27,4 @@ public:
 
 protected:
 	void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-
-private:
-	void ChangeMeleeBearState(UBlackboardComponent& InBlackboardComponent, EMeleeBearState InNewState) const;
-
-
-private:
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector CombatStateKey;
-
-	UPROPERTY(EditAnywhere, Category = "Blackboard")
-	FBlackboardKeySelector TargetPlayerKey;
 };

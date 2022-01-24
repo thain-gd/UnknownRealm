@@ -18,7 +18,7 @@ void UBTService_CheckBaseState::OnBecomeRelevant(UBehaviorTreeComponent& OwnerCo
 {
 	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
 
-	OwnerComp.GetBlackboardComponent()->SetValueAsEnum(CurrentStateKey.SelectedKeyName, static_cast<uint8>(EAIState::ApproachVillage));
+	SetState(*OwnerComp.GetBlackboardComponent(), static_cast<uint8>(EAIState::ApproachVillage));
 }
 
 void UBTService_CheckBaseState::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -32,7 +32,7 @@ void UBTService_CheckBaseState::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 	}
 
 	UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
-	const EAIState CurrentState = static_cast<EAIState>(BlackboardComponent->GetValueAsEnum(CurrentStateKey.SelectedKeyName));
+	const EAIState CurrentState = static_cast<EAIState>(BlackboardComponent->GetValueAsEnum(StateKey.SelectedKeyName));
 	switch (CurrentState)
 	{
 	case EAIState::AttackVillage:
@@ -42,7 +42,7 @@ void UBTService_CheckBaseState::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 			APlayerCharacter* TargetPlayer = AIChar->PickNextTargetPlayer();
 			BlackboardComponent->SetValueAsObject(TargetPlayerKey.SelectedKeyName, TargetPlayer);
 
-			BlackboardComponent->SetValueAsEnum(CurrentStateKey.SelectedKeyName, static_cast<uint8>(EAIState::EncounterPlayer));
+			SetState(*BlackboardComponent, static_cast<uint8>(EAIState::EncounterPlayer));
 			BlackboardComponent->ClearValue(TargetObjectKey.SelectedKeyName);
 		}
 		break;
@@ -54,7 +54,7 @@ void UBTService_CheckBaseState::TickNode(UBehaviorTreeComponent& OwnerComp, uint
 			{
 				AIChar->CleanCurrentTargetPlayer();
 				BlackboardComponent->ClearValue(TargetPlayerKey.SelectedKeyName);
-				BlackboardComponent->SetValueAsEnum(CurrentStateKey.SelectedKeyName, static_cast<uint8>(EAIState::ApproachVillage));
+				SetState(*BlackboardComponent, static_cast<uint8>(EAIState::ApproachVillage));
 			}
 		}
 		break;

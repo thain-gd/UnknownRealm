@@ -27,19 +27,19 @@ void UBTService_CheckRangeBearState::TickNode(UBehaviorTreeComponent& InOwnerCom
 	UBlackboardComponent* BlackboardComponent = InOwnerComp.GetBlackboardComponent();
 	BlackboardComponent->SetValueAsObject(TargetPlayerKey.SelectedKeyName, RangeBear->GetCurrentTargetPlayer());
 
-	const ERangeBearState State = static_cast<ERangeBearState>(BlackboardComponent->GetValueAsEnum(CombatStateKey.SelectedKeyName));
+	const ERangeBearState State = static_cast<ERangeBearState>(BlackboardComponent->GetValueAsEnum(StateKey.SelectedKeyName));
 	switch (State)
 	{
 	case ERangeBearState::Approach:
 		if (RangeBear->CanThrowBeeNest())
 		{
 			RangeBear->StartAttacking();
-			ChangeRangeBearState(*BlackboardComponent, ERangeBearState::ThrowBeeNest);
+			SetState(*BlackboardComponent, static_cast<uint8>(ERangeBearState::ThrowBeeNest));
 		}
 		else if (RangeBear->CanDoBaseAttack())
 		{
 			RangeBear->StartAttacking();
-			ChangeRangeBearState(*BlackboardComponent, ERangeBearState::Bite);
+			SetState(*BlackboardComponent, static_cast<uint8>(ERangeBearState::Bite));
 		}
 		break;
 
@@ -52,7 +52,7 @@ void UBTService_CheckRangeBearState::TickNode(UBehaviorTreeComponent& InOwnerCom
 			}
 			else
 			{
-				ChangeRangeBearState(*BlackboardComponent, ERangeBearState::Approach);
+				SetState(*BlackboardComponent, static_cast<uint8>(ERangeBearState::Approach));
 			}
 		}
 		break;
@@ -66,14 +66,9 @@ void UBTService_CheckRangeBearState::TickNode(UBehaviorTreeComponent& InOwnerCom
 			}
 			else
 			{
-				ChangeRangeBearState(*BlackboardComponent, ERangeBearState::Approach);
+				SetState(*BlackboardComponent, static_cast<uint8>(ERangeBearState::Approach));
 			}
 		}
 		break;
 	}
-}
-
-void UBTService_CheckRangeBearState::ChangeRangeBearState(UBlackboardComponent& InBlackboardComponent, ERangeBearState InNewState) const
-{
-	InBlackboardComponent.SetValueAsEnum(CombatStateKey.SelectedKeyName, static_cast<uint8>(InNewState));
 }
